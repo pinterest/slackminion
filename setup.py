@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
         name='slackminion',
-        version='0.1.8',
-        packages=['slackminion', 'slackminion.plugins'],
+        version='0.1.9',
+        packages=find_packages(exclude=['test_plugins']),
         url='https://github.com/arcticfoxnv/slackminion',
         license='MIT',
         author='Nick King',
