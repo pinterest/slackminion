@@ -22,11 +22,11 @@ class Bot(object):
         self.is_setup = False
 
     def start(self):
-        self._setup()
+        self.load_plugins()
         self.is_setup = self.sc.rtm_connect()
         return self.is_setup
 
-    def _setup(self):
+    def load_plugins(self):
         from config import PLUGINS, PLUGIN_SETTINGS, WEB_HOST, WEB_PORT
         for plugin_name in PLUGINS:
             module, name = plugin_name.rsplit('.', 1)
