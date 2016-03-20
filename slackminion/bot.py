@@ -16,7 +16,7 @@ class NotSetupError(Exception):
 class Bot(object):
     def __init__(self, config):
         self.config = config
-        self.sc = SlackClient(config['slack_token'])
+        self.sc = None
         self.log = logging.getLogger(__name__)
         self.dispatcher = MessageDispatcher()
         self.webserver = None
@@ -24,6 +24,7 @@ class Bot(object):
 
     def start(self):
         self.load_plugins()
+        self.sc = SlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
         # Rocket is very noisy at debug
@@ -32,10 +33,11 @@ class Bot(object):
         self.is_setup = True
 
     def load_plugins(self):
+        import os
         import sys
 
         # Add plugin dir for extra plugins
-        sys.path.append(self.config['plugin_dir'])
+        sys.path.append(os.path.join(os.getcwd(), self.config['plugin_dir']))
         for plugin_name in self.config['plugins']:
 
             # module_path.plugin_class_name
