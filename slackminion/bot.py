@@ -4,7 +4,7 @@ from slackclient import SlackClient
 from time import sleep
 
 from dispatcher import MessageDispatcher
-from slack import SlackMessage
+from slack import SlackMessage, SlackChannel, SlackUser
 from webserver import Webserver
 
 
@@ -88,9 +88,9 @@ class Bot(object):
                         self.log.debug("Output from dispatcher: %s", output)
                         if output:
                             if cmd in self.always_send_dm:
-                                self.send_im(msg.user.userid, output)
+                                self.send_im(msg.user, output)
                             else:
-                                self.send_message(msg.channel.channelid, output)
+                                self.send_message(msg.channel, output)
                 sleep(0.1)
         except KeyboardInterrupt:
             # On ctrl-c, just exit
@@ -104,10 +104,14 @@ class Bot(object):
 
     def send_message(self, channel, text):
         # This doesn't want the # in the channel name
+        if isinstance(channel, SlackChannel):
+            channel = channel.channelid
         self.log.debug("Trying to send to %s: %s", channel, text)
         self.sc.rtm_send_message(channel, text)
 
     def send_im(self, user, text):
+        if isinstance(user, SlackUser):
+            user = user.userid
         if user[0] == 'D':
             channelid = user
         else:

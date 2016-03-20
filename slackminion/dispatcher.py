@@ -60,6 +60,7 @@ class MessageDispatcher(object):
                 sender = "#%s/%s" % (message.channel.channel, sender)
             self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
             return cmd, self.commands[cmd].execute(message, msg_args)
+        return None, None
 
     def _parse_message(self, message):
         args = message.text.split(' ')
