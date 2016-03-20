@@ -55,12 +55,9 @@ class MessageDispatcher(object):
         msg_args = args[1:]
         self.log.info("Received from %s: execute %s, args %s", message.user.username, cmd, msg_args)
         self.log.debug("Received command %s with args %s", cmd, msg_args)
-        if cmd[0] == '!':
-            cmd = cmd[1:]
-
-            if cmd in self.commands:
-                self.log.debug("Executing command %s with args %s", cmd, msg_args)
-                return self.commands[cmd].execute(message, msg_args)
+        if cmd in self.commands:
+            self.log.debug("Executing command %s with args %s", cmd, msg_args)
+            return self.commands[cmd].execute(message, msg_args)
 
     def _parse_message(self, message):
         args = message.text.split(' ')
@@ -74,6 +71,7 @@ class MessageDispatcher(object):
     def _register_commands(self, plugin):
         for name, method in plugin.__class__.__dict__.iteritems():
             if hasattr(method, 'is_cmd'):
+                name = '!' + name
                 if name in self.commands:
                     raise DuplicateCommandError(name)
                 self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + name)
