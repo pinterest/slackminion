@@ -1,5 +1,5 @@
 # slackminion
-A python bot for slack
+A python bot framework for slack
 
 # Plugins
 Plugins should inherit from `slackminion.plugin.BasePlugin`
