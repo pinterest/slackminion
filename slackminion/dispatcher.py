@@ -76,7 +76,7 @@ class MessageDispatcher(object):
                     raise DuplicateCommandError(name)
                 self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + name)
                 self.commands[name] = PluginCommand(plugin, method)
-            if hasattr(method, 'is_webhook'):
+            elif hasattr(method, 'is_webhook'):
                 self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
                 webhook = WebhookCommand(plugin, method, method.form_params)
                 app().route(method.route, 'POST', webhook.execute)

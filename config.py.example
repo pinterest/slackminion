@@ -3,6 +3,7 @@ SLACK_TOKEN = "xoxb-27..."
 
 # Enables extra output
 DEBUG = True
+PLUGIN_DIR = 'plugins'
 
 # Plugin list to load
 PLUGINS = [

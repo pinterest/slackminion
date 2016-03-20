@@ -22,30 +22,50 @@ class Bot(object):
         self.is_setup = False
 
     def start(self):
+        from config import WEB_HOST, WEB_PORT
         self.load_plugins()
+        self.webserver = Webserver(WEB_HOST, WEB_PORT)
+
+        # Rocket is very noisy at debug
+        logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)
+
         self.is_setup = self.sc.rtm_connect()
         return self.is_setup
 
     def load_plugins(self):
-        from config import PLUGINS, PLUGIN_SETTINGS, WEB_HOST, WEB_PORT
+        import sys
+        from config import PLUGINS, PLUGIN_SETTINGS, PLUGIN_DIR
+
+        # Add plugin dir for extra plugins
+        sys.path.append(PLUGIN_DIR)
         for plugin_name in PLUGINS:
+
+            # module_path.plugin_class_name
             module, name = plugin_name.rsplit('.', 1)
             plugin = __import__(module, fromlist=['']).__dict__[name]
+
+            # load plugin config if available
             config = {}
             if name in PLUGIN_SETTINGS:
                 config = PLUGIN_SETTINGS[name]
+
             self.dispatcher.register_plugin(plugin(self, config=config))
-        self.webserver = Webserver(WEB_HOST, WEB_PORT)
 
     def run(self):
+
+        # Fail out if setup wasn't run
         if not self.is_setup:
             raise NotSetupError
+
+        # Start the web server
         self.webserver.start()
         try:
             while True:
-                raw_messages = self.sc.rtm_read()
-                for m in raw_messages:
+                # Get all waiting messages - this always returns a list
+                messages = self.sc.rtm_read()
+                for m in messages:
                     if 'type' not in m:
+                        # This is likely a notification that the bot was mentioned
                         self.log.debug("Received odd message: %s", m)
                         continue
                     msg = SlackMessage(sc=self.sc, **m)
@@ -65,6 +85,7 @@ class Bot(object):
             self.webserver.stop()
 
     def send_message(self, channel, text):
+        # This doesn't want the # in the channel name
         self.log.debug("Trying to send to %s: %s", channel, text)
         self.sc.rtm_send_message(channel, text)
 
