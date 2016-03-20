@@ -1,5 +1,7 @@
 import logging
 
+from bottle import request, app
+
 
 class DuplicateCommandError(Exception):
     def __init__(self, name):
@@ -24,6 +26,21 @@ class PluginCommand(object):
 
     def execute(self, *args, **kwargs):
         return self.method(self.instance, *args, **kwargs)
+
+
+class WebhookCommand(PluginCommand):
+    def __init__(self, instance, method, form_params):
+        super(WebhookCommand, self).__init__(instance, method)
+        self.form_params = form_params
+
+    def execute(self):
+        args = {}
+        form_params = self.form_params
+        if isinstance(self.form_params, basestring):
+            form_params = [self.form_params]
+        for p in form_params:
+            args[p] = request.forms[p]
+        return self.method(self.instance, **args)
 
 
 class MessageDispatcher(object):
@@ -55,7 +72,11 @@ class MessageDispatcher(object):
     def _register_commands(self, plugin):
         for name, method in plugin.__class__.__dict__.iteritems():
             if hasattr(method, 'is_cmd'):
-                self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + name)
                 if name in self.commands:
                     raise DuplicateCommandError(name)
+                self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + name)
                 self.commands[name] = PluginCommand(plugin, method)
+            if hasattr(method, 'is_webhook'):
+                self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
+                webhook = WebhookCommand(plugin, method, method.form_params)
+                app().route(method.route, 'POST', webhook.execute)

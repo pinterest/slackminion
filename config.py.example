@@ -1,0 +1,21 @@
+# The API token provided by slack
+SLACK_TOKEN = "xoxb-27..."
+
+# Enables extra output
+DEBUG = True
+
+# Plugin list to load
+PLUGINS = [
+    'slackminion.plugins.test.TestPlugin',
+]
+
+# Settings to pass to plugins
+PLUGIN_SETTINGS = {
+    'TestPlugin': {
+        'channel': 'botfactory',
+    },
+}
+
+# Web server host and port to bind to
+WEB_HOST = '127.0.0.1'
+WEB_PORT = 11111

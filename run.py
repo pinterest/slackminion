@@ -11,3 +11,4 @@ if __name__ == "__main__":
     bot = Bot(SLACK_TOKEN)
     bot.start()
     bot.run()
+    bot.stop()
