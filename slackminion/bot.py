@@ -112,10 +112,7 @@ class Bot(object):
     def send_im(self, user, text):
         if isinstance(user, SlackUser):
             user = user.userid
-        if user[0] == 'D':
-            channelid = user
-        else:
-            channelid = self._find_im_channel(user)
+        channelid = self._find_im_channel(user)
         self.send_message(channelid, text)
 
     def _find_im_channel(self, user):
