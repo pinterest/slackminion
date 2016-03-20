@@ -16,6 +16,10 @@ plugin_settings:
   TestPlugin:
     channel: botfactory
 
+# Commands to always reply using DM
+always_send_dm:
+  - help
+
 # Web server host and port to bind to
 webserver:
   host: 127.0.0.1
