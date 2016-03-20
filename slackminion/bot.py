@@ -21,11 +21,15 @@ class Bot(object):
         self.dispatcher = MessageDispatcher()
         self.webserver = None
         self.is_setup = False
+        self.always_send_dm = []
 
     def start(self):
         self.load_plugins()
         self.sc = SlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
+
+        if 'always_send_dm' in self.config:
+            self.always_send_dm = map(lambda x: '!' + x, self.config['always_send_dm'])
 
         # Rocket is very noisy at debug
         logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)
@@ -80,10 +84,13 @@ class Bot(object):
                     self.log.debug("Received message type: %s", msg.type)
                     if msg.type == 'message':
                         self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
-                        output = self.dispatcher.push(msg)
+                        cmd, output = self.dispatcher.push(msg)
                         self.log.debug("Output from dispatcher: %s", output)
                         if output:
-                            self.send_message(msg.channel.channelid, output)
+                            if cmd in self.always_send_dm:
+                                self.send_im(msg.user.userid, output)
+                            else:
+                                self.send_message(msg.channel.channelid, output)
                 sleep(0.1)
         except KeyboardInterrupt:
             # On ctrl-c, just exit
@@ -100,5 +107,17 @@ class Bot(object):
         self.log.debug("Trying to send to %s: %s", channel, text)
         self.sc.rtm_send_message(channel, text)
 
-    def _send(self, message):
-        self.sc.rtm_send_message(message.channelid, message.text)
+    def send_im(self, user, text):
+        if user[0] == 'D':
+            channelid = user
+        else:
+            channelid = self._find_im_channel(user)
+        self.send_message(channelid, text)
+
+    def _find_im_channel(self, user):
+        resp = self.sc.api_call('im.list')
+        channels = filter(lambda x: x['user'] == user, resp['ims'])
+        if len(channels) > 0:
+            return channels[0]['id']
+        resp = self.sc.api_call('im.open', user=user)
+        return resp['channel']['id']
