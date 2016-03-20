@@ -12,7 +12,7 @@ Plugins have two methods which can be overridden to provide start/shutdown funct
 To add a new command in the form of !command, simply add the `@cmd` decorator to any function in your plugin class.  Anything returned from the function is sent to the channel/IM where the command was sent from.
 ```
 @cmd
-def function(self, msg, *args)
+def function(self, msg, args)
 ```
 * msg: A `SlackMessage` object
 * args: A list of arguments specified with the command

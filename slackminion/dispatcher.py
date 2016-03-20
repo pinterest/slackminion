@@ -52,14 +52,15 @@ class MessageDispatcher(object):
     def push(self, message):
         args = self._parse_message(message)
         cmd = args[0]
-        self.log.info("Received from %s: execute %s, args %s", message.user.username, cmd, args[1:])
-        self.log.debug("Received command %s with args %s", cmd, args[1:])
+        msg_args = args[1:]
+        self.log.info("Received from %s: execute %s, args %s", message.user.username, cmd, msg_args)
+        self.log.debug("Received command %s with args %s", cmd, msg_args)
         if cmd[0] == '!':
             cmd = cmd[1:]
 
             if cmd in self.commands:
-                self.log.debug("Executing command %s with args %s", cmd, args[1:])
-                return self.commands[cmd].execute(message, *args[1:])
+                self.log.debug("Executing command %s with args %s", cmd, msg_args)
+                return self.commands[cmd].execute(message, msg_args)
 
     def _parse_message(self, message):
         args = message.text.split(' ')
