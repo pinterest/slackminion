@@ -6,7 +6,7 @@ setup(
         packages=['slackminion', 'slackminion.plugins'],
         url='https://github.com/arcticfoxnv/slackminion',
         license='MIT',
-        author='',
+        author='Nick King',
         author_email='',
         description='',
         install_requires=[
@@ -22,5 +22,12 @@ setup(
             'console_scripts': [
                 'slackminion = slackminion.__main__:main',
             ]
-        }
+        },
+        classifiers=[
+            "Programming Language :: Python",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Development Status :: 2 - Pre-Alpha",
+            "Topic :: Communications :: Chat",
+        ]
 )
