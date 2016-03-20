@@ -1,4 +1,6 @@
 import logging
+import sys
+sys.path.append('.')
 
 from config import *
 from slackminion.bot import Bot
