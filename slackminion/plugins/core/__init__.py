@@ -1,5 +1,5 @@
 from operator import itemgetter
-from ...plugin import BasePlugin, cmd
+from slackminion.plugin import BasePlugin, cmd
 
 
 class Core(BasePlugin):
