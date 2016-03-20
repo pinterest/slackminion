@@ -1,4 +1,5 @@
 import logging
+import threading
 
 
 def cmd(func):
@@ -18,7 +19,8 @@ def webhook(*args, **kwargs):
 class BasePlugin(object):
     def __init__(self, bot, **kwargs):
         self.log = logging.getLogger(__name__)
-        self.bot = bot
+        self._bot = bot
+        self._timer_callbacks = {}
         self.config = {}
         if 'config' in kwargs:
             self.config = kwargs['config']
@@ -30,4 +32,19 @@ class BasePlugin(object):
         pass
 
     def send_message(self, channel, text):
-        self.bot.send_message(channel, text)
+        self._bot.send_message(channel, text)
+
+    def start_timer(self, func, duration):
+        t = threading.Timer(duration * 60.0, self._timer_callback, (func,))
+        self._timer_callbacks[func] = t
+        t.start()
+
+    def stop_timer(self, func):
+        if func in self._timer_callbacks:
+            t = self._timer_callbacks[func]
+            t.cancel()
+            del self._timer_callbacks[func]
+
+    def _timer_callback(self, func):
+        del self._timer_callbacks[func]
+        func()
