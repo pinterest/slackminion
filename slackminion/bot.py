@@ -38,8 +38,13 @@ class Bot(object):
 
         # Add plugin dir for extra plugins
         sys.path.append(os.path.join(os.getcwd(), self.config['plugin_dir']))
-        for plugin_name in self.config['plugins']:
+        if 'plugins' not in self.config:
+            self.config['plugins'] = []
 
+        # Add core plugins
+        self.config['plugins'].append('slackminion.plugins.core.Core')
+
+        for plugin_name in self.config['plugins']:
             # module_path.plugin_class_name
             module, name = plugin_name.rsplit('.', 1)
             plugin = __import__(module, fromlist=['']).__dict__[name]

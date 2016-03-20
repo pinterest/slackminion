@@ -23,6 +23,7 @@ class PluginCommand(object):
     def __init__(self, instance, method):
         self.instance = instance
         self.method = method
+        self.help = method.__doc__
 
     def execute(self, *args, **kwargs):
         return self.method(self.instance, *args, **kwargs)
@@ -47,7 +48,6 @@ class MessageDispatcher(object):
     def __init__(self):
         self.log = logging.getLogger(__name__)
         self.commands = {}
-        self.plugins = {}
 
     def push(self, message):
         args = self._parse_message(message)
