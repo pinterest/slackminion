@@ -1,0 +1,22 @@
+---
+# Enables extra output for debugging
+debug: True
+
+# The API token provided by slack
+slack_token: xoxb-27...
+
+# Directory for extra plugins
+plugin_dir: plugins
+
+# Plugin list to load
+plugins:
+  - slackminion.plugins.test.TestPlugin
+
+plugin_settings:
+  TestPlugin:
+    channel: botfactory
+
+# Web server host and port to bind to
+webserver:
+  host: 127.0.0.1
+  port: 11111

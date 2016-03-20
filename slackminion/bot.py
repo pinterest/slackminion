@@ -14,31 +14,29 @@ class NotSetupError(Exception):
 
 
 class Bot(object):
-    def __init__(self, token):
-        self.sc = SlackClient(token)
+    def __init__(self, config):
+        self.config = config
+        self.sc = SlackClient(config['slack_token'])
         self.log = logging.getLogger(__name__)
         self.dispatcher = MessageDispatcher()
         self.webserver = None
         self.is_setup = False
 
     def start(self):
-        from config import WEB_HOST, WEB_PORT
         self.load_plugins()
-        self.webserver = Webserver(WEB_HOST, WEB_PORT)
+        self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
         # Rocket is very noisy at debug
         logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)
 
-        self.is_setup = self.sc.rtm_connect()
-        return self.is_setup
+        self.is_setup = True
 
     def load_plugins(self):
         import sys
-        from config import PLUGINS, PLUGIN_SETTINGS, PLUGIN_DIR
 
         # Add plugin dir for extra plugins
-        sys.path.append(PLUGIN_DIR)
-        for plugin_name in PLUGINS:
+        sys.path.append(self.config['plugin_dir'])
+        for plugin_name in self.config['plugins']:
 
             # module_path.plugin_class_name
             module, name = plugin_name.rsplit('.', 1)
@@ -46,8 +44,8 @@ class Bot(object):
 
             # load plugin config if available
             config = {}
-            if name in PLUGIN_SETTINGS:
-                config = PLUGIN_SETTINGS[name]
+            if name in self.config['plugin_settings']:
+                config = self.config['plugin_settings'][name]
 
             self.dispatcher.register_plugin(plugin(self, config=config))
 
@@ -56,6 +54,9 @@ class Bot(object):
         # Fail out if setup wasn't run
         if not self.is_setup:
             raise NotSetupError
+
+        if not self.sc.rtm_connect():
+            return False
 
         # Start the web server
         self.webserver.start()

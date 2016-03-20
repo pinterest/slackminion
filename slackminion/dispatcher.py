@@ -71,11 +71,11 @@ class MessageDispatcher(object):
     def _register_commands(self, plugin):
         for name, method in plugin.__class__.__dict__.iteritems():
             if hasattr(method, 'is_cmd'):
-                name = '!' + name
-                if name in self.commands:
+                cmd_name = '!' + name
+                if cmd_name in self.commands:
                     raise DuplicateCommandError(name)
                 self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + name)
-                self.commands[name] = PluginCommand(plugin, method)
+                self.commands[cmd_name] = PluginCommand(plugin, method)
             elif hasattr(method, 'is_webhook'):
                 self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
                 webhook = WebhookCommand(plugin, method, method.form_params)
