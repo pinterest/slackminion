@@ -77,6 +77,9 @@ class Bot(object):
                         if output:
                             self.send_message(msg.channel.channelid, output)
                 sleep(0.1)
+        except KeyboardInterrupt:
+            # On ctrl-c, just exit
+            pass
         except:
             self.log.exception('Unhandled exception')
 
