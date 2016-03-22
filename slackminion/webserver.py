@@ -14,4 +14,5 @@ class Webserver(object):
         self.webserver.start(background=True)
 
     def stop(self):
-        self.webserver.stop()
+        if self.webserver is not None:
+            self.webserver.stop()

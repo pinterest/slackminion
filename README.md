@@ -43,7 +43,7 @@ To start a timer
 self.start_timer(func, duration)
 ```
 * func: A reference to the function to run
-* duration: Time in minutes to wait before running
+* duration: Time in seconds to wait before running
 
 A timer can be stopped if it hasn't fired yet.
 ```

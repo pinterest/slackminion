@@ -55,6 +55,9 @@ class MessageDispatcher(object):
         msg_args = args[1:]
         self.log.debug("Received command %s with args %s", cmd, msg_args)
         if cmd in self.commands:
+            if message.user is None:
+                self.log.debug("Discarded message with no originating user: %s", message)
+                return None, None
             sender = message.user.username
             if message.channel is not None:
                 sender = "#%s/%s" % (message.channel.channel, sender)
@@ -74,11 +77,20 @@ class MessageDispatcher(object):
     def _register_commands(self, plugin):
         for name, method in plugin.__class__.__dict__.iteritems():
             if hasattr(method, 'is_cmd'):
-                cmd_name = '!' + name
-                if cmd_name in self.commands:
-                    raise DuplicateCommandError(name)
-                self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + name)
-                self.commands[cmd_name] = PluginCommand(plugin, method)
+                commands = [name]
+                if method.aliases is not None:
+                    aliases = method.aliases
+                    if isinstance(method.aliases, basestring):
+                        aliases = [method.aliases]
+                    for alias in aliases:
+                        commands.append(alias)
+
+                for cmd_name in commands:
+                    cmd = '!' + cmd_name
+                    if cmd in self.commands:
+                        raise DuplicateCommandError(cmd_name)
+                    self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + cmd_name)
+                    self.commands[cmd] = PluginCommand(plugin, method)
             elif hasattr(method, 'is_webhook'):
                 self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
                 webhook = WebhookCommand(plugin, method, method.form_params)

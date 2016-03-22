@@ -46,19 +46,24 @@ class Bot(object):
             self.config['plugins'] = []
 
         # Add core plugins
-        self.config['plugins'].append('slackminion.plugins.core.Core')
+        self.config['plugins'].insert(0, 'slackminion.plugins.core.Core')
 
         for plugin_name in self.config['plugins']:
             # module_path.plugin_class_name
             module, name = plugin_name.rsplit('.', 1)
-            plugin = __import__(module, fromlist=['']).__dict__[name]
+            try:
+                plugin = __import__(module, fromlist=['']).__dict__[name]
+            except ImportError:
+                self.log.exception("Failed to load plugin %s", name)
 
             # load plugin config if available
             config = {}
             if name in self.config['plugin_settings']:
                 config = self.config['plugin_settings'][name]
-
-            self.dispatcher.register_plugin(plugin(self, config=config))
+            try:
+                self.dispatcher.register_plugin(plugin(self, config=config))
+            except:
+                self.log.exception("Failed to register plugin %s", name)
 
     def run(self):
 
@@ -84,7 +89,10 @@ class Bot(object):
                     self.log.debug("Received message type: %s", msg.type)
                     if msg.type == 'message':
                         self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
-                        cmd, output = self.dispatcher.push(msg)
+                        try:
+                            cmd, output = self.dispatcher.push(msg)
+                        except:
+                            self.log.exception('Unhandled exception')
                         self.log.debug("Output from dispatcher: %s", output)
                         if output:
                             if cmd in self.always_send_dm:

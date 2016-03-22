@@ -4,7 +4,7 @@ from slackminion.plugin import BasePlugin, cmd
 
 class Core(BasePlugin):
 
-    @cmd
+    @cmd()
     def help(self, msg, args):
         """Displays help for each command"""
         output = []

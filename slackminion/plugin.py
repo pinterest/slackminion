@@ -2,9 +2,14 @@ import logging
 import threading
 
 
-def cmd(func):
-    func.is_cmd = True
-    return func
+def cmd(admin_only=False, acl='*', aliases=None, *args, **kwargs):
+    def wrapper(func):
+        func.is_cmd = True
+        func.admin_only = admin_only
+        func.acl = acl
+        func.aliases = aliases
+        return func
+    return wrapper
 
 
 def webhook(*args, **kwargs):
@@ -35,7 +40,7 @@ class BasePlugin(object):
         self._bot.send_message(channel, text)
 
     def start_timer(self, func, duration):
-        t = threading.Timer(duration * 60.0, self._timer_callback, (func,))
+        t = threading.Timer(duration, self._timer_callback, (func,))
         self._timer_callbacks[func] = t
         t.start()
 
