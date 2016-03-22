@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
         name='slackminion',
-        version='0.1.15',
+        version='0.1.16',
         packages=find_packages(exclude=['test_plugins']),
         url='https://github.com/arcticfoxnv/slackminion',
         license='MIT',
         author='Nick King',
         author_email='',
-        description='',
+        description='A python bot framework for slack',
         install_requires=[
             'bottle',
             'PyYAML',
