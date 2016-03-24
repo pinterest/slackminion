@@ -4,7 +4,7 @@ from slackclient import SlackClient
 from time import sleep
 
 from dispatcher import MessageDispatcher
-from slack import SlackMessage, SlackChannel, SlackUser
+from slack import SlackEvent, SlackChannel, SlackUser
 from webserver import Webserver
 
 
@@ -24,7 +24,7 @@ class Bot(object):
         self.always_send_dm = []
 
     def start(self):
-        self.load_plugins()
+        self._load_plugins()
         self.sc = SlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
@@ -36,7 +36,7 @@ class Bot(object):
 
         self.is_setup = True
 
-    def load_plugins(self):
+    def _load_plugins(self):
         import os
         import sys
 
@@ -78,27 +78,10 @@ class Bot(object):
         self.webserver.start()
         try:
             while True:
-                # Get all waiting messages - this always returns a list
-                messages = self.sc.rtm_read()
-                for m in messages:
-                    if 'type' not in m:
-                        # This is likely a notification that the bot was mentioned
-                        self.log.debug("Received odd message: %s", m)
-                        continue
-                    msg = SlackMessage(sc=self.sc, **m)
-                    self.log.debug("Received message type: %s", msg.type)
-                    if msg.type == 'message':
-                        self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
-                        try:
-                            cmd, output = self.dispatcher.push(msg)
-                        except:
-                            self.log.exception('Unhandled exception')
-                        self.log.debug("Output from dispatcher: %s", output)
-                        if output:
-                            if cmd in self.always_send_dm:
-                                self.send_im(msg.user, output)
-                            else:
-                                self.send_message(msg.channel, output)
+                # Get all waiting events - this always returns a list
+                events = self.sc.rtm_read()
+                for e in events:
+                    self._handle_event(e)
                 sleep(0.1)
         except KeyboardInterrupt:
             # On ctrl-c, just exit
@@ -130,3 +113,28 @@ class Bot(object):
             return channels[0]['id']
         resp = self.sc.api_call('im.open', user=user)
         return resp['channel']['id']
+
+    def _handle_event(self, event):
+        if 'type' not in event:
+            # This is likely a notification that the bot was mentioned
+            self.log.debug("Received odd event: %s", event)
+            return
+        msg = SlackEvent(sc=self.sc, **event)
+        self.log.debug("Received event type: %s", msg.type)
+        handler = getattr(self, '_event_' + msg.type, None)
+        if handler:
+            handler(msg)
+
+    def _event_message(self, msg):
+        self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
+        try:
+            cmd, output = self.dispatcher.push(msg)
+        except:
+            self.log.exception('Unhandled exception')
+            return
+        self.log.debug("Output from dispatcher: %s", output)
+        if output:
+            if cmd in self.always_send_dm:
+                self.send_im(msg.user, output)
+            else:
+                self.send_message(msg.channel, output)

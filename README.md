@@ -14,7 +14,7 @@ To add a new command in the form of !command, simply add the `@cmd` decorator to
 @cmd
 def function(self, msg, args)
 ```
-* msg: A `SlackMessage` object
+* msg: A `SlackEvent` object
 * args: A list of arguments specified with the command
 * returns: string
 

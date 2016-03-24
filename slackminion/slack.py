@@ -1,4 +1,4 @@
-class SlackMessage(object):
+class SlackEvent(object):
     def __init__(self, sc=None, **kwargs):
 
         self._sc = sc
