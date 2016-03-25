@@ -13,18 +13,30 @@ class NotSetupError(Exception):
         return "Bot not setup.  Please run start() before run()."
 
 
+def eventhandler(*args, **kwargs):
+    def wrapper(func):
+        if isinstance(kwargs['events'], basestring):
+            kwargs['events'] = [kwargs['events']]
+        func.is_eventhandler = True
+        func.events = kwargs['events']
+        return func
+    return wrapper
+
+
 class Bot(object):
     def __init__(self, config):
         self.config = config
         self.sc = None
         self.log = logging.getLogger(__name__)
         self.dispatcher = MessageDispatcher()
+        self.event_handlers = {}
         self.webserver = None
         self.is_setup = False
         self.always_send_dm = []
 
     def start(self):
         self._load_plugins()
+        self._find_event_handlers()
         self.sc = SlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
@@ -64,6 +76,12 @@ class Bot(object):
                 self.dispatcher.register_plugin(plugin(self, config=config))
             except:
                 self.log.exception("Failed to register plugin %s", name)
+
+    def _find_event_handlers(self):
+        for name, method in self.__class__.__dict__.iteritems():
+            if hasattr(method, 'is_eventhandler'):
+                for event in method.events:
+                    self.event_handlers[event] = method
 
     def run(self):
 
@@ -119,12 +137,12 @@ class Bot(object):
             # This is likely a notification that the bot was mentioned
             self.log.debug("Received odd event: %s", event)
             return
-        msg = SlackEvent(sc=self.sc, **event)
-        self.log.debug("Received event type: %s", msg.type)
-        handler = getattr(self, '_event_' + msg.type, None)
-        if handler:
-            handler(msg)
+        e = SlackEvent(sc=self.sc, **event)
+        self.log.debug("Received event type: %s", e.type)
+        if e.type in self.event_handlers:
+            self.event_handlers[e.type](self, e)
 
+    @eventhandler(events='message')
     def _event_message(self, msg):
         self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
         try:
