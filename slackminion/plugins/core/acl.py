@@ -23,17 +23,31 @@ class AuthManager(BasePlugin):
     @cmd(admin_only=True)
     def acl(self, msg, args):
         """ACL Management.
+
+        Usage:
+        !acl _action_ [args]
+
+        Actions:
+        new _acl_ - Create a new ACL
+        delete _acl_ - Delete an ACL
+
+        allow _acl_ _user_ - Add user to the acl allow block
+        deny _acl_ _user_ - Add user to the acl deny block
+        remove _acl_ _user_ - Remove user from acl allow and deny blocks
+
+        show - Show all defined ACLs
+        show _acl_ - Show allow and deny blocks of specified ACL
         """
         if len(args) == 0:
-            return "Usage: !acl show OR !acl _name_ _action_"
-        elif len(args) == 1:
-            action = args[0]
+            return "Usage: !acl show OR !acl _action_ _args_"
+
+        action = args[0]
+        if len(args) == 1:
             if action != 'show':
-                return "Usage: !acl _name_ _action_"
+                return "Usage: !acl _action_ _args_"
             return self.acl_show(msg.user)
         else:
-            acl_name = args[0]
-            action = args[1]
+            acl_name = args[1]
 
         if action != 'new' and acl_name not in self._acl:
             return "ACL %s does not exist" % acl_name
@@ -43,7 +57,7 @@ class AuthManager(BasePlugin):
             return "Valid actions: %s" % ', '.join(valid_actions)
 
         if action in ['allow', 'deny', 'remove'] and len(args) < 3:
-            return "Usage: !acl %s %s _args_" % (acl_name, action)
+            return "Usage: !acl %s %s _args_" % (action, acl_name)
 
         if action == "allow":
             if self.acl_allow(acl_name, args[2]):
@@ -113,13 +127,13 @@ class AuthManager(BasePlugin):
     def acl_show(self, user, name=None):
         """Show current allow and deny blocks for the given acl."""
         if name is None:
-            return "%s: The following ACLs are defined: %s" % (user.username, ', '.join(self._acl.keys()))
+            return "%s: The following ACLs are defined: %s" % (user, ', '.join(self._acl.keys()))
 
         if name not in self._acl:
             return None
 
         return '\n'.join([
-            "%s: ACL '%s' is defined as follows:" % (user.username, name),
+            "%s: ACL '%s' is defined as follows:" % (user, name),
             "allow: %s" % ', '.join(self._acl[name]['allow']),
             "deny: %s" % ', '.join(self._acl[name]['deny'])
         ])
