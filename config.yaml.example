@@ -10,7 +10,15 @@ plugin_dir: plugins
 
 # Plugin list to load
 plugins:
+# Uncomment the following to enable ACL+admin checks
+#  - slackminion.plugins.core.AuthManager
   - slackminion.plugins.test.TestPlugin
+#  - slackminion.plugins.test.TestAclPlugin
+
+# Users who should be granted admin access
+# Only used if AuthManager is enabled
+bot_admins:
+  - someuser
 
 plugin_settings:
   TestPlugin:

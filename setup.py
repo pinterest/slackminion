@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
         name='slackminion',
-        version='0.3.0-dev',
+        version='0.3.0',
         packages=find_packages(exclude=['test_plugins']),
         url='https://github.com/arcticfoxnv/slackminion',
         license='MIT',
