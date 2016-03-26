@@ -32,6 +32,7 @@ class Bot(object):
         self.event_handlers = {}
         self.webserver = None
         self.is_setup = False
+        self.runnable = True
         self.always_send_dm = []
 
     def start(self):
@@ -96,7 +97,7 @@ class Bot(object):
         # Start the web server
         self.webserver.start()
         try:
-            while True:
+            while self.runnable:
                 # Get all waiting events - this always returns a list
                 events = self.sc.rtm_read()
                 for e in events:

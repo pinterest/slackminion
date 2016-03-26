@@ -10,7 +10,7 @@ class Webserver(object):
 
     def start(self):
         interfaces = [(self.host, self.port)]
-        self.webserver = Rocket(interfaces=interfaces, app_info={'wsgi_app': app()})
+        self.webserver = Rocket(interfaces=interfaces, app_info={'wsgi_app': app()}, handle_signals=False)
         self.webserver.start(background=True)
 
     def stop(self):
