@@ -12,6 +12,8 @@ class Core(BasePlugin):
         commands = sorted(self._bot.dispatcher.commands.items(), key=itemgetter(0))
         for name, cmd in commands:
             helpstr = cmd.help
+            if '.' in helpstr:
+                helpstr = helpstr[0:helpstr.find('.')+1]
             if helpstr is None:
                 helpstr = "No description provided"
             output.append("*%s*: %s" % (name, helpstr))

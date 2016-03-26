@@ -34,10 +34,10 @@ class TestAclPlugin(BasePlugin):
 
     @cmd(acl='test')
     def acltest(self, msg, args):
-        """A command only members of 'acltest' should be able to run."""
+        """A command only members of 'test' should be able to run."""
         return ':sushi:'
 
     @cmd(admin_only=True, acl='test')
     def adminacl(self, msg, args):
-        """Only admins who are in 'acltest' should be able to run this."""
+        """Only admins who are in 'test' should be able to run this."""
         return ':godmode:'

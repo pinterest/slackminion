@@ -132,6 +132,10 @@ class Bot(object):
         resp = self.sc.api_call('im.open', user=user)
         return resp['channel']['id']
 
+    def _load_user_rights(self, user):
+        if user.username in self.config['bot_admins']:
+            user.is_admin = True
+
     def _handle_event(self, event):
         if 'type' not in event:
             # This is likely a notification that the bot was mentioned
@@ -145,6 +149,7 @@ class Bot(object):
     @eventhandler(events='message')
     def _event_message(self, msg):
         self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
+        self._load_user_rights(msg.user)
         try:
             cmd, output = self.dispatcher.push(msg)
         except:
