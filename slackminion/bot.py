@@ -40,8 +40,9 @@ class Bot(object):
         self.sc = SlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
+        self.always_send_dm = ['_unauthorized_']
         if 'always_send_dm' in self.config:
-            self.always_send_dm = map(lambda x: '!' + x, self.config['always_send_dm'])
+            self.always_send_dm.extend(map(lambda x: '!' + x, self.config['always_send_dm']))
 
         # Rocket is very noisy at debug
         logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)

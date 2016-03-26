@@ -72,6 +72,7 @@ class MessageDispatcher(object):
             f = self._get_command(cmd, message.user)
             if f:
                 return cmd, f.execute(message, msg_args)
+            return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd
         return None, None
 
     def _parse_message(self, message):
