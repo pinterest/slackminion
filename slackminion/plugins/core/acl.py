@@ -181,8 +181,8 @@ class AuthManager(BasePlugin):
 
     @staticmethod
     def _check_allow(acl, user):
-        return user.username in acl['allow']
+        return '*' in acl['allow'] or user.username in acl['allow']
 
     @staticmethod
     def _check_deny(acl, user):
-        return user.username in acl['deny']
+        return '*' in acl['deny'] or user.username in acl['deny']
