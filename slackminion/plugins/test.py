@@ -23,3 +23,21 @@ class TestPlugin(BasePlugin):
     @webhook('/echo', form_params='foo')
     def web_echo(self, foo):
         self.send_message(self.config['channel'], foo)
+
+
+class TestAclPlugin(BasePlugin):
+
+    @cmd(admin_only=True)
+    def admincmd(self, msg, args):
+        """A command only admins should be able to run."""
+        return ':boom:'
+
+    @cmd(acl='test')
+    def acltest(self, msg, args):
+        """A command only members of 'acltest' should be able to run."""
+        return ':sushi:'
+
+    @cmd(admin_only=True, acl='test')
+    def adminacl(self, msg, args):
+        """Only admins who are in 'acltest' should be able to run this."""
+        return ':godmode:'

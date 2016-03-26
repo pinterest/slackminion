@@ -19,7 +19,7 @@ class DuplicatePluginError(Exception):
         return "Plugin already defined: %s" % self.name
 
 
-class PluginCommand(object):
+class BaseCommand(object):
     def __init__(self, instance, method):
         self.instance = instance
         self.method = method
@@ -29,7 +29,14 @@ class PluginCommand(object):
         return self.method(self.instance, *args, **kwargs)
 
 
-class WebhookCommand(PluginCommand):
+class PluginCommand(BaseCommand):
+    def __init__(self, instance, method):
+        super(PluginCommand, self).__init__(instance, method)
+        self.acl = method.acl
+        self.admin_only = method.admin_only
+
+
+class WebhookCommand(BaseCommand):
     def __init__(self, instance, method, form_params):
         super(WebhookCommand, self).__init__(instance, method)
         self.form_params = form_params
@@ -62,7 +69,9 @@ class MessageDispatcher(object):
             if message.channel is not None:
                 sender = "#%s/%s" % (message.channel.channel, sender)
             self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
-            return cmd, self.commands[cmd].execute(message, msg_args)
+            f = self._get_command(cmd, message.user)
+            if f:
+                return cmd, f.execute(message, msg_args)
         return None, None
 
     def _parse_message(self, message):
@@ -95,3 +104,14 @@ class MessageDispatcher(object):
                 self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
                 webhook = WebhookCommand(plugin, method, method.form_params)
                 app().route(method.route, 'POST', webhook.execute)
+
+    def _get_command(self, cmd, user):
+        can_run_cmd = True
+        if hasattr(self, '_auth_manager'):
+            can_run_cmd = self._auth_manager.admin_check(self.commands[cmd], user)
+            if can_run_cmd:
+                can_run_cmd = self._auth_manager.acl_check(self.commands[cmd], user)
+        if not can_run_cmd:
+            self.log.info("User %s is not authorized to run %s", user.username, cmd)
+            return None
+        return self.commands[cmd]
