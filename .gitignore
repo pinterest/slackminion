@@ -187,4 +187,5 @@ Temporary Items
 .apdisk
 
 config.yaml
+state.json
 test_plugins/

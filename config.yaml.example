@@ -14,13 +14,19 @@ plugins:
 #  - slackminion.plugins.core.AuthManager
   - slackminion.plugins.test.TestPlugin
 #  - slackminion.plugins.test.TestAclPlugin
+  - slackminion.plugins.core.FileStateHandler
 
 # Users who should be granted admin access
 # Only used if AuthManager is enabled
 bot_admins:
   - someuser
 
+# Hide admin commands in !help from non-admins
+hide_admin_commands: True
+
 plugin_settings:
+  FileStateHandler:
+    data_dir: .
   TestPlugin:
     channel: botfactory
 

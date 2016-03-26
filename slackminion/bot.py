@@ -4,6 +4,7 @@ from slackclient import SlackClient
 from time import sleep
 
 from dispatcher import MessageDispatcher
+from plugin import PluginManager
 from slack import SlackEvent, SlackChannel, SlackUser
 from webserver import Webserver
 
@@ -25,18 +26,20 @@ def eventhandler(*args, **kwargs):
 
 class Bot(object):
     def __init__(self, config):
+        self.always_send_dm = []
         self.config = config
-        self.sc = None
-        self.log = logging.getLogger(__name__)
         self.dispatcher = MessageDispatcher()
         self.event_handlers = {}
-        self.webserver = None
         self.is_setup = False
+        self.log = logging.getLogger(__name__)
+        self.plugins = PluginManager(self)
         self.runnable = True
-        self.always_send_dm = []
+        self.sc = None
+        self.webserver = None
 
     def start(self):
-        self._load_plugins()
+        self.plugins.load()
+        self.plugins.load_state()
         self._find_event_handlers()
         self.sc = SlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
@@ -49,35 +52,6 @@ class Bot(object):
         logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)
 
         self.is_setup = True
-
-    def _load_plugins(self):
-        import os
-        import sys
-
-        # Add plugin dir for extra plugins
-        sys.path.append(os.path.join(os.getcwd(), self.config['plugin_dir']))
-        if 'plugins' not in self.config:
-            self.config['plugins'] = []
-
-        # Add core plugins
-        self.config['plugins'].insert(0, 'slackminion.plugins.core.Core')
-
-        for plugin_name in self.config['plugins']:
-            # module_path.plugin_class_name
-            module, name = plugin_name.rsplit('.', 1)
-            try:
-                plugin = __import__(module, fromlist=['']).__dict__[name]
-            except ImportError:
-                self.log.exception("Failed to load plugin %s", name)
-
-            # load plugin config if available
-            config = {}
-            if name in self.config['plugin_settings']:
-                config = self.config['plugin_settings'][name]
-            try:
-                self.dispatcher.register_plugin(plugin(self, config=config))
-            except:
-                self.log.exception("Failed to register plugin %s", name)
 
     def _find_event_handlers(self):
         for name, method in self.__class__.__dict__.iteritems():
@@ -112,6 +86,7 @@ class Bot(object):
     def stop(self):
         if self.webserver is not None:
             self.webserver.stop()
+        self.plugins.save_state()
 
     def send_message(self, channel, text):
         # This doesn't want the # in the channel name

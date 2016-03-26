@@ -11,6 +11,12 @@ class Core(BasePlugin):
         output = []
         if len(args) == 0:
             commands = sorted(self._bot.dispatcher.commands.items(), key=itemgetter(0))
+            # Filter commands if auth is enabled, hide_admin_commands is enabled, and user is not admin
+            if hasattr(self._bot.dispatcher, '_auth_manager') and \
+                    'hide_admin_commands' in self._bot.config and \
+                    self._bot.config['hide_admin_commands'] is True and \
+                    not getattr(msg.user, 'is_admin', False):
+                commands = filter(lambda x: x[1].admin_only is False, commands)
             for name, cmd in commands:
                 helpstr = cmd.help
                 if '.' in helpstr:
@@ -28,3 +34,10 @@ class Core(BasePlugin):
                     helpstr = "No description provided."
                 output = [helpstr]
         return '\n'.join(output)
+
+    @cmd(admin_only=True)
+    def save(self, msg, args):
+        """Causes the bot to write its current state to backend."""
+        self.send_message(msg.channel, "Saving current state...")
+        self._bot.plugins.save_state()
+        self.send_message(msg.channel, "Done.")
