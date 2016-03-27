@@ -42,20 +42,24 @@ class AuthManager(BasePlugin):
             return "Usage: !acl show OR !acl _action_ _args_"
 
         action = args[0]
+        acl_name = None
         if len(args) == 1:
+            # Only show is allowed to have no arguments
             if action != 'show':
                 return "Usage: !acl _action_ _args_"
-            return self.acl_show(msg.user)
         else:
             acl_name = args[1]
 
-        if action != 'new' and acl_name not in self._acl:
+        # Only 'new' can have an acl name that doesn't exist
+        # Also exempt 'show' as 'None' will never be in the acl list
+        if action not in ['new', 'show'] and acl_name not in self._acl:
             return "ACL %s does not exist" % acl_name
 
         valid_actions = ['allow', 'deny', 'remove', 'show', 'new', 'delete']
         if action not in valid_actions:
             return "Valid actions: %s" % ', '.join(valid_actions)
 
+        # allow, deny, remove all require two arguments (acl name, username)
         if action in ['allow', 'deny', 'remove'] and len(args) < 3:
             return "Usage: !acl %s %s _args_" % (action, acl_name)
 
