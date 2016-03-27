@@ -110,8 +110,9 @@ class Bot(object):
         return resp['channel']['id']
 
     def _load_user_rights(self, user):
-        if user.username in self.config['bot_admins']:
-            user.is_admin = True
+        if 'bot_admins' in self.config:
+            if user.username in self.config['bot_admins']:
+                user.is_admin = True
 
     def _handle_event(self, event):
         if 'type' not in event:
