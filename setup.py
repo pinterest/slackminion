@@ -12,6 +12,7 @@ setup(
         install_requires=[
             'bottle',
             'PyYAML',
+            'redis',
             'requests',
             'Rocket',
             'six',

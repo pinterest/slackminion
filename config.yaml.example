@@ -15,6 +15,8 @@ plugins:
   - slackminion.plugins.test.TestPlugin
 #  - slackminion.plugins.test.TestAclPlugin
   - slackminion.plugins.core.FileStateHandler
+# Comment out the above and uncomment this line to use redis instead
+#  - slackminion.plugins.core.RedisStateHandler
 
 # Users who should be granted admin access
 # Only used if AuthManager is enabled
@@ -27,6 +29,9 @@ hide_admin_commands: True
 plugin_settings:
   FileStateHandler:
     data_dir: .
+  RedisStateHandler:
+    host: localhost
+    port: 6379
   TestPlugin:
     channel: botfactory
 
