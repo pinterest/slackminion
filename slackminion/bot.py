@@ -1,5 +1,6 @@
 import logging
 
+from datetime import datetime
 from slackclient import SlackClient
 from time import sleep
 
@@ -25,19 +26,27 @@ def eventhandler(*args, **kwargs):
 
 
 class Bot(object):
-    def __init__(self, config):
+    def __init__(self, config, test_mode=False):
         self.always_send_dm = []
         self.config = config
         self.dispatcher = MessageDispatcher()
         self.event_handlers = {}
         self.is_setup = False
         self.log = logging.getLogger(__name__)
-        self.plugins = PluginManager(self)
+        self.plugins = PluginManager(self, test_mode)
         self.runnable = True
         self.sc = None
         self.webserver = None
+        self.test_mode = test_mode
+
+        if self.test_mode:
+            self.metrics = {
+                'startup_time': 0
+            }
 
     def start(self):
+        if self.test_mode:
+            bot_start_time = datetime.now()
         self.plugins.load()
         self.plugins.load_state()
         self._find_event_handlers()
@@ -52,6 +61,8 @@ class Bot(object):
         logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)
 
         self.is_setup = True
+        if self.test_mode:
+            self.metrics['startup_time'] = (datetime.now() - bot_start_time).total_seconds() * 1000.0
 
     def _find_event_handlers(self):
         for name, method in self.__class__.__dict__.iteritems():

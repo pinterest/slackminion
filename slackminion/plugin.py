@@ -1,6 +1,7 @@
 import json
 import logging
 import threading
+from datetime import datetime
 
 
 def cmd(admin_only=False, acl='*', aliases=None, *args, **kwargs):
@@ -59,13 +60,22 @@ class BasePlugin(object):
 
 
 class PluginManager(object):
-    def __init__(self, bot):
+    def __init__(self, bot, test_mode=False):
         self.bot = bot
         self.config = bot.config
         self.dispatcher = bot.dispatcher
         self.log = logging.getLogger(__name__)
         self.plugins = []
         self.state_handler = None
+        self.test_mode = test_mode
+
+        if self.test_mode:
+            self.metrics = {
+                'plugins_total': 0,
+                'plugins_loaded': 0,
+                'load_times': {},
+                'plugins_failed': [],
+            }
 
     def load(self):
         import os
@@ -80,12 +90,17 @@ class PluginManager(object):
         self.config['plugins'].insert(0, 'slackminion.plugins.core.Core')
 
         for plugin_name in self.config['plugins']:
+            if self.test_mode:
+                plugin_start_time = datetime.now()
+                self.metrics['plugins_total'] += 1
             # module_path.plugin_class_name
             module, name = plugin_name.rsplit('.', 1)
             try:
                 plugin = __import__(module, fromlist=['']).__dict__[name]
             except ImportError:
                 self.log.exception("Failed to load plugin %s", name)
+                if self.test_mode:
+                    self.metrics['plugins_failed'].append(name)
                 continue
 
             # load plugin config if available
@@ -98,9 +113,13 @@ class PluginManager(object):
                 self.plugins.append(p)
                 if p._state_handler:
                     self.state_handler = p
-
+                if self.test_mode:
+                    self.metrics['plugins_loaded'] += 1
+                    self.metrics['load_times'][name] = (datetime.now() - plugin_start_time).total_seconds() * 1000.0
             except:
                 self.log.exception("Failed to register plugin %s", name)
+                if self.test_mode:
+                    self.metrics['plugins_failed'].append(name)
 
     def save_state(self):
         if self.state_handler is None:
