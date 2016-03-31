@@ -97,7 +97,8 @@ class Bot(object):
     def stop(self):
         if self.webserver is not None:
             self.webserver.stop()
-        self.plugins.save_state()
+        if not self.test_mode:
+            self.plugins.save_state()
 
     def send_message(self, channel, text):
         # This doesn't want the # in the channel name
