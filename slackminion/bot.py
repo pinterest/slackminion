@@ -5,7 +5,7 @@ from slackclient import SlackClient
 from time import sleep
 
 from dispatcher import MessageDispatcher
-from plugin import PluginManager
+from slackminion.plugin.manager import PluginManager
 from slack import SlackEvent, SlackChannel, SlackUser
 from webserver import Webserver
 
@@ -16,6 +16,11 @@ class NotSetupError(Exception):
 
 
 def eventhandler(*args, **kwargs):
+    """
+    Decorator.  Marks a function as a receiver for the specified slack event(s).
+
+    * events - String or list of events to handle
+    """
     def wrapper(func):
         if isinstance(kwargs['events'], basestring):
             kwargs['events'] = [kwargs['events']]
@@ -45,6 +50,7 @@ class Bot(object):
             }
 
     def start(self):
+        """Initializes the bot, plugins, and everything."""
         if self.test_mode:
             bot_start_time = datetime.now()
         self.plugins.load()
@@ -71,7 +77,7 @@ class Bot(object):
                     self.event_handlers[event] = method
 
     def run(self):
-
+        """Connects to slack and enters the main loop."""
         # Fail out if setup wasn't run
         if not self.is_setup:
             raise NotSetupError
@@ -95,12 +101,19 @@ class Bot(object):
             self.log.exception('Unhandled exception')
 
     def stop(self):
+        """Does cleanup of bot and plugins."""
         if self.webserver is not None:
             self.webserver.stop()
         if not self.test_mode:
             self.plugins.save_state()
 
     def send_message(self, channel, text):
+        """
+        Sends a message to the specified channel
+
+        * channel - The channel to send to.  This can be a SlackChannel object, a channel id, or a channel name (without the #)
+        * text - String to send
+        """
         # This doesn't want the # in the channel name
         if isinstance(channel, SlackChannel):
             channel = channel.channelid
@@ -108,6 +121,12 @@ class Bot(object):
         self.sc.rtm_send_message(channel, text)
 
     def send_im(self, user, text):
+        """
+        Sends a message to a user as an IM
+
+        * user - The user to send to.  This can be a SlackUser object, a user id, or the username (without the @)
+        * text - String to send
+        """
         if isinstance(user, SlackUser):
             user = user.userid
         channelid = self._find_im_channel(user)

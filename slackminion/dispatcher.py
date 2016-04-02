@@ -57,6 +57,9 @@ class MessageDispatcher(object):
         self.commands = {}
 
     def push(self, message):
+        """
+        Takes a SlackEvent, parses it for a command, and runs against registered plugin
+        """
         args = self._parse_message(message)
         cmd = args[0]
         msg_args = args[1:]
@@ -80,6 +83,7 @@ class MessageDispatcher(object):
         return args
 
     def register_plugin(self, plugin):
+        """Registers a plugin and commands with the dispatcher for push()"""
         self.log.info("Registering plugin %s", plugin.__class__.__name__)
         self._register_commands(plugin)
         plugin.on_load()
@@ -108,10 +112,10 @@ class MessageDispatcher(object):
 
     def _get_command(self, cmd, user):
         can_run_cmd = True
-        if hasattr(self, '_auth_manager'):
-            can_run_cmd = self._auth_manager.admin_check(self.commands[cmd], user)
+        if hasattr(self, 'auth_manager'):
+            can_run_cmd = self.auth_manager.admin_check(self.commands[cmd], user)
             if can_run_cmd:
-                can_run_cmd = self._auth_manager.acl_check(self.commands[cmd], user)
+                can_run_cmd = self.auth_manager.acl_check(self.commands[cmd], user)
         if not can_run_cmd:
             self.log.info("User %s is not authorized to run %s", user.username, cmd)
             return None

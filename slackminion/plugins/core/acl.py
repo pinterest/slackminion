@@ -1,4 +1,5 @@
-from slackminion.plugin import BasePlugin, cmd
+from slackminion.plugin import cmd
+from slackminion.plugin.base import BasePlugin
 
 
 class AuthManager(BasePlugin):
@@ -6,7 +7,7 @@ class AuthManager(BasePlugin):
     def on_load(self):
 
         # Hook into the dispatcher to receive acl checks
-        setattr(self._bot.dispatcher, '_auth_manager', self)
+        setattr(self._bot.dispatcher, 'auth_manager', self)
 
         # Setup default ACL
         # ACL Rule Ordering (first match)

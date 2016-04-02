@@ -1,4 +1,4 @@
-from slackminion.plugin import BasePlugin
+from slackminion.plugin.base import BasePlugin
 
 
 class BaseStateHandler(BasePlugin):

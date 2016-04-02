@@ -1,6 +1,7 @@
 from operator import itemgetter
 
-from slackminion.plugin import BasePlugin, cmd
+from slackminion.plugin import cmd
+from slackminion.plugin.base import BasePlugin
 
 
 class Core(BasePlugin):
@@ -12,7 +13,7 @@ class Core(BasePlugin):
         if len(args) == 0:
             commands = sorted(self._bot.dispatcher.commands.items(), key=itemgetter(0))
             # Filter commands if auth is enabled, hide_admin_commands is enabled, and user is not admin
-            if hasattr(self._bot.dispatcher, '_auth_manager') and \
+            if hasattr(self._bot.dispatcher, 'auth_manager') and \
                     'hide_admin_commands' in self._bot.config and \
                     self._bot.config['hide_admin_commands'] is True and \
                     not getattr(msg.user, 'is_admin', False):

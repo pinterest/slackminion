@@ -1,4 +1,5 @@
-from ..plugin import BasePlugin, cmd, webhook
+from ..plugin import cmd, webhook
+from slackminion.plugin.base import BasePlugin
 
 
 class TestPlugin(BasePlugin):
@@ -23,6 +24,22 @@ class TestPlugin(BasePlugin):
     @webhook('/echo', form_params='foo')
     def web_echo(self, foo):
         self.send_message(self.config['channel'], foo)
+
+    @cmd()
+    def sleep(self, msg, args):
+        """Sleep for a bit, then print a message."""
+        self.start_timer(5, self._sleep_func)
+
+    @cmd()
+    def sleep2(self, msg, args):
+        """Sleep for a bit, then echo the message back"""
+        self.start_timer(5, self._sleep_func2, msg.channel, ' '.join(args))
+
+    def _sleep_func(self):
+        self.send_message(self.config['channel'], 'Slept for a bit')
+
+    def _sleep_func2(self, channel, text):
+        self.send_message(channel, text)
 
 
 class TestAclPlugin(BasePlugin):
