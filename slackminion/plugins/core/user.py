@@ -7,6 +7,7 @@ class UserManager(BasePlugin):
     """
     def on_load(self):
 
+        self._dont_save = True  # Don't save this plugin's state on shutdown
         self.users = {}
         self.admins = {}
         if 'bot_admins' in self._bot.config:
