@@ -17,11 +17,13 @@ class UserManager(BasePlugin):
         super(UserManager, self).on_load()
 
     def get(self, userid):
+        """Retrieve user by userid"""
         if userid in self.users:
             return self.users[userid]
         return None
 
     def get_by_username(self, username):
+        """Retrieve user by username"""
         res = filter(lambda x: x.username == username, self.users.values())
         if len(res) > 0:
             return res[0]
@@ -41,5 +43,6 @@ class UserManager(BasePlugin):
         return user
 
     def load_user_rights(self, user):
+        """Sets permissions on user object"""
         if user.username in self.admins:
             user.is_admin = True
