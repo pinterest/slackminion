@@ -1,4 +1,3 @@
-from slackminion.slack import SlackUser
 from slackminion.plugin.base import BasePlugin
 
 
