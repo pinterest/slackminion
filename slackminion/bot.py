@@ -152,13 +152,24 @@ class Bot(object):
             return
         e = SlackEvent(sc=self.sc, **event)
         self.log.debug("Received event type: %s", e.type)
+
+        if e.user is not None:
+            if hasattr(self, 'user_manager'):
+                user = self.user_manager.get(e.user.userid)
+                if user is None:
+                    user = self.user_manager.set(e.user)
+                e.user = user
+
         if e.type in self.event_handlers:
             self.event_handlers[e.type](self, e)
 
     @eventhandler(events='message')
     def _event_message(self, msg):
         self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
-        self._load_user_rights(msg.user)
+
+        # The user manager should load rights when a user is added
+        if not hasattr(self, 'user_manager'):
+            self._load_user_rights(msg.user)
         try:
             cmd, output = self.dispatcher.push(msg)
         except:
