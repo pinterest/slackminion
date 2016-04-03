@@ -27,6 +27,14 @@ slackminion.plugins.core.core module
     :undoc-members:
     :show-inheritance:
 
+slackminion.plugins.core.user module
+------------------------------------
+
+.. automodule:: slackminion.plugins.core.user
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
