@@ -54,3 +54,11 @@ Let's take a look at what this does.
     * ``form_params='foo'`` - defines what form parameters the bot should extract from the HTTP POST.  This can be a string (for one parameter), or a list (for multiple parameters)
 * ``def web_echo(self, foo):`` - defines a function called ``web_echo`` with one parameter.  The parameter name *must* match the parameters listed in ``form_params``
 * ``self.send_message('general', foo)`` - sends a message to the channel ``#general`` with the contents of ``foo``.
+
+Plugins can be configured by specifying values in the config.yaml file, under the ``plugin_settings`` key::
+
+    plugin_settings:
+      ExamplePlugin:
+        foo: bar
+
+The first key under plugin_settings is the plugin name.  This must match the name of your plugin class.  All keys under that are specific to your plugin, and are made available as a dictionary in ``self.config``.  These values are set before ``on_load()`` is called, and are available from any function in your class.
