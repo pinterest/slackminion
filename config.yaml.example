@@ -17,6 +17,8 @@ plugins:
   - slackminion.plugins.core.FileStateHandler
 # Comment out the above and uncomment this line to use redis instead
 #  - slackminion.plugins.core.RedisStateHandler
+# Comment out the above and uncomment this line to use mysql instead
+#  - slackminion.plugins.core.MySQLStateHandler
 
 # Users who should be granted admin access
 # Only used if AuthManager is enabled
@@ -32,12 +34,18 @@ plugin_settings:
   RedisStateHandler:
     host: localhost
     port: 6379
+  MySQLStateHandler:
+    host: localhost
+    user: slack
+    passwd: slack
+    db: slack
   TestPlugin:
     channel: botfactory
 
 # Commands to always reply using DM
 always_send_dm:
   - help
+  - whoami
 
 # Web server host and port to bind to
 webserver:

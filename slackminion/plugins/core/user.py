@@ -36,11 +36,19 @@ class UserManager(BasePlugin):
         user - a SlackUser object
         """
 
+        self.log.info("Loading user information for %s/%s", user.userid, user.username)
+        self.load_user_info(user)
         self.log.info("Loading user rights for %s/%s", user.userid, user.username)
         self.load_user_rights(user)
         self.log.info("Added user: %s/%s", user.userid, user.username)
         self.users[user.userid] = user
         return user
+
+    def load_user_info(self, user):
+        """Loads additional user information and stores in user object"""
+        # We have no additional information to load, but a child plugin
+        # might want to override this
+        pass
 
     def load_user_rights(self, user):
         """Sets permissions on user object"""
