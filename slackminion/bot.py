@@ -49,6 +49,14 @@ class Bot(object):
                 'startup_time': 0
             }
 
+        from slackminion import version
+        self.version = version
+        try:
+            from slackminion import commit
+            self.commit = commit
+        except ImportError:
+            self.commit = "HEAD"
+
     def start(self):
         """Initializes the bot, plugins, and everything."""
         if self.test_mode:
@@ -182,3 +190,7 @@ class Bot(object):
                 self.send_im(msg.user, output)
             else:
                 self.send_message(msg.channel, output)
+
+    @eventhandler(events='error')
+    def _event_error(self, msg):
+        self.log.error("Received an error response from Slack: %s", msg.__dict__)

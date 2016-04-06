@@ -49,3 +49,12 @@ class Core(BasePlugin):
         self.log.info("Received shutdown from %s", msg.user.username)
         self._bot.runnable = False
         return "Shutting down..."
+
+    @cmd()
+    def whoami(self, msg, args):
+        """Prints information about the user and bot version."""
+        output = ["Hello %s" % msg.user]
+        if hasattr(self._bot.dispatcher, 'auth_manager') and msg.user.is_admin is True:
+            output.append("You are a *bot admin*.")
+        output.append("Bot version: %s-%s" % (self._bot.version, self._bot.commit))
+        return '\n'.join(output)
