@@ -79,8 +79,9 @@ class Bot(object):
             self.metrics['startup_time'] = (datetime.now() - bot_start_time).total_seconds() * 1000.0
 
     def _find_event_handlers(self):
-        for name, method in self.__class__.__dict__.iteritems():
-            if hasattr(method, 'is_eventhandler'):
+        for name in dir(self):
+            method = getattr(self, name)
+            if callable(method) and hasattr(method, 'is_eventhandler'):
                 for event in method.events:
                     self.event_handlers[event] = method
 
@@ -170,7 +171,7 @@ class Bot(object):
                 e.user = user
 
         if e.type in self.event_handlers:
-            self.event_handlers[e.type](self, e)
+            self.event_handlers[e.type](e)
 
     @eventhandler(events='message')
     def _event_message(self, msg):

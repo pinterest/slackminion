@@ -20,25 +20,24 @@ class DuplicatePluginError(Exception):
 
 
 class BaseCommand(object):
-    def __init__(self, instance, method):
-        self.instance = instance
+    def __init__(self, method):
         self.method = method
         self.help = method.__doc__
 
     def execute(self, *args, **kwargs):
-        return self.method(self.instance, *args, **kwargs)
+        return self.method(*args, **kwargs)
 
 
 class PluginCommand(BaseCommand):
-    def __init__(self, instance, method):
-        super(PluginCommand, self).__init__(instance, method)
+    def __init__(self, method):
+        super(PluginCommand, self).__init__(method)
         self.acl = method.acl
         self.admin_only = method.admin_only
 
 
 class WebhookCommand(BaseCommand):
-    def __init__(self, instance, method, form_params):
-        super(WebhookCommand, self).__init__(instance, method)
+    def __init__(self, method, form_params):
+        super(WebhookCommand, self).__init__(method)
         self.form_params = form_params
 
     def execute(self):
@@ -48,7 +47,7 @@ class WebhookCommand(BaseCommand):
             form_params = [self.form_params]
         for p in form_params:
             args[p] = request.forms[p]
-        return self.method(self.instance, **args)
+        return self.method(**args)
 
 
 class MessageDispatcher(object):
@@ -89,8 +88,9 @@ class MessageDispatcher(object):
         plugin.on_load()
 
     def _register_commands(self, plugin):
-        for name, method in plugin.__class__.__dict__.iteritems():
-            if hasattr(method, 'is_cmd'):
+        for name in dir(plugin):
+            method = getattr(plugin, name)
+            if callable(method) and hasattr(method, 'is_cmd'):
                 commands = [name]
                 if method.aliases is not None:
                     aliases = method.aliases
@@ -104,10 +104,10 @@ class MessageDispatcher(object):
                     if cmd in self.commands:
                         raise DuplicateCommandError(cmd_name)
                     self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + cmd_name)
-                    self.commands[cmd] = PluginCommand(plugin, method)
-            elif hasattr(method, 'is_webhook'):
+                    self.commands[cmd] = PluginCommand(method)
+            elif callable(method) and hasattr(method, 'is_webhook'):
                 self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
-                webhook = WebhookCommand(plugin, method, method.form_params)
+                webhook = WebhookCommand(method, method.form_params)
                 app().route(method.route, 'POST', webhook.execute)
 
     def _get_command(self, cmd, user):
