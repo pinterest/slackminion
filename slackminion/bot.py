@@ -37,7 +37,7 @@ class Bot(object):
         self.dispatcher = MessageDispatcher()
         self.event_handlers = {}
         self.is_setup = False
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger(type(self).__name__)
         self.plugins = PluginManager(self, test_mode)
         self.runnable = True
         self.sc = None

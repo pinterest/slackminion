@@ -4,7 +4,7 @@ import threading
 
 class BasePlugin(object):
     def __init__(self, bot, **kwargs):
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger(type(self).__name__)
         self._bot = bot
         self._dont_save = False  # By default, we want to save a plugin's state during save_state()
         self._state_handler = False  # State storage backends should set this to true

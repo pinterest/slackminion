@@ -8,7 +8,7 @@ class PluginManager(object):
         self.bot = bot
         self.config = bot.config
         self.dispatcher = bot.dispatcher
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger(type(self).__name__)
         self.plugins = []
         self.state_handler = None
         self.test_mode = test_mode
