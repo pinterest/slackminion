@@ -43,6 +43,7 @@ class Bot(object):
         self.sc = None
         self.webserver = None
         self.test_mode = test_mode
+        self.reconnect_needed = True
 
         if self.test_mode:
             self.metrics = {
@@ -91,15 +92,26 @@ class Bot(object):
         if not self.is_setup:
             raise NotSetupError
 
-        if not self.sc.rtm_connect():
-            return False
-
         # Start the web server
         self.webserver.start()
+
         try:
             while self.runnable:
+                if self.reconnect_needed:
+                    if not self.sc.rtm_connect():
+                        return False
+                    self.reconnect_needed = False
+
                 # Get all waiting events - this always returns a list
-                events = self.sc.rtm_read()
+                try:
+                    events = self.sc.rtm_read()
+                except AttributeError:
+                    self.log.exception('Something has failed in the slack rtm library.  This is fatal.')
+                    self.runnable = False
+                    events = []
+                except:
+                    self.log.exception('Unhandled exception')
+                    events = []
                 for e in events:
                     self._handle_event(e)
                 sleep(0.1)
@@ -195,3 +207,7 @@ class Bot(object):
     @eventhandler(events='error')
     def _event_error(self, msg):
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
+
+    def _event_team_migration_started(self, msg):
+        self.log.warn("Slack has initiated a team migration to a new server.  Attempting to reconnect...")
+        self.reconnect_needed = True
