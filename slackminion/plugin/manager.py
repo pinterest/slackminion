@@ -40,7 +40,10 @@ class PluginManager(object):
             # module_path.plugin_class_name
             module, name = plugin_name.rsplit('.', 1)
             try:
-                plugin = __import__(module, fromlist=['']).__dict__[name]
+                m = __import__(module, fromlist=[''])
+                plugin = getattr(m, name)
+                version = getattr(m, 'version', 'latest')
+                commit = getattr(m, 'commit', 'HEAD')
             except ImportError:
                 self.log.exception("Failed to load plugin %s", name)
                 if self.test_mode:
@@ -53,6 +56,8 @@ class PluginManager(object):
                 config = self.config['plugin_settings'][name]
             try:
                 p = plugin(self.bot, config=config)
+                p._version = version
+                p._commit = commit
                 self.dispatcher.register_plugin(p)
                 self.plugins.append(p)
                 if p._state_handler:
@@ -64,6 +69,13 @@ class PluginManager(object):
                 self.log.exception("Failed to register plugin %s", name)
                 if self.test_mode:
                     self.metrics['plugins_failed'].append(name)
+
+    def connect(self):
+        for plugin in self.plugins:
+            try:
+                plugin.on_connect()
+            except:
+                self.log.exception('Unhandled exception')
 
     def save_state(self):
         if self.state_handler is None:

@@ -1,5 +1,7 @@
 import os
 
+from slackminion import commit, version
+
 from . import BaseStateHandler
 
 

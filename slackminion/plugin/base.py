@@ -30,6 +30,14 @@ class BasePlugin(object):
         """
         pass
 
+    def on_connect(self):
+        """
+        Executes immediately after connecting to slack.
+
+        Will not fire on reconnects.
+        """
+        pass
+
     def send_message(self, channel, text):
         """
         Used to send a message to the specified channel.

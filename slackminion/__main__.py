@@ -35,7 +35,12 @@ def main():
         metrics = bot.plugins.metrics
         output.append("Plugins Loaded")
         for p in bot.plugins.plugins:
-            output.append("{:<40} {:>7.03f} ms".format(p.__class__.__name__, metrics['load_times'][p.__class__.__name__]))
+            context = {
+                'name': type(p).__name__,
+                'version': '-'.join([p._version, p._commit]),
+                'load_time': metrics['load_times'][type(p).__name__]
+            }
+            output.append("{name:<30} {version:<20} {load_time:>7.03f} ms".format(**context))
         if len(metrics['plugins_failed']) > 0:
             output.append("")
             output.append("Plugins failed to load")

@@ -95,12 +95,17 @@ class Bot(object):
         # Start the web server
         self.webserver.start()
 
+        first_connect = True
+
         try:
             while self.runnable:
                 if self.reconnect_needed:
                     if not self.sc.rtm_connect():
                         return False
                     self.reconnect_needed = False
+                    if first_connect:
+                        first_connect = False
+                        self.plugins.connect()
 
                 # Get all waiting events - this always returns a list
                 try:

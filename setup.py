@@ -12,7 +12,6 @@ setup(
         description='A python bot framework for slack',
         install_requires=[
             'bottle',
-            'MySQL-python',
             'PyYAML',
             'redis',
             'requests',

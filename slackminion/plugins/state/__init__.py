@@ -1,3 +1,5 @@
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)
 from slackminion.plugin.base import BasePlugin
 
 
@@ -12,5 +14,3 @@ class BaseStateHandler(BasePlugin):
 
     def save_state(self, state):
         pass
-
-

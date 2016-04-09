@@ -1,4 +1,9 @@
 from ..plugin import cmd, webhook
+from slackminion import version
+try:
+    from slackminion import commit
+except ImportError:
+    commit = 'HEAD'
 from slackminion.plugin.base import BasePlugin
 
 
