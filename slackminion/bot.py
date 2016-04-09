@@ -111,6 +111,7 @@ class Bot(object):
                     events = []
                 except:
                     self.log.exception('Unhandled exception')
+                    self.reconnect_needed = True
                     events = []
                 for e in events:
                     self._handle_event(e)
