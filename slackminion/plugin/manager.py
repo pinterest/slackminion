@@ -87,9 +87,11 @@ class PluginManager(object):
         for p in savable_plugins:
             attr_blacklist = [
                 '_bot',
+                '_commit',
                 '_dont_save',
                 '_state_handler',
                 '_timer_callbacks',
+                '_version',
                 'config',
                 'log',
             ]
