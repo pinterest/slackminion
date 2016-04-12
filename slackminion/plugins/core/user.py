@@ -41,8 +41,11 @@ class UserManager(BasePlugin):
         self.log.info("Loading user rights for %s/%s", user.userid, user.username)
         self.load_user_rights(user)
         self.log.info("Added user: %s/%s", user.userid, user.username)
-        self.users[user.userid] = user
+        self._add_user_to_cache(user)
         return user
+
+    def _add_user_to_cache(self, user):
+        self.users[user.userid] = user
 
     def load_user_info(self, user):
         """Loads additional user information and stores in user object"""

@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from slackminion import version
+from slackminion.plugins.core import version
 
 setup(
         name='slackminion',

@@ -50,10 +50,10 @@ class Bot(object):
                 'startup_time': 0
             }
 
-        from slackminion import version
+        from slackminion.plugins.core import version
         self.version = version
         try:
-            from slackminion import commit
+            from slackminion.plugins.core import commit
             self.commit = commit
         except ImportError:
             self.commit = "HEAD"
@@ -183,10 +183,13 @@ class Bot(object):
 
         if e.user is not None:
             if hasattr(self, 'user_manager'):
-                user = self.user_manager.get(e.user.userid)
-                if user is None:
-                    user = self.user_manager.set(e.user)
-                e.user = user
+                if not isinstance(e.user, SlackUser):
+                    self.log.debug("User is not SlackUser: %s", e.user)
+                else:
+                    user = self.user_manager.get(e.user.userid)
+                    if user is None:
+                        user = self.user_manager.set(e.user)
+                    e.user = user
 
         if e.type in self.event_handlers:
             self.event_handlers[e.type](e)
@@ -214,6 +217,7 @@ class Bot(object):
     def _event_error(self, msg):
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
 
+    @eventhandler(events='team_migration_started')
     def _event_team_migration_started(self, msg):
         self.log.warn("Slack has initiated a team migration to a new server.  Attempting to reconnect...")
         self.reconnect_needed = True
