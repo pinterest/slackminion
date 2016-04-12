@@ -1,6 +1,10 @@
 import os
 
-from slackminion import commit, version
+from slackminion.plugins.core import version
+try:
+    from slackminion.plugins.core import commit
+except ImportError:
+    commit = 'HEAD'
 
 from . import BaseStateHandler
 

@@ -1,13 +1,6 @@
 slackminion.plugins.core package
 ================================
 
-Subpackages
------------
-
-.. toctree::
-
-    slackminion.plugins.core.state
-
 Submodules
 ----------
 

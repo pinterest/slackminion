@@ -7,6 +7,8 @@ Subpackages
 .. toctree::
 
     slackminion.plugins.core
+    slackminion.plugins.debug
+    slackminion.plugins.state
 
 Submodules
 ----------
