@@ -44,6 +44,14 @@ class SlackUser(object):
             self._username = resp['user']['name']
         return self._username
 
+    @staticmethod
+    def get_user(sc, username):
+        resp = sc.server.users.find(username)
+        if resp is None:
+            return None
+        user = SlackUser(resp.id, sc)
+        return user
+
     def __str__(self):
         return '<@%s|%s>' % (self.userid, self.username)
 
@@ -63,6 +71,14 @@ class SlackChannel(object):
             resp = self._sc.server.channels.find(self.channelid)
             self._channel = resp.name
         return self._channel
+
+    @staticmethod
+    def get_channel(sc, channel_name):
+        resp = sc.server.channels.find(channel_name)
+        if resp is None:
+            return None
+        channel = SlackChannel(resp.id, sc)
+        return channel
 
     def __str__(self):
         return '<#%s|%s>' % (self.channelid, self.channel)

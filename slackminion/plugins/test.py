@@ -40,6 +40,13 @@ class TestPlugin(BasePlugin):
         """Sleep for a bit, then echo the message back"""
         self.start_timer(5, self._sleep_func2, msg.channel, ' '.join(args))
 
+    @cmd()
+    def lookup(self, msg, args):
+        if args[0] == 'channel':
+            return 'Found %s' % self.get_channel(args[1])
+        elif args[0] == 'user':
+            return 'Found %s' % self.get_user(args[1])
+
     def _sleep_func(self):
         self.send_message(self.config['channel'], 'Slept for a bit')
 

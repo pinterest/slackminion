@@ -1,6 +1,8 @@
 import logging
 import threading
 
+from slackminion.slack import SlackUser, SlackChannel
+
 
 class BasePlugin(object):
     def __init__(self, bot, **kwargs):
@@ -74,3 +76,21 @@ class BasePlugin(object):
     def _timer_callback(self, func, args):
         del self._timer_callbacks[func]
         func(*args)
+
+    def get_user(self, username):
+        """
+        Utility function to query slack for a particular user
+
+        :param username: The username or userid of the user to lookup
+        :return: SlackUser object or None
+        """
+        return SlackUser.get_user(self._bot.sc, username)
+
+    def get_channel(self, channel):
+        """
+        Utility function to query slack for a particular channel
+
+        :param channel: The channel name or channelid of the channel to lookup
+        :return: SlackChannel object or None
+        """
+        return SlackChannel.get_channel(self._bot.sc, channel)
