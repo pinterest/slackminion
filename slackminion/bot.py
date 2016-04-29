@@ -115,11 +115,14 @@ class Bot(object):
                     self.runnable = False
                     events = []
                 except:
-                    self.log.exception('Unhandled exception')
+                    self.log.exception('Unhandled exception in rtm_read()')
                     self.reconnect_needed = True
                     events = []
                 for e in events:
-                    self._handle_event(e)
+                    try:
+                        self._handle_event(e)
+                    except:
+                        self.log.exception('Unhandled exception in event handler')
                 sleep(0.1)
         except KeyboardInterrupt:
             # On ctrl-c, just exit
