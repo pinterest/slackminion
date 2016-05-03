@@ -65,12 +65,46 @@ class SlackChannel(object):
         self._sc = sc
         self._channel = None
 
+        # Extra information (lazy loaded)
+        self.extra_attributes = [
+            'created',
+            'creator',
+            'is_archived',
+            'is_general',
+            'is_member',
+            'purpose',
+            ('topic', SlackChannelTopic)
+        ]
+
+        for attribute in self.extra_attributes:
+            attribute_class = SlackChannelExtraAttribute
+            if isinstance(attribute, tuple):
+                attribute, attribute_class = attribute
+            setattr(SlackChannel, attribute, attribute_class())
+
     @property
     def channel(self):
         if self._channel is None and self._sc is not None:
             resp = self._sc.server.channels.find(self.channelid)
             self._channel = resp.name
         return self._channel
+
+    def set_topic(self, topic):
+        self._sc.api_call('channels.setTopic', channel=self.channelid, topic=topic)
+
+    def _get_extra_attribute(self, name):
+        if getattr(self, '_' + name) is None:
+            self._load_extra_attributes()
+        return getattr(self, '_' + name)
+
+    def _load_extra_attributes(self):
+        resp = self._sc.api_call('channels.info', channel=self.channelid)
+        for k, v in resp['channel'].items():
+            if k == 'creator':
+                v = SlackUser(v, sc=self._sc)
+            elif k == 'topic':
+                v = v['value']
+            setattr(self, k, v)
 
     @staticmethod
     def get_channel(sc, channel_name):
@@ -85,3 +119,24 @@ class SlackChannel(object):
 
     def __repr__(self):
         return self.channelid
+
+
+class SlackChannelExtraAttribute(object):
+    def __init__(self):
+        self.data = None
+
+    def __get__(self, instance, owner):
+        if self.data is None:
+            instance._load_extra_attributes()
+        return self.data
+
+    def __set__(self, instance, value):
+        self.data = value
+
+
+class SlackChannelTopic(SlackChannelExtraAttribute):
+    def __set__(self, instance, value):
+        prev_value = self.data
+        super(SlackChannelTopic, self).__set__(instance, value)
+        if prev_value is not None and prev_value != value:
+            instance.set_topic(value)

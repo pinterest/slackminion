@@ -47,6 +47,13 @@ class TestPlugin(BasePlugin):
         elif args[0] == 'user':
             return 'Found %s' % self.get_user(args[1])
 
+    @cmd()
+    def topic(self, msg, args):
+        channel = msg.channel
+        self.log.debug('Current channel topic: %s', channel.topic)
+        if len(args) > 0:
+            channel.topic = ' '.join(args)
+
     def _sleep_func(self):
         self.send_message(self.config['channel'], 'Slept for a bit')
 

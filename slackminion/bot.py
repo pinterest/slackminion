@@ -121,6 +121,9 @@ class Bot(object):
                 for e in events:
                     try:
                         self._handle_event(e)
+                    except KeyboardInterrupt:
+                        # Gracefully shutdown
+                        self.runnable = False
                     except:
                         self.log.exception('Unhandled exception in event handler')
                 sleep(0.1)
