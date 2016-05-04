@@ -2,6 +2,7 @@ import pytest
 import yaml
 
 from slackminion.bot import Bot
+from slackminion.exceptions import NotSetupError
 from slackminion.plugins.core import version
 
 
@@ -23,3 +24,13 @@ class TestBot(object):
 
     def test_stop(self):
         self.object.stop()
+
+    def test_run_without_start(self):
+        with pytest.raises(NotSetupError) as e:
+            self.object.run()
+        assert 'Bot not setup' in str(e)
+
+    def test_handler_slack_reconnect_event(self):
+        self.object.reconnect_needed = False
+        self.object._event_team_migration_started(None)
+        assert self.object.reconnect_needed is True

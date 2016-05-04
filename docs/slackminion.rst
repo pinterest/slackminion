@@ -28,6 +28,14 @@ slackminion.dispatcher module
     :undoc-members:
     :show-inheritance:
 
+slackminion.exceptions module
+-----------------------------
+
+.. automodule:: slackminion.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 slackminion.slack module
 ------------------------
 

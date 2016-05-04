@@ -3,22 +3,7 @@ import logging
 from bottle import request, app
 
 from slack import SlackChannel
-
-
-class DuplicateCommandError(Exception):
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return "Command already defined: %s" % self.name
-
-
-class DuplicatePluginError(Exception):
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return "Plugin already defined: %s" % self.name
+from slackminion.exceptions import DuplicateCommandError
 
 
 class BaseCommand(object):
@@ -90,7 +75,7 @@ class MessageDispatcher(object):
 
     def register_plugin(self, plugin):
         """Registers a plugin and commands with the dispatcher for push()"""
-        self.log.info("Registering plugin %s", plugin.__class__.__name__)
+        self.log.info("Registering plugin %s", type(plugin).__name__)
         self._register_commands(plugin)
         plugin.on_load()
 
@@ -110,10 +95,10 @@ class MessageDispatcher(object):
                     cmd = '!' + cmd_name
                     if cmd in self.commands:
                         raise DuplicateCommandError(cmd_name)
-                    self.log.info("Registered command %s", plugin.__class__.__name__ + '.' + cmd_name)
+                    self.log.info("Registered command %s", type(plugin).__name__ + '.' + cmd_name)
                     self.commands[cmd] = PluginCommand(method)
             elif callable(method) and hasattr(method, 'is_webhook'):
-                self.log.info("Registered webhook %s", plugin.__class__.__name__ + '.' + name)
+                self.log.info("Registered webhook %s", type(plugin).__name__ + '.' + name)
                 webhook = WebhookCommand(method, method.form_params)
                 app().route(method.route, 'POST', webhook.execute)
 

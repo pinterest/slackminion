@@ -1,18 +1,14 @@
 import logging
-
 from datetime import datetime
-from slackclient import SlackClient
 from time import sleep
 
+from slackclient import SlackClient
+
 from dispatcher import MessageDispatcher
-from slackminion.plugin.manager import PluginManager
 from slack import SlackEvent, SlackChannel, SlackUser
+from slackminion.exceptions import NotSetupError
+from slackminion.plugin.manager import PluginManager
 from webserver import Webserver
-
-
-class NotSetupError(Exception):
-    def __str__(self):
-        return "Bot not setup.  Please run start() before run()."
 
 
 def eventhandler(*args, **kwargs):
