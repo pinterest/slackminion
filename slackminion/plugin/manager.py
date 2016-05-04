@@ -92,12 +92,14 @@ class PluginManager(object):
                 '_state_handler',
                 '_timer_callbacks',
                 '_version',
+                'attr_blacklist',
                 'config',
                 'log',
             ]
+            attr_blacklist.extend(getattr(p, 'attr_blacklist', []))
             attrs = {k: v for k, v in p.__dict__.iteritems() if k not in attr_blacklist}
-            state[p.__class__.__name__] = attrs
-            self.log.debug("Plugin %s: %s", p.__class__.__name__, attrs)
+            state[type(p).__name__] = attrs
+            self.log.debug("Plugin %s: %s", type(p).__name__, attrs)
         state = json.dumps(state)
         self.log.debug("Sending the following to the handler: %s", state)
         try:
@@ -118,7 +120,7 @@ class PluginManager(object):
             return
 
         for p in self.plugins:
-            plugin_name = p.__class__.__name__
+            plugin_name = type(p).__name__
             if plugin_name in state:
                 self.log.info("Loading state data for %s", plugin_name)
                 for k, v in state[plugin_name].iteritems():

@@ -15,7 +15,10 @@ class SlackEvent(object):
     @channel.setter
     def channel(self, value):
         if isinstance(value, basestring):
-            self._channel = SlackChannel(value, sc=self._sc)
+            if value[0] == 'G':
+                self._channel = SlackGroup(value, sc=self._sc)
+            else:
+                self._channel = SlackChannel(value, sc=self._sc)
         else:
             self._channel = value
 
@@ -60,6 +63,9 @@ class SlackUser(object):
 
 
 class SlackChannel(object):
+    API_PREFIX = 'channels'
+    ATTRIBUTE_KEY = 'channel'
+
     def __init__(self, channelid, sc=None):
         self.channelid = channelid
         self._sc = sc
@@ -90,7 +96,7 @@ class SlackChannel(object):
         return self._channel
 
     def set_topic(self, topic):
-        self._sc.api_call('channels.setTopic', channel=self.channelid, topic=topic)
+        self._sc.api_call(self.API_PREFIX + '.setTopic', channel=self.channelid, topic=topic)
 
     def _get_extra_attribute(self, name):
         if getattr(self, '_' + name) is None:
@@ -98,8 +104,8 @@ class SlackChannel(object):
         return getattr(self, '_' + name)
 
     def _load_extra_attributes(self):
-        resp = self._sc.api_call('channels.info', channel=self.channelid)
-        for k, v in resp['channel'].items():
+        resp = self._sc.api_call(self.API_PREFIX + '.info', channel=self.channelid)
+        for k, v in resp[self.ATTRIBUTE_KEY].items():
             if k == 'creator':
                 v = SlackUser(v, sc=self._sc)
             elif k == 'topic':
@@ -111,7 +117,10 @@ class SlackChannel(object):
         resp = sc.server.channels.find(channel_name)
         if resp is None:
             return None
-        channel = SlackChannel(resp.id, sc)
+        channel_class = SlackChannel
+        if resp.id[0] == 'G':
+            channel_class = SlackGroup
+        channel = channel_class(resp.id, sc)
         return channel
 
     def __str__(self):
@@ -119,6 +128,11 @@ class SlackChannel(object):
 
     def __repr__(self):
         return self.channelid
+
+
+class SlackGroup(SlackChannel):
+        API_PREFIX = 'groups'
+        ATTRIBUTE_KEY = 'group'
 
 
 class SlackChannelExtraAttribute(object):

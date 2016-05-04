@@ -2,6 +2,7 @@ from operator import itemgetter
 
 from slackminion.plugin import cmd
 from slackminion.plugin.base import BasePlugin
+from slackminion.slack import SlackChannel
 
 
 class Core(BasePlugin):
@@ -20,10 +21,10 @@ class Core(BasePlugin):
                 commands = filter(lambda x: x[1].admin_only is False, commands)
             for name, cmd in commands:
                 helpstr = cmd.help
-                if '.' in helpstr:
-                    helpstr = helpstr[0:helpstr.find('.')+1]
                 if helpstr is None:
                     helpstr = "No description provided."
+                elif '.' in helpstr:
+                    helpstr = helpstr[0:helpstr.find('.') + 1]
                 output.append("*%s*: %s" % (name, helpstr))
         else:
             name = '!' + args[0]
@@ -58,3 +59,43 @@ class Core(BasePlugin):
             output.append("You are a *bot admin*.")
         output.append("Bot version: %s-%s" % (self._bot.version, self._bot.commit))
         return '\n'.join(output)
+
+    @cmd()
+    def sleep(self, msg, args):
+        """Causes the bot to ignore all messages from the channel.
+
+        Usage:
+        !sleep [channel name] - ignore the specified channel (or current if none specified)
+        """
+
+        channel = None
+        if len(args) == 0:
+            if msg.channel.channelid[0] in ['C', 'G']:
+                channel = msg.channel
+        else:
+            channel = self.get_channel(args[0])
+
+        if channel is not None:
+            self.log.info('Sleeping in %s', channel)
+            self._bot.dispatcher.ignore(channel)
+            self.send_message(channel, 'Good night')
+
+    @cmd(admin_only=True, while_ignored=True)
+    def wake(self, msg, args):
+        """Causes the bot to resume operation in the channel.
+
+        Usage:
+        !wake [channel name] - unignore the specified channel (or current if none specified)
+        """
+
+        channel = None
+        if len(args) == 0:
+            if msg.channel.channelid[0] in ['C', 'G']:
+                channel = msg.channel
+        else:
+            channel = self.get_channel(args[0])
+
+        if channel is not None:
+            self.log.info('Waking up in %s', channel)
+            self._bot.dispatcher.unignore(channel)
+            self.send_message(channel, 'Hello, how may I be of service?')

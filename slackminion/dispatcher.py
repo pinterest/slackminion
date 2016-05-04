@@ -2,6 +2,8 @@ import logging
 
 from bottle import request, app
 
+from slack import SlackChannel
+
 
 class DuplicateCommandError(Exception):
     def __init__(self, name):
@@ -33,6 +35,7 @@ class PluginCommand(BaseCommand):
         super(PluginCommand, self).__init__(method)
         self.acl = method.acl
         self.admin_only = method.admin_only
+        self.while_ignored = method.while_ignored
 
 
 class WebhookCommand(BaseCommand):
@@ -54,6 +57,7 @@ class MessageDispatcher(object):
     def __init__(self):
         self.log = logging.getLogger(type(self).__name__)
         self.commands = {}
+        self.ignored_channels = []
 
     def push(self, message):
         """
@@ -73,6 +77,9 @@ class MessageDispatcher(object):
             self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
             f = self._get_command(cmd, message.user)
             if f:
+                if self._is_channel_ignored(f, message.channel):
+                    self.log.info("Channel %s is ignored, discarding command %s", message.channel, cmd)
+                    return '_ignored_', ""
                 return cmd, f.execute(message, msg_args)
             return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd
         return None, None
@@ -110,6 +117,22 @@ class MessageDispatcher(object):
                 webhook = WebhookCommand(method, method.form_params)
                 app().route(method.route, 'POST', webhook.execute)
 
+    def ignore(self, channel):
+        if isinstance(channel, SlackChannel):
+            channel = channel.channel
+        if channel not in self.ignored_channels:
+            self.ignored_channels.append(channel)
+            return True
+        return False
+
+    def unignore(self, channel):
+        if isinstance(channel, SlackChannel):
+            channel = channel.channel
+        if channel in self.ignored_channels:
+            self.ignored_channels.remove(channel)
+            return True
+        return False
+
     def _get_command(self, cmd, user):
         can_run_cmd = True
         if hasattr(self, 'auth_manager'):
@@ -120,3 +143,9 @@ class MessageDispatcher(object):
             self.log.info("User %s is not authorized to run %s", user.username, cmd)
             return None
         return self.commands[cmd]
+
+    def _is_channel_ignored(self, cmd, channel):
+        channel_ignored = False
+        if channel.channel in self.ignored_channels:
+            channel_ignored = not cmd.while_ignored
+        return channel_ignored
