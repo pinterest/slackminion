@@ -15,12 +15,15 @@ class SlackRoom(SlackRoomIMBase):
         ('topic', SlackRoomTopic)
     ]
 
-    def __init__(self, id, sc=None):
-        super(SlackRoom, self).__init__(id, sc)
-        self._name = None
+    def __init__(self, *args, **kwargs):
+        super(SlackRoom, self).__init__(*args, **kwargs)
 
         # Extra information (lazy loaded)
         self._add_extra_attributes()
+
+        for k, v in kwargs.items():
+            if k in self.BASE_ATTRIBUTES + self.EXTRA_ATTRIBUTES:
+                setattr(self, k, v)
 
     def set_topic(self, topic):
         self._sc.api_call(self.API_PREFIX + '.setTopic', channel=self.id, topic=topic)
@@ -41,11 +44,6 @@ class SlackRoom(SlackRoomIMBase):
                 v = v['value']
             setattr(self, k, v)
 
-    def _get_extra_attribute(self, name):
-        if getattr(self, '_' + name) is None:
-            self._load_extra_attributes()
-        return getattr(self, '_' + name)
-
     @staticmethod
     def get_channel(sc, channel_name):
         resp = sc.server.channels.find(channel_name)
@@ -54,7 +52,7 @@ class SlackRoom(SlackRoomIMBase):
         channel_class = SlackChannel
         if resp.id[0] == 'G':
             channel_class = SlackGroup
-        channel = channel_class(resp.id, sc)
+        channel = channel_class(resp.id, name=resp.name, sc=sc)
         return channel
 
     @property

@@ -2,8 +2,8 @@ from base import SlackRoomIMBase
 
 
 class SlackIM(SlackRoomIMBase):
-    def __init__(self, id, sc=None):
-        super(SlackIM, self).__init__(id, sc)
+    def __init__(self, *args, **kwargs):
+        super(SlackIM, self).__init__(*args, **kwargs)
         self.is_im = True
 
     @property
