@@ -1,6 +1,13 @@
 slackminion.slack package
 =========================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    slackminion.slack.room
+
 Submodules
 ----------
 
@@ -8,14 +15,6 @@ slackminion.slack.event module
 ------------------------------
 
 .. automodule:: slackminion.slack.event
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-slackminion.slack.room module
------------------------------
-
-.. automodule:: slackminion.slack.room
     :members:
     :undoc-members:
     :show-inheritance:
