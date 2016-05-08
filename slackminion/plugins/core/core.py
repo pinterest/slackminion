@@ -2,7 +2,7 @@ from operator import itemgetter
 
 from slackminion.plugin import cmd
 from slackminion.plugin.base import BasePlugin
-from slackminion.slack.room import SlackRoom
+from slackminion.slack import SlackRoom
 
 
 class Core(BasePlugin):

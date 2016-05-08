@@ -1,8 +1,7 @@
 import logging
 import threading
 
-from slackminion.slack import SlackChannel, SlackIM, SlackUser
-from slackminion.slack.room import SlackRoom
+from slackminion.slack import SlackChannel, SlackIM, SlackUser, SlackRoom
 
 
 class BasePlugin(object):

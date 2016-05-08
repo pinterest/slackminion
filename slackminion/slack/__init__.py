@@ -1,3 +1,3 @@
 from event import SlackEvent
-from room import SlackChannel, SlackGroup, SlackIM
+from room import *
 from user import SlackUser

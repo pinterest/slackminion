@@ -1,56 +1,6 @@
-import logging
-
-from user import SlackUser
-
-
-class SlackRoomAttribute(object):
-    def __init__(self):
-        self.data = None
-
-    def __get__(self, instance, owner):
-        if self.data is None:
-            instance._load_extra_attributes()
-        return self.data
-
-    def __set__(self, instance, value):
-        self.data = value
-
-
-class SlackRoomTopic(SlackRoomAttribute):
-    def __set__(self, instance, value):
-        prev_value = self.data
-        super(SlackRoomTopic, self).__set__(instance, value)
-        if prev_value is not None and prev_value != value:
-            instance.set_topic(value)
-
-
-class SlackRoomIMBase(object):
-    def __init__(self, id, sc=None):
-        self.id = id
-        self._sc = sc
-        self.logger = logging.getLogger(type(self).__name__)
-        self.logger.setLevel(logging.DEBUG)
-
-
-class SlackIM(SlackRoomIMBase):
-    def __init__(self, id, sc=None):
-        super(SlackIM, self).__init__(id, sc)
-        self.is_im = True
-
-    @property
-    def channel(self):
-        self.logger.warn('Use of channel is deprecated, use id instead')
-        return self.id
-
-    @property
-    def name(self):
-        return self.id
-
-    def __str__(self):
-        return '<#%s|%s>' % (self.id, self.id)
-
-    def __repr__(self):
-        return self.id
+from attributes import SlackRoomAttribute, SlackRoomTopic
+from base import SlackRoomIMBase
+from ..user import SlackUser
 
 
 class SlackRoom(SlackRoomIMBase):
