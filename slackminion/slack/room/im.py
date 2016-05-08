@@ -2,6 +2,7 @@ from base import SlackRoomIMBase
 
 
 class SlackIM(SlackRoomIMBase):
+    """Represents an IM 'room'."""
     def __init__(self, *args, **kwargs):
         super(SlackIM, self).__init__(*args, **kwargs)
         self.is_im = True

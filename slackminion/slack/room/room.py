@@ -4,7 +4,7 @@ from ..user import SlackUser
 
 
 class SlackRoom(SlackRoomIMBase):
-
+    """Base class for channels and groups.  Provides handling for loading/setting extra attributes"""
     BASE_ATTRIBUTES = [
         'created',
         'creator',
@@ -73,6 +73,7 @@ class SlackRoom(SlackRoomIMBase):
 
 
 class SlackChannel(SlackRoom):
+    """Represents a Slack channel"""
     API_PREFIX = 'channels'
     ATTRIBUTE_KEY = 'channel'
     EXTRA_ATTRIBUTES = [
@@ -82,6 +83,7 @@ class SlackChannel(SlackRoom):
 
 
 class SlackGroup(SlackChannel):
+    """Represents a Slack group (private channel)"""
     API_PREFIX = 'groups'
     ATTRIBUTE_KEY = 'group'
     EXTRA_ATTRIBUTES = [
