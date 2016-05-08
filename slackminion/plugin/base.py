@@ -1,7 +1,8 @@
 import logging
 import threading
 
-from slackminion.slack import SlackUser, SlackChannel
+from slackminion.slack import SlackChannel, SlackIM, SlackUser
+from slackminion.slack.room import SlackRoom
 
 
 class BasePlugin(object):
@@ -47,7 +48,19 @@ class BasePlugin(object):
         * channel - can be a channel or user
         * text - message to send
         """
-        self._bot.send_message(channel, text)
+        if isinstance(channel, SlackIM):
+            self._bot.send_im(channel, text)
+        elif isinstance(channel, SlackRoom):
+            self._bot.send_message(channel, text)
+        elif isinstance(channel, basestring):
+            if channel[0] == '@':
+                self._bot.send_im(channel[1:], text)
+            elif channel[0] == '#':
+                self._bot.send_message(channel[1:], text)
+            else:
+                self._bot.send_message(channel, text)
+        else:
+            self._bot.send_message(channel, text)
 
     def start_timer(self, duration, func, *args):
         """
@@ -97,7 +110,7 @@ class BasePlugin(object):
         """
         Utility function to query slack for a particular channel
 
-        :param channel: The channel name or channelid of the channel to lookup
+        :param channel: The channel name or id of the channel to lookup
         :return: SlackChannel object or None
         """
         return SlackChannel.get_channel(self._bot.sc, channel)

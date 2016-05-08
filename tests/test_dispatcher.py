@@ -63,14 +63,14 @@ class TestDispatcher(object):
 
     def test_ignore_slackchannel(self):
         c = SlackChannel('CTEST')
-        c._channel = 'testchannel'
+        c.name = 'testchannel'
         assert self.object.ignore(c) is True
         assert 'testchannel' in self.object.ignored_channels
         assert self.object._is_channel_ignored(self.p.abc, c) is True
 
     def test_unignore_slackchannel(self):
         c = SlackChannel('CTEST')
-        c._channel = 'testchannel'
+        c.name = 'testchannel'
         assert self.object.ignore(c) is True
         assert self.object.unignore(c) is True
         assert 'testchannel' not in self.object.ignored_channels

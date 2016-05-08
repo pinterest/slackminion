@@ -17,7 +17,7 @@ class UserManager(BasePlugin):
         super(UserManager, self).on_load()
 
     def get(self, userid):
-        """Retrieve user by userid"""
+        """Retrieve user by id"""
         if userid in self.users:
             return self.users[userid]
         return None
@@ -36,16 +36,16 @@ class UserManager(BasePlugin):
         user - a SlackUser object
         """
 
-        self.log.info("Loading user information for %s/%s", user.userid, user.username)
+        self.log.info("Loading user information for %s/%s", user.id, user.username)
         self.load_user_info(user)
-        self.log.info("Loading user rights for %s/%s", user.userid, user.username)
+        self.log.info("Loading user rights for %s/%s", user.id, user.username)
         self.load_user_rights(user)
-        self.log.info("Added user: %s/%s", user.userid, user.username)
+        self.log.info("Added user: %s/%s", user.id, user.username)
         self._add_user_to_cache(user)
         return user
 
     def _add_user_to_cache(self, user):
-        self.users[user.userid] = user
+        self.users[user.id] = user
 
     def load_user_info(self, user):
         """Loads additional user information and stores in user object"""

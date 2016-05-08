@@ -58,7 +58,7 @@ class MessageDispatcher(object):
                 return None, None
             sender = message.user.username
             if message.channel is not None:
-                sender = "#%s/%s" % (message.channel.channel, sender)
+                sender = "#%s/%s" % (message.channel.name, sender)
             self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
             f = self._get_command(cmd, message.user)
             if f:
@@ -104,7 +104,7 @@ class MessageDispatcher(object):
 
     def ignore(self, channel):
         if isinstance(channel, SlackChannel):
-            channel = channel.channel
+            channel = channel.name
         if channel not in self.ignored_channels:
             self.ignored_channels.append(channel)
             return True
@@ -112,7 +112,7 @@ class MessageDispatcher(object):
 
     def unignore(self, channel):
         if isinstance(channel, SlackChannel):
-            channel = channel.channel
+            channel = channel.name
         if channel in self.ignored_channels:
             self.ignored_channels.remove(channel)
             return True
@@ -131,6 +131,6 @@ class MessageDispatcher(object):
 
     def _is_channel_ignored(self, cmd, channel):
         channel_ignored = False
-        if channel.channel in self.ignored_channels:
+        if channel.name in self.ignored_channels:
             channel_ignored = not cmd.while_ignored
         return channel_ignored

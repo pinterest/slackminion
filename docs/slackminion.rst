@@ -8,6 +8,7 @@ Subpackages
 
     slackminion.plugin
     slackminion.plugins
+    slackminion.slack
 
 Submodules
 ----------
@@ -32,14 +33,6 @@ slackminion.exceptions module
 -----------------------------
 
 .. automodule:: slackminion.exceptions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-slackminion.slack module
-------------------------
-
-.. automodule:: slackminion.slack
     :members:
     :undoc-members:
     :show-inheritance:

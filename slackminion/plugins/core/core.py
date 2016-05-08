@@ -2,7 +2,7 @@ from operator import itemgetter
 
 from slackminion.plugin import cmd
 from slackminion.plugin.base import BasePlugin
-from slackminion.slack import SlackChannel
+from slackminion.slack.room import SlackRoom
 
 
 class Core(BasePlugin):
@@ -70,7 +70,7 @@ class Core(BasePlugin):
 
         channel = None
         if len(args) == 0:
-            if msg.channel.channelid[0] in ['C', 'G']:
+            if isinstance(msg.channel, SlackRoom):
                 channel = msg.channel
         else:
             channel = self.get_channel(args[0])
@@ -90,7 +90,7 @@ class Core(BasePlugin):
 
         channel = None
         if len(args) == 0:
-            if msg.channel.channelid[0] in ['C', 'G']:
+            if isinstance(msg.channel, SlackRoom):
                 channel = msg.channel
         else:
             channel = self.get_channel(args[0])

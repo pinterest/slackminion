@@ -5,7 +5,8 @@ from time import sleep
 from slackclient import SlackClient
 
 from dispatcher import MessageDispatcher
-from slack import SlackEvent, SlackChannel, SlackUser
+from slackminion.slack import SlackEvent, SlackUser
+from slackminion.slack.room import SlackRoomIMBase
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin.manager import PluginManager
 from webserver import Webserver
@@ -144,8 +145,8 @@ class Bot(object):
         * text - String to send
         """
         # This doesn't want the # in the channel name
-        if isinstance(channel, SlackChannel):
-            channel = channel.channelid
+        if isinstance(channel, SlackRoomIMBase):
+            channel = channel.id
         self.log.debug("Trying to send to %s: %s", channel, text)
         self.sc.rtm_send_message(channel, text)
 
@@ -157,7 +158,7 @@ class Bot(object):
         * text - String to send
         """
         if isinstance(user, SlackUser):
-            user = user.userid
+            user = user.id
         channelid = self._find_im_channel(user)
         self.send_message(channelid, text)
 
@@ -188,7 +189,7 @@ class Bot(object):
                 if not isinstance(e.user, SlackUser):
                     self.log.debug("User is not SlackUser: %s", e.user)
                 else:
-                    user = self.user_manager.get(e.user.userid)
+                    user = self.user_manager.get(e.user.id)
                     if user is None:
                         user = self.user_manager.set(e.user)
                     e.user = user
