@@ -33,8 +33,9 @@ class WebhookCommand(BaseCommand):
         form_params = self.form_params
         if isinstance(self.form_params, basestring):
             form_params = [self.form_params]
-        for p in form_params:
-            args[p] = request.forms[p]
+        if form_params is not None:
+            for p in form_params:
+                args[p] = request.forms[p]
         return self.method(**args)
 
 
