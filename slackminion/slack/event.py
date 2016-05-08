@@ -3,6 +3,7 @@ from user import SlackUser
 
 
 class SlackEvent(object):
+    """Encapsulates an event received from the RTM socket"""
     def __init__(self, sc=None, **kwargs):
 
         self._sc = sc
@@ -20,8 +21,10 @@ class SlackEvent(object):
     def channel(self, value):
         if isinstance(value, basestring):
             if value[0] == 'G':
+                # Slack groups have an ID starting with 'G'
                 self._channel = SlackGroup(value, sc=self._sc)
             elif value[0] == 'D':
+                # Slack IMs have an ID starting with 'D'
                 self._channel = SlackIM(value, sc=self._sc)
             else:
                 self._channel = SlackChannel(value, sc=self._sc)

@@ -2,6 +2,7 @@ import logging
 
 
 class SlackUser(object):
+    """Represents a Slack user"""
     def __init__(self, id, sc=None):
         self.id = id
         self._sc = sc
