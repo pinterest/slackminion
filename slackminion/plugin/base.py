@@ -22,7 +22,7 @@ class BasePlugin(object):
         Override this if your plugin needs to do initialization when loading.
         Do not use this to restore runtime changes to variables -- they will be overwritten later on by PluginManager.load_state()
         """
-        pass
+        return True
 
     def on_unload(self):
         """
@@ -30,7 +30,7 @@ class BasePlugin(object):
 
         Override this if your plugin needs to do cleanup when unloading.
         """
-        pass
+        return True
 
     def on_connect(self):
         """
@@ -38,7 +38,7 @@ class BasePlugin(object):
 
         Will not fire on reconnects.
         """
-        pass
+        return True
 
     def send_message(self, channel, text):
         """
