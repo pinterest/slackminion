@@ -9,7 +9,7 @@ from slackminion.slack import SlackChannel, SlackEvent
 class DummyPlugin(BasePlugin):
     @cmd(aliases='xyz')
     def abc(self, msg, args):
-        pass
+        return 'xyzzy'
 
 
 class TestDispatcher(object):
@@ -31,7 +31,9 @@ class TestDispatcher(object):
 
     def test_get_command(self):
         self.object.register_plugin(self.p)
-        assert self.object._get_command('!abc', None).method == self.p.abc
+        method = self.object._get_command('!abc', None).method
+        assert method == self.p.abc
+        assert method(None, None) == 'xyzzy'
 
     def test_get_invalid_command(self):
         self.object.register_plugin(self.p)
