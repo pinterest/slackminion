@@ -47,7 +47,7 @@ class BasePlugin(object):
         * channel - can be a channel or user
         * text - message to send
         """
-        if isinstance(channel, SlackIM):
+        if isinstance(channel, SlackIM) or isinstance(channel, SlackUser):
             self._bot.send_im(channel, text)
         elif isinstance(channel, SlackRoom):
             self._bot.send_message(channel, text)
