@@ -5,6 +5,7 @@ from slackclient._user import User
 from slackclient._util import SearchList
 from slackminion.bot import Bot
 from slackminion.plugin import BasePlugin
+from slackminion.slack import SlackIM, SlackChannel, SlackGroup, SlackUser
 
 
 def dummy_func(self):
@@ -25,6 +26,17 @@ test_mapping = {
     test_user_name: test_user_id,
 }
 
+# Channel, result
+test_message_data = [
+    (SlackIM('D12345678'), 'send_im'),
+    (SlackUser('U12345678'), 'send_im'),
+    (SlackChannel('C12345678'), 'send_message'),
+    (SlackGroup('G12345678'), 'send_message'),
+    ('@testuser', 'send_im'),
+    ('#testchannel', 'send_message'),
+    ('testchannel', 'send_message'),
+    (None, 'send_message'),
+]
 
 class DummyServer(object):
     def __init__(self):
@@ -135,3 +147,20 @@ class TestBasePlugin(object):
         user = self.object.get_user(test_user_name)
         assert user.id == test_user_id
         assert user.username == test_user_name
+
+    @pytest.mark.parametrize('channel,result', test_message_data)
+    def test_send_message(self, channel, result):
+        class Bot(object):
+            def __init__(self):
+                self.method = ''
+
+            def send_im(self, channel, text):
+                self.method = 'send_im'
+
+            def send_message(self, channel, text):
+                self.method = 'send_message'
+
+        self.object._bot = Bot()
+        self.object.send_message(channel, 'Yet another test string')
+        assert self.object._bot.method == result
+
