@@ -3,37 +3,14 @@ import pytest
 from slackclient import SlackClient
 
 from slackminion.slack.room.room import SlackChannel, SlackGroup
+from slackminion.utils.test_helpers import *
 
-test_channel_id = 'C12345678'
-test_channel_name = 'testchannel'
-test_group_id = 'G12345678'
-test_group_name = 'testgroup'
 str_format = '<#{id}|{name}>'
 
 test_channel_mapping = {
     test_channel_name: test_channel_id,
     test_group_name: test_group_id,
 }
-
-
-class DummySlackConnection(object):
-    def api_call(self, *args, **kwargs):
-        return {
-            'channel': {
-                'name': test_channel_name,
-                'creator': 'U12345',
-                'topic': {
-                    'value': 'Test Topic',
-                },
-            },
-            'group': {
-                'name': test_group_name,
-                'creator': 'U12345',
-                'topic': {
-                    'value': 'Test Topic',
-                },
-            }
-        }
 
 
 @pytest.fixture(autouse=True)
@@ -98,7 +75,7 @@ class TSlackRoom(object):
         def api_call(self, name, *args, **kwargs):
             if 'setTopic' in name:
                 assert name == api_name
-            return orig_api_call(self, *args, **kwargs)
+            return orig_api_call(self, name, *args, **kwargs)
         orig_api_call = DummySlackConnection.api_call
         monkeypatch.setattr(DummySlackConnection, 'api_call', api_call)
         assert self.object.topic == 'Test Topic'

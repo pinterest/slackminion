@@ -14,7 +14,7 @@ class UserManager(BasePlugin):
             self.admins = self._bot.config['bot_admins']
         setattr(self._bot, 'user_manager', self)
 
-        super(UserManager, self).on_load()
+        return super(UserManager, self).on_load()
 
     def get(self, userid):
         """Retrieve user by id"""

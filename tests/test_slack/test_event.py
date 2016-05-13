@@ -1,16 +1,8 @@
 import pytest
 
-from slackclient import SlackClient
-
 from slackminion.slack import SlackEvent, SlackChannel, SlackGroup, SlackIM, SlackUser
+from slackminion.utils.test_helpers import *
 
-
-test_user_id = 'U12345678'
-test_user_name = 'testuser'
-test_channel_id = 'C12345678'
-test_channel_name = 'testchannel'
-test_group_id = 'G12345678'
-test_group_name = 'testgroup'
 test_im_id = 'D12345678'
 
 

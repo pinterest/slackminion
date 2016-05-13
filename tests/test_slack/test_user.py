@@ -3,24 +3,13 @@ import pytest
 from slackclient import SlackClient
 
 from slackminion.slack import SlackUser
+from slackminion.utils.test_helpers import *
 
-test_user_id = 'U12345678'
-test_user_name = 'testuser'
 str_format = '<@{id}|{name}>'
 
 test_user_mapping = {
     test_user_name: test_user_id,
 }
-
-
-class DummySlackConnection(object):
-    def api_call(self, *args, **kwargs):
-        return {
-            'user': {
-                'id': test_user_id,
-                'name': test_user_name,
-            }
-        }
 
 
 @pytest.fixture(autouse=True)
