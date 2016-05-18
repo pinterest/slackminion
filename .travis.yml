@@ -1,10 +1,14 @@
 language: python
 python:
   - "2.7"
-install: "python setup.py install"
+install:
+  - python setup.py install
+  - pip install pytest-cov codeclimate-test-reporter
 script:
   - cp config.yaml.example config.yaml
-  - py.test
+  - py.test --cov=slackminion
+after_script:
+  - codeclimate-test-reporter
 notifications:
   slack:
     secure: ULjXh3hRdT4DbX5E8Pb5VBAqMPykfLzKfm7Y5/X8r4OGPIEw9KxL6yD3tbACPGgmkPQZS3i72V70uztukS/8IHPs7OD6qdYFcA+bFwVjAvmZljFq4SrlkQ2BycIU2aQ+qsnErMAK45aK+RM5O01ZajKyeyH7I/r3Hj5p4FlEbDYkSISAooHvoIYmIRDems+wNRT9tqu4NKSQDy3ncO0OE59tRo41j9fbRBIDo4FXcxCu4OiBkcZJx9C/X6utmDjyuLJDgHsTPq1F0Arb7niBPZ+68SNXUgS9Gw54pHE9qpBuULF/Put6arUkNGUZeW2NilUySMTBlU63y3Xtn/kiGfB3CeLiGQrMZVcnVxAMDpnpZ6Bgm2LM5VlRJy3O0wJmjbKN7dnh1WkGp9gji5LfipPHqNqmZX+SASDqUe6fcPnYemmM86U3OVSz9c31nWKmqQ1tzS1bkri7o5ubgJyLmIBbm8wFJ7/Y2AsvuKqogJ6Lancv1RwOX1P1n8rbdVS9FNgmbCBnDC6oh+hegdQPjuxRJ2pne8AGKVF8mFNA3X89L3Gi/jAJ9UcjCjRqkBGBXmR1mbMpdgN5yKGJbaGnF5ycVaAbtloDrQcgg0kKQa8E1CeyccbAfUfBYn93DHgsbraGy+N70wUK0ddd5p3PsodUTuQpuMAEEFePa3dP91E=
