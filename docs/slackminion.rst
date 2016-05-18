@@ -9,6 +9,7 @@ Subpackages
     slackminion.plugin
     slackminion.plugins
     slackminion.slack
+    slackminion.utils
 
 Submodules
 ----------

@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+slackminion.slack.connection module
+-----------------------------------
+
+.. automodule:: slackminion.slack.connection
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 slackminion.slack.event module
 ------------------------------
 
