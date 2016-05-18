@@ -1,4 +1,4 @@
-from base import SlackRoomIMBase
+from .base import SlackRoomIMBase
 
 
 class SlackIM(SlackRoomIMBase):

@@ -1,5 +1,5 @@
-from base import BasePlugin
-from manager import PluginManager
+from .base import BasePlugin
+from .manager import PluginManager
 
 
 def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False, *args, **kwargs):

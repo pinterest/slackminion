@@ -4,12 +4,11 @@ from time import sleep
 
 from slackclient import SlackClient
 
-from dispatcher import MessageDispatcher
-from slackminion.slack import SlackEvent, SlackUser
-from slackminion.slack.room import SlackRoomIMBase
+from slackminion.dispatcher import MessageDispatcher
+from slackminion.slack import SlackEvent, SlackUser, SlackRoomIMBase
 from slackminion.exceptions import NotSetupError
-from slackminion.plugin.manager import PluginManager
-from webserver import Webserver
+from slackminion.plugin import PluginManager
+from slackminion.webserver import Webserver
 
 
 def eventhandler(*args, **kwargs):

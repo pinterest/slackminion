@@ -1,7 +1,7 @@
 import pytest
 
-from bot import DummyBot
-from slack import DummySlackConnection
+from .bot import DummyBot
+from .slack import DummySlackConnection
 
 EXPECTED_PLUGIN_METHODS = [
     'on_connect',

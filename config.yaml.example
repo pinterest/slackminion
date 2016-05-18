@@ -14,11 +14,13 @@ plugins:
 #  - slackminion.plugins.core.AuthManager
   - slackminion.plugins.test.TestPlugin
 #  - slackminion.plugins.test.TestAclPlugin
-  - slackminion.plugins.core.FileStateHandler
+  - slackminion.plugins.state.file.FileStateHandler
+# Comment out the above and uncomment this line to use s3 instead
+#  - slackminion.plugins.state_s3.handler.S3StateHandler
 # Comment out the above and uncomment this line to use redis instead
-#  - slackminion.plugins.core.RedisStateHandler
+#  - slackminion.plugins.state_redis.handler.RedisStateHandler
 # Comment out the above and uncomment this line to use mysql instead
-#  - slackminion.plugins.core.MySQLStateHandler
+#  - slackminion.plugins.state_mysql.handler.MySQLStateHandler
 
 # Users who should be granted admin access
 # Only used if AuthManager is enabled
@@ -39,6 +41,11 @@ plugin_settings:
     user: slack
     passwd: slack
     db: slack
+  S3StateHandler:
+    bucket: slack
+    prefix: bot
+    aws_access_key: aws_key
+    aws_secret_key: aws_secret
   TestPlugin:
     channel: botfactory
 

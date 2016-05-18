@@ -1,5 +1,5 @@
-from attributes import SlackRoomAttribute, SlackRoomTopic
-from base import SlackRoomIMBase
+from .attributes import SlackRoomAttribute, SlackRoomTopic
+from .base import SlackRoomIMBase
 from ..user import SlackUser
 
 

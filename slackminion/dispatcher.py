@@ -2,8 +2,8 @@ import logging
 
 from bottle import request, app
 
-from slack import SlackChannel
 from slackminion.exceptions import DuplicateCommandError
+from slackminion.slack import SlackChannel
 
 
 class BaseCommand(object):

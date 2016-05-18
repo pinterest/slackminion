@@ -1,5 +1,5 @@
-from room import SlackChannel, SlackGroup, SlackIM
-from user import SlackUser
+from .room import SlackChannel, SlackGroup, SlackIM
+from .user import SlackUser
 
 
 class SlackEvent(object):
