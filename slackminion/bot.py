@@ -2,10 +2,8 @@ import logging
 from datetime import datetime
 from time import sleep
 
-from slackclient import SlackClient
-
 from dispatcher import MessageDispatcher
-from slackminion.slack import SlackEvent, SlackUser
+from slackminion.slack import SlackEvent, SlackUser, ThreadedSlackClient
 from slackminion.slack.room import SlackRoomIMBase
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin.manager import PluginManager
@@ -62,7 +60,7 @@ class Bot(object):
         self.plugins.load()
         self.plugins.load_state()
         self._find_event_handlers()
-        self.sc = SlackClient(self.config['slack_token'])
+        self.sc = ThreadedSlackClient(self.config['slack_token'])
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
         self.always_send_dm = ['_unauthorized_']
