@@ -2,9 +2,8 @@ import logging
 from datetime import datetime
 from time import sleep
 
-from dispatcher import MessageDispatcher
-from slackminion.slack import SlackEvent, SlackUser, ThreadedSlackClient
-from slackminion.slack.room import SlackRoomIMBase
+from slackminion.dispatcher import MessageDispatcher
+from slackminion.slack import SlackEvent, SlackUser, SlackRoomIMBase, ThreadedSlackClient
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin import PluginManager
 from slackminion.webserver import Webserver
