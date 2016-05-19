@@ -31,7 +31,7 @@ class PluginManager(object):
             self.config['plugins'] = []
 
         # Add core plugins
-        self.config['plugins'].insert(0, 'slackminion.plugins.core.Core')
+        self.config['plugins'].insert(0, 'slackminion.plugins.core.core.Core')
 
         for plugin_name in self.config['plugins']:
             if self.test_mode:
