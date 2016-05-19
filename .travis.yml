@@ -2,7 +2,7 @@ language: python
 python:
   - "2.7"
 install:
-  - python setup.py install
+  - pip install -r requirements.txt
   - pip install pytest-cov codeclimate-test-reporter
 script:
   - cp config.yaml.example config.yaml
