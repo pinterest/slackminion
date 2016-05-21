@@ -21,6 +21,11 @@ class SlackRoom(SlackRoomIMBase):
         # Extra information (lazy loaded)
         self._add_extra_attributes()
 
+        if self._sc is not None:
+            resp = self._sc.server.channels.find(self.id)
+            if resp is not None:
+                self.name = resp.name
+
         for k, v in kwargs.items():
             if k in self.BASE_ATTRIBUTES + self.EXTRA_ATTRIBUTES:
                 setattr(self, k, v)

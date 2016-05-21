@@ -1,27 +1,24 @@
 import pytest
 
 from slackclient import SlackClient
+from slackclient._user import User
 
 from slackminion.slack import SlackUser
 from slackminion.utils.test_helpers import *
 
 str_format = '<@{id}|{name}>'
 
-test_user_mapping = {
-    test_user_name: test_user_id,
-}
+test_user_mapping = []
 
 
 @pytest.fixture(autouse=True)
 def patch_slackclient_channels_find(monkeypatch):
+    test_user_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None))
+
     def find(self, id):
-        class Response(object):
-            def __init__(self, id):
-                self.id = id
-                self.name = test_user_mapping[id]
-        if id in test_user_mapping:
-            resp = Response(id)
-            return resp
+        users = filter(lambda x: x == id, test_user_mapping)
+        if len(users) > 0:
+            return users[0]
         return None
     monkeypatch.setattr('slackclient._util.SearchList.find', find)
 

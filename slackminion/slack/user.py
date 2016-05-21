@@ -13,8 +13,9 @@ class SlackUser(object):
     @property
     def username(self):
         if self._username is None and self._sc is not None:
-            resp = self._sc.api_call('users.info', user=self.id)
-            self._username = resp['user']['name']
+            resp = self._sc.server.users.find(self.id)
+            if resp is not None:
+                self._username = resp.name
         return self._username
 
     @property
