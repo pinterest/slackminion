@@ -60,40 +60,45 @@ class AuthManager(BasePlugin):
         if action not in valid_actions:
             return "Valid actions: %s" % ', '.join(valid_actions)
 
+        if action in ['show', 'new', 'delete']:
+            return self.acl_commands(action, acl_name, msg.user)
+
         # allow, deny, remove all require two arguments (acl name, username)
         if action in ['allow', 'deny', 'remove'] and len(args) < 3:
             return "Usage: !acl %s %s _args_" % (action, acl_name)
 
-        if action == "allow":
-            if self.acl_allow(acl_name, args[2]):
-                return "Added %s to %s (allow)" % (args[2], acl_name)
-            return "Failed to add %s to %s (allow)" % (args[2], acl_name)
+        return self.user_commands(action, acl_name, args[2])
 
-        elif action == "deny":
-            if self.acl_deny(acl_name, args[2]):
-                return "Added %s to %s (deny)" % (args[2], acl_name)
-            return "Failed to add %s to %s (deny)" % (args[2], acl_name)
-
-        elif action == "remove":
-            if self.acl_remove(acl_name, args[2]):
-                return "Removed %s from %s (allow and deny)" % (args[2], acl_name)
-            return "Failed to remove %s from %s (allow and deny)" % (args[2], acl_name)
-
-        elif action == "show":
-            output = self.acl_show(msg.user, acl_name)
-            if output is None:
-                return "Sorry, couldn't find an acl named '%s'" % acl_name
+    def acl_commands(self, action, name, user):
+        if action == "show":
+            output = self.acl_show(user, name) or "Sorry, couldn't find an acl named '%s'" % name
             return output
 
         elif action == "new":
-            if self.acl_new(acl_name):
-                return "Created new acl '%s'" % acl_name
-            return "ACL '%s' already exists" % acl_name
+            if self.acl_new(name):
+                return "Created new acl '%s'" % name
+            return "ACL '%s' already exists" % name
 
         elif action == "delete":
-            if self.acl_delete(acl_name):
-                return "Deleted acl '%s'" % acl_name
-            return "ACL '%s' does not exist" % acl_name
+            if self.acl_delete(name):
+                return "Deleted acl '%s'" % name
+            return "ACL '%s' does not exist" % name
+
+    def user_commands(self, action, name, user):
+        if action == "allow":
+            if self.acl_allow(name, user):
+                return "Added %s to %s (allow)" % (user, name)
+            return "Failed to add %s to %s (allow)" % (user, name)
+
+        elif action == "deny":
+            if self.acl_deny(name, user):
+                return "Added %s to %s (deny)" % (user, name)
+            return "Failed to add %s to %s (deny)" % (user, name)
+
+        elif action == "remove":
+            if self.acl_remove(name, user):
+                return "Removed %s from %s (allow and deny)" % (user, name)
+            return "Failed to remove %s from %s (allow and deny)" % (user, name)
 
     def acl_allow(self, name, user):
         """Add a user to the given acl allow block."""
