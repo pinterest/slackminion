@@ -68,12 +68,7 @@ class Core(BasePlugin):
         !sleep [channel name] - ignore the specified channel (or current if none specified)
         """
 
-        channel = None
-        if len(args) == 0:
-            if isinstance(msg.channel, SlackRoom):
-                channel = msg.channel
-        else:
-            channel = self.get_channel(args[0])
+        channel = self._get_channel_from_msg_or_args(msg, args)
 
         if channel is not None:
             self.log.info('Sleeping in %s', channel)
@@ -88,14 +83,18 @@ class Core(BasePlugin):
         !wake [channel name] - unignore the specified channel (or current if none specified)
         """
 
+        channel = self._get_channel_from_msg_or_args(msg, args)
+
+        if channel is not None:
+            self.log.info('Waking up in %s', channel)
+            self._bot.dispatcher.unignore(channel)
+            self.send_message(channel, 'Hello, how may I be of service?')
+
+    def _get_channel_from_msg_or_args(self, msg, args):
         channel = None
         if len(args) == 0:
             if isinstance(msg.channel, SlackRoom):
                 channel = msg.channel
         else:
             channel = self.get_channel(args[0])
-
-        if channel is not None:
-            self.log.info('Waking up in %s', channel)
-            self._bot.dispatcher.unignore(channel)
-            self.send_message(channel, 'Hello, how may I be of service?')
+        return channel

@@ -33,3 +33,11 @@ class TestCorePlugin(BasicPluginTest):
     def test_sleep_channel(self):
         e = get_test_event()
         assert self.is_called('slackminion.dispatcher.MessageDispatcher.ignore', self.object.sleep, e, ['testchannel'])
+
+    def test_wake(self):
+        e = get_test_event()
+        assert self.is_called('slackminion.dispatcher.MessageDispatcher.unignore', self.object.wake, e, [])
+
+    def test_wake_channel(self):
+        e = get_test_event()
+        assert self.is_called('slackminion.dispatcher.MessageDispatcher.unignore', self.object.wake, e, ['testchannel'])
