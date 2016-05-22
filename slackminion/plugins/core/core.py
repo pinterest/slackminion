@@ -5,6 +5,15 @@ from slackminion.plugin.base import BasePlugin
 from slackminion.slack import SlackRoom
 
 
+def channel_wrapper(f):
+    def wrapper(self, msg, args):
+        channel = self._get_channel_from_msg_or_args(msg, args)
+        if channel is not None:
+            return f(self, channel)
+        return None
+    return wrapper
+
+
 class Core(BasePlugin):
 
     @cmd()
@@ -61,34 +70,28 @@ class Core(BasePlugin):
         return '\n'.join(output)
 
     @cmd()
-    def sleep(self, msg, args):
+    @channel_wrapper
+    def sleep(self, channel):
         """Causes the bot to ignore all messages from the channel.
 
         Usage:
         !sleep [channel name] - ignore the specified channel (or current if none specified)
         """
-
-        channel = self._get_channel_from_msg_or_args(msg, args)
-
-        if channel is not None:
-            self.log.info('Sleeping in %s', channel)
-            self._bot.dispatcher.ignore(channel)
-            self.send_message(channel, 'Good night')
+        self.log.info('Sleeping in %s', channel)
+        self._bot.dispatcher.ignore(channel)
+        self.send_message(channel, 'Good night')
 
     @cmd(admin_only=True, while_ignored=True)
-    def wake(self, msg, args):
+    @channel_wrapper
+    def wake(self, channel):
         """Causes the bot to resume operation in the channel.
 
         Usage:
         !wake [channel name] - unignore the specified channel (or current if none specified)
         """
-
-        channel = self._get_channel_from_msg_or_args(msg, args)
-
-        if channel is not None:
-            self.log.info('Waking up in %s', channel)
-            self._bot.dispatcher.unignore(channel)
-            self.send_message(channel, 'Hello, how may I be of service?')
+        self.log.info('Waking up in %s', channel)
+        self._bot.dispatcher.unignore(channel)
+        self.send_message(channel, 'Hello, how may I be of service?')
 
     def _get_channel_from_msg_or_args(self, msg, args):
         channel = None
