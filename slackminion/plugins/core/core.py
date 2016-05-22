@@ -29,22 +29,26 @@ class Core(BasePlugin):
                     not getattr(msg.user, 'is_admin', False):
                 commands = filter(lambda x: x[1].admin_only is False, commands)
             for name, cmd in commands:
-                helpstr = cmd.help
-                if helpstr is None:
-                    helpstr = "No description provided."
-                elif '.' in helpstr:
-                    helpstr = helpstr[0:helpstr.find('.') + 1]
-                output.append("*%s*: %s" % (name, helpstr))
+                output.append(self._get_short_help_for_command(name))
         else:
             name = '!' + args[0]
-            if name not in self._bot.dispatcher.commands:
-                output = ['No such command: %s' % name]
-            else:
-                helpstr = self._bot.dispatcher.commands[name].help
-                if helpstr is None:
-                    helpstr = "No description provided."
-                output = [helpstr]
+            output = [self._get_help_for_command(name)]
         return '\n'.join(output)
+
+    def _get_help_for_command(self, name):
+        if name not in self._bot.dispatcher.commands:
+            return 'No such command: %s' % name
+
+        helpstr = self._bot.dispatcher.commands[name].help
+        if helpstr is None:
+            helpstr = "No description provided."
+        return helpstr
+
+    def _get_short_help_for_command(self, name):
+        helpstr = self._get_help_for_command(name)
+        if '.' in helpstr:
+            helpstr = helpstr[0:helpstr.find('.') + 1]
+        return "*{name}*: {help}".format(name=name, help=helpstr)
 
     @cmd(admin_only=True)
     def save(self, msg, args):
