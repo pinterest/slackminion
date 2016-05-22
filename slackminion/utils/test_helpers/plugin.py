@@ -1,5 +1,7 @@
 import pytest
 
+from slackminion.plugin import BasePlugin, cmd
+
 from .bot import DummyBot
 from .slack import DummySlackConnection
 
@@ -8,6 +10,12 @@ EXPECTED_PLUGIN_METHODS = [
     'on_load',
     'on_unload',
 ]
+
+
+class DummyPlugin(BasePlugin):
+    @cmd(aliases='xyz')
+    def abc(self, msg, args):
+        return 'xyzzy'
 
 
 class BasicPluginTest(object):

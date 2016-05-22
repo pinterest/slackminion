@@ -1,2 +1,2 @@
-from .plugin import BasicPluginTest
+from .plugin import BasicPluginTest, DummyPlugin
 from .slack import *

@@ -1,6 +1,5 @@
 import pytest
 
-from slackminion.plugin import BasePlugin, cmd
 from slackminion.plugins.core.core import Core
 from slackminion.utils.test_helpers import *
 
@@ -19,12 +18,6 @@ test_help_short_data = [
     ('!sleep', "*!sleep*: Causes the bot to ignore all messages from the channel."),
     ('!abc', '*!abc*: No description provided.'),
 ]
-
-
-class DummyPlugin(BasePlugin):
-    @cmd(aliases='xyz')
-    def abc(self, msg, args):
-        return 'xyzzy'
 
 
 class TestCorePlugin(BasicPluginTest):

@@ -4,7 +4,6 @@ from slackclient._channel import Channel
 from slackclient._user import User
 from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import DuplicateCommandError
-from slackminion.plugin import BasePlugin, cmd
 from slackminion.slack import SlackChannel
 from slackminion.utils.test_helpers import *
 
@@ -22,12 +21,6 @@ def patch_slackclient_channels_find(monkeypatch):
             return res[0]
         return None
     monkeypatch.setattr('slackclient._util.SearchList.find', find)
-
-
-class DummyPlugin(BasePlugin):
-    @cmd(aliases='xyz')
-    def abc(self, msg, args):
-        return 'xyzzy'
 
 
 class TestDispatcher(object):

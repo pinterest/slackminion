@@ -1,14 +1,7 @@
 import pytest
 
-from slackminion.plugin import BasePlugin, cmd
 from slackminion.plugins.core.acl import AuthManager
 from slackminion.utils.test_helpers import *
-
-
-class DummyPlugin(BasePlugin):
-    @cmd(aliases='xyz')
-    def abc(self, msg, args):
-        return 'xyzzy'
 
 
 class TestAuthManager(BasicPluginTest):
