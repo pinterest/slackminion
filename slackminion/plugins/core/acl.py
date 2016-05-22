@@ -41,7 +41,7 @@ class AuthManager(BasePlugin):
             },
         }
 
-        super(AuthManager, self).on_load()
+        return super(AuthManager, self).on_load()
 
     @cmd(admin_only=True)
     def acl(self, msg, args):
@@ -64,21 +64,8 @@ class AuthManager(BasePlugin):
         if len(args) == 0:
             return "Usage: !acl show OR !acl _action_ _args_"
 
-        action = args[0]
         valid_actions = ['allow', 'deny', 'remove', 'show', 'new', 'delete']
-        if action not in valid_actions:
-            return "Valid actions: %s" % ', '.join(valid_actions)
-
-    def acl_commands(self, action, name, user):
-        if action == "new":
-            if self.create_acl(name):
-                return "Created new acl '%s'" % name
-            return "ACL '%s' already exists" % name
-
-        elif action == "delete":
-            if self.delete_acl(name):
-                return "Deleted acl '%s'" % name
-            return "ACL '%s' does not exist" % name
+        return "Valid actions: %s" % ', '.join(valid_actions)
 
     @cmd(admin_only=True)
     @acl_mgt_command
