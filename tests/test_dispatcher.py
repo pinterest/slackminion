@@ -1,9 +1,27 @@
 import pytest
 
+from slackclient._channel import Channel
+from slackclient._user import User
 from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.plugin import BasePlugin, cmd
-from slackminion.slack import SlackChannel, SlackEvent
+from slackminion.slack import SlackChannel
+from slackminion.utils.test_helpers import *
+
+test_data_mapping = []
+
+
+@pytest.fixture(autouse=True)
+def patch_slackclient_channels_find(monkeypatch):
+    test_data_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None))
+    test_data_mapping.append(Channel(None, test_channel_name, test_channel_id, None))
+
+    def find(self, id):
+        res = filter(lambda x: x == id, test_data_mapping)
+        if len(res) > 0:
+            return res[0]
+        return None
+    monkeypatch.setattr('slackclient._util.SearchList.find', find)
 
 
 class DummyPlugin(BasePlugin):
@@ -77,3 +95,30 @@ class TestDispatcher(object):
         assert self.object.unignore(c) is True
         assert 'testchannel' not in self.object.ignored_channels
         assert self.object._is_channel_ignored(self.p.abc, c) is False
+
+    def test_push(self):
+        self.object.register_plugin(self.p)
+        e = SlackEvent(DummySlackConnection(), **{'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
+        assert self.object.push(e) == ('!abc', 'xyzzy')
+
+    def test_push_alias(self):
+        self.object.register_plugin(self.p)
+        e = SlackEvent(DummySlackConnection(), **{'text': '!xyz', 'user': test_user_id, 'channel': test_channel_id})
+        assert self.object.push(e) == ('!xyz', 'xyzzy')
+
+    def test_push_not_command(self):
+        e = SlackEvent(DummySlackConnection(), **{'text': 'Not a command'})
+        assert self.object.push(e) == (None, None)
+
+    def test_push_no_user(self):
+        self.object.register_plugin(self.p)
+        e = SlackEvent(DummySlackConnection(), **{'text': '!abc'})
+        assert self.object.push(e) == (None, None)
+
+    def test_push_ignored_channel(self):
+        c = SlackChannel('CTEST')
+        c.name = 'testchannel'
+        self.object.ignore(c)
+        self.object.register_plugin(self.p)
+        e = SlackEvent(DummySlackConnection(), **{'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
+        assert self.object.push(e) == ('_ignored_', '')
