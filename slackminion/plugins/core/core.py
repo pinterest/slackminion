@@ -1,3 +1,4 @@
+from functools import wraps
 from operator import itemgetter
 
 from slackminion.plugin import cmd
@@ -6,6 +7,7 @@ from slackminion.slack import SlackRoom
 
 
 def channel_wrapper(f):
+    @wraps(f)
     def wrapper(self, msg, args):
         channel = self._get_channel_from_msg_or_args(msg, args)
         if channel is not None:
@@ -23,10 +25,7 @@ class Core(BasePlugin):
         if len(args) == 0:
             commands = sorted(self._bot.dispatcher.commands.items(), key=itemgetter(0))
             # Filter commands if auth is enabled, hide_admin_commands is enabled, and user is not admin
-            if hasattr(self._bot.dispatcher, 'auth_manager') and \
-                    'hide_admin_commands' in self._bot.config and \
-                    self._bot.config['hide_admin_commands'] is True and \
-                    not getattr(msg.user, 'is_admin', False):
+            if self._should_filter_help_commands(msg.user):
                 commands = filter(lambda x: x[1].admin_only is False, commands)
             for name, cmd in commands:
                 output.append(self._get_short_help_for_command(name))
@@ -34,6 +33,12 @@ class Core(BasePlugin):
             name = '!' + args[0]
             output = [self._get_help_for_command(name)]
         return '\n'.join(output)
+
+    def _should_filter_help_commands(self, user):
+        return hasattr(self._bot.dispatcher, 'auth_manager') \
+               and 'hide_admin_commands' in self._bot.config \
+               and self._bot.config['hide_admin_commands'] is True \
+               and not getattr(user, 'is_admin', False)
 
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
