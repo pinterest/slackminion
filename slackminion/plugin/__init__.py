@@ -13,6 +13,8 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False, *args, **k
     """
     def wrapper(func):
         func.is_cmd = True
+        func.is_subcmd = len(func.__name__.split('_')) > 1
+        func.cmd_name = func.__name__.replace('_', ' ')
         func.admin_only = admin_only
         func.acl = acl
         func.aliases = aliases

@@ -1,5 +1,27 @@
+from functools import wraps
+
 from slackminion.plugin import cmd
 from slackminion.plugin.base import BasePlugin
+
+
+def user_mgt_command(f):
+    @wraps(f)
+    def wrapper(self, msg, args):
+        if len(args) < 2:
+            return "Usage: !%s *acl_name* *username*" % f.__name__.replace('_', ' ')
+        name, user = args
+        return f(self, name, user)
+    return wrapper
+
+
+def acl_mgt_command(f):
+    @wraps(f)
+    def wrapper(self, msg, args):
+        if len(args) < 1:
+            return "Usage: !%s *acl_name*" % f.__name__.replace('_', ' ')
+        name = args[0]
+        return f(self, name)
+    return wrapper
 
 
 class AuthManager(BasePlugin):
@@ -43,68 +65,77 @@ class AuthManager(BasePlugin):
             return "Usage: !acl show OR !acl _action_ _args_"
 
         action = args[0]
-        acl_name = None
-        if len(args) == 1:
-            # Only show is allowed to have no arguments
-            if action != 'show':
-                return "Usage: !acl _action_ _args_"
-        else:
-            acl_name = args[1]
-
-        # Only 'new' can have an acl name that doesn't exist
-        # Also exempt 'show' as 'None' will never be in the acl list
-        if action not in ['new', 'show'] and acl_name not in self._acl:
-            return "ACL %s does not exist" % acl_name
-
         valid_actions = ['allow', 'deny', 'remove', 'show', 'new', 'delete']
         if action not in valid_actions:
             return "Valid actions: %s" % ', '.join(valid_actions)
 
-        if action in ['show', 'new', 'delete']:
-            return self.acl_commands(action, acl_name, msg.user)
-
-        # allow, deny, remove all require two arguments (acl name, username)
-        if action in ['allow', 'deny', 'remove'] and len(args) < 3:
-            return "Usage: !acl %s %s _args_" % (action, acl_name)
-
-        return self.user_commands(action, acl_name, args[2])
-
     def acl_commands(self, action, name, user):
-        if action == "show":
-            output = self.acl_show(user, name) or "Sorry, couldn't find an acl named '%s'" % name
-            return output
-
-        elif action == "new":
-            if self.acl_new(name):
+        if action == "new":
+            if self.create_acl(name):
                 return "Created new acl '%s'" % name
             return "ACL '%s' already exists" % name
 
         elif action == "delete":
-            if self.acl_delete(name):
+            if self.delete_acl(name):
                 return "Deleted acl '%s'" % name
             return "ACL '%s' does not exist" % name
 
-    def user_commands(self, action, name, user):
-        if action == "allow":
-            if self.acl_allow(name, user):
-                return "Added %s to %s (allow)" % (user, name)
-            return "Failed to add %s to %s (allow)" % (user, name)
+    @cmd(admin_only=True)
+    @acl_mgt_command
+    def acl_new(self, name):
+        if self.create_acl(name):
+            return "Created new acl '%s'" % name
+        return "ACL '%s' already exists" % name
 
-        elif action == "deny":
-            if self.acl_deny(name, user):
-                return "Added %s to %s (deny)" % (user, name)
-            return "Failed to add %s to %s (deny)" % (user, name)
+    @cmd(admin_only=True)
+    @acl_mgt_command
+    def acl_delete(self, name):
+        if self.delete_acl(name):
+            return "Deleted acl '%s'" % name
+        return "ACL '%s' does not exist" % name
 
-        elif action == "remove":
-            if self.acl_remove(name, user):
-                return "Removed %s from %s (allow and deny)" % (user, name)
-            return "Failed to remove %s from %s (allow and deny)" % (user, name)
-
+    @cmd(admin_only=True)
+    @user_mgt_command
     def acl_allow(self, name, user):
+        if self.add_user_to_allow(name, user):
+            return "Added %s to %s (allow)" % (user, name)
+        return "Failed to add %s to %s (allow)" % (user, name)
+
+    @cmd(admin_only=True)
+    @user_mgt_command
+    def acl_deny(self, name, user):
+        if self.add_user_to_deny(name, user):
+            return "Added %s to %s (deny)" % (user, name)
+        return "Failed to add %s to %s (deny)" % (user, name)
+
+    @cmd(admin_only=True)
+    @user_mgt_command
+    def acl_remove(self, name, user):
+        if self.remove_user_from_acl(name, user):
+            return "Removed %s from %s (allow and deny)" % (user, name)
+        return "Failed to remove %s from %s (allow and deny)" % (user, name)
+
+    @cmd(admin_only=True)
+    def acl_show(self, msg, args):
+        """Show current allow and deny blocks for the given acl."""
+        name = args[0] if len(args) > 0 else None
+        if name is None:
+            return "%s: The following ACLs are defined: %s" % (msg.user, ', '.join(self._acl.keys()))
+
+        if name not in self._acl:
+            return "Sorry, couldn't find an acl named '%s'" % name
+
+        return '\n'.join([
+            "%s: ACL '%s' is defined as follows:" % (msg.user, name),
+            "allow: %s" % ', '.join(self._acl[name]['allow']),
+            "deny: %s" % ', '.join(self._acl[name]['deny'])
+        ])
+
+    def add_user_to_allow(self, name, user):
         """Add a user to the given acl allow block."""
 
         # Clear user from both allow and deny before adding
-        if not self.acl_remove(name, user):
+        if not self.remove_user_from_acl(name, user):
             return False
 
         if name not in self._acl:
@@ -113,9 +144,9 @@ class AuthManager(BasePlugin):
         self._acl[name]['allow'].append(user)
         return True
 
-    def acl_deny(self, name, user):
+    def add_user_to_deny(self, name, user):
         """Add a user to the given acl deny block."""
-        if not self.acl_remove(name, user):
+        if not self.remove_user_from_acl(name, user):
             return False
 
         if name not in self._acl:
@@ -124,7 +155,7 @@ class AuthManager(BasePlugin):
         self._acl[name]['deny'].append(user)
         return True
 
-    def acl_remove(self, name, user):
+    def remove_user_from_acl(self, name, user):
         """Remove a user from the given acl (both allow and deny)."""
         if name not in self._acl:
             return False
@@ -134,21 +165,7 @@ class AuthManager(BasePlugin):
             self._acl[name]['deny'].remove(user)
         return True
 
-    def acl_show(self, user, name=None):
-        """Show current allow and deny blocks for the given acl."""
-        if name is None:
-            return "%s: The following ACLs are defined: %s" % (user, ', '.join(self._acl.keys()))
-
-        if name not in self._acl:
-            return None
-
-        return '\n'.join([
-            "%s: ACL '%s' is defined as follows:" % (user, name),
-            "allow: %s" % ', '.join(self._acl[name]['allow']),
-            "deny: %s" % ', '.join(self._acl[name]['deny'])
-        ])
-
-    def acl_new(self, name):
+    def create_acl(self, name):
         """Create a new acl."""
         if name in self._acl:
             return False
@@ -159,7 +176,7 @@ class AuthManager(BasePlugin):
         }
         return True
 
-    def acl_delete(self, name):
+    def delete_acl(self, name):
         """Delete an acl."""
         if name not in self._acl:
             return False

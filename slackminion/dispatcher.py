@@ -20,6 +20,7 @@ class PluginCommand(BaseCommand):
         super(PluginCommand, self).__init__(method)
         self.acl = method.acl
         self.admin_only = method.admin_only
+        self.is_subcmd = method.is_subcmd
         self.while_ignored = method.while_ignored
 
 
@@ -51,10 +52,9 @@ class MessageDispatcher(object):
         Takes a SlackEvent, parses it for a command, and runs against registered plugin
         """
         args = self._parse_message(message)
-        cmd = args[0]
-        msg_args = args[1:]
-        self.log.debug("Received command %s with args %s", cmd, msg_args)
-        if cmd in self.commands:
+        self.log.debug("Searching for command using chunks: %s", args)
+        cmd, msg_args = self._find_longest_prefix_command(args)
+        if cmd is not None:
             if message.user is None:
                 self.log.debug("Discarded message with no originating user: %s", message)
                 return None, None
@@ -85,7 +85,7 @@ class MessageDispatcher(object):
         for name in dir(plugin):
             method = getattr(plugin, name)
             if callable(method) and hasattr(method, 'is_cmd'):
-                commands = [name]
+                commands = [method.cmd_name]
                 if method.aliases is not None:
                     aliases = method.aliases
                     if isinstance(method.aliases, basestring):
@@ -119,6 +119,15 @@ class MessageDispatcher(object):
             self.ignored_channels.remove(channel)
             return True
         return False
+
+    def _find_longest_prefix_command(self, args):
+        num_parts = len(args)
+        while num_parts > 0:
+            cmd = ' '.join(args[0:num_parts])
+            if cmd in self.commands:
+                return cmd, args[num_parts:]
+            num_parts -= 1
+        return None, None
 
     def _get_command(self, cmd, user):
         can_run_cmd = True
