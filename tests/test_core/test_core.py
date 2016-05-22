@@ -1,5 +1,30 @@
+import pytest
+
+from slackminion.plugin import BasePlugin, cmd
 from slackminion.plugins.core.core import Core
 from slackminion.utils.test_helpers import *
+
+# command, help
+test_help_long_data = [
+    ('!sleep', """Causes the bot to ignore all messages from the channel.
+
+        Usage:
+        !sleep [channel name] - ignore the specified channel (or current if none specified)
+        """),
+    ('!abc', 'No description provided.'),
+    ('!nosuchcommand', 'No such command: !nosuchcommand')
+]
+
+test_help_short_data = [
+    ('!sleep', "*!sleep*: Causes the bot to ignore all messages from the channel."),
+    ('!abc', '*!abc*: No description provided.'),
+]
+
+
+class DummyPlugin(BasePlugin):
+    @cmd(aliases='xyz')
+    def abc(self, msg, args):
+        return 'xyzzy'
 
 
 class TestCorePlugin(BasicPluginTest):
@@ -12,6 +37,10 @@ class TestCorePlugin(BasicPluginTest):
 
     def test_help(self):
         assert self.object.help(get_test_event(), []) == ''
+
+    def test_help_for_command(self):
+        self.object._bot.dispatcher.register_plugin(self.object)
+        assert self.object.help(get_test_event(), ['help']) == 'Displays help for each command'
 
     def test_save(self):
         e = get_test_event()
@@ -41,3 +70,15 @@ class TestCorePlugin(BasicPluginTest):
     def test_wake_channel(self):
         e = get_test_event()
         assert self.is_called('slackminion.dispatcher.MessageDispatcher.unignore', self.object.wake, e, ['testchannel'])
+
+    @pytest.mark.parametrize('command,helpstr', test_help_long_data)
+    def test_get_help_for_command(self, command, helpstr):
+        self.object._bot.dispatcher.register_plugin(self.object)
+        self.object._bot.dispatcher.register_plugin(DummyPlugin(self.object._bot))
+        assert self.object._get_help_for_command(command) == helpstr
+
+    @pytest.mark.parametrize('command,helpstr', test_help_short_data)
+    def test_get_short_help_for_command(self, command, helpstr):
+        self.object._bot.dispatcher.register_plugin(self.object)
+        self.object._bot.dispatcher.register_plugin(DummyPlugin(self.object._bot))
+        assert self.object._get_short_help_for_command(command) == helpstr
