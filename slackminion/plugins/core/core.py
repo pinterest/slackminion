@@ -1,9 +1,16 @@
+from flask import render_template
 from functools import wraps
 from operator import itemgetter
 
-from slackminion.plugin import cmd
+from slackminion.plugin import cmd, webhook
 from slackminion.plugin.base import BasePlugin
 from slackminion.slack import SlackRoom
+
+from . import version
+try:
+    from . import commit
+except ImportError:
+    commit = 'HEAD'
 
 
 def channel_wrapper(f):
@@ -102,6 +109,21 @@ class Core(BasePlugin):
         self.log.info('Waking up in %s', channel)
         self._bot.dispatcher.unignore(channel)
         self.send_message(channel, 'Hello, how may I be of service?')
+
+    @webhook('/status', method='GET')
+    def bot_status(self):
+        plugins = [{
+            'name': type(x).__name__,
+            'version': x._version,
+            'commit': x._commit,
+            } for x in self._bot.plugins.plugins]
+        context = {
+            'bot_name': self._bot.sc.server.username,
+            'version': self._bot.version,
+            'commit': self._bot.commit,
+            'plugins': plugins
+        }
+        return render_template('status.html', **context)
 
     def _get_channel_from_msg_or_args(self, msg, args):
         channel = None

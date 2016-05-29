@@ -1,6 +1,6 @@
 import logging
 
-from bottle import request, app
+from flask import current_app, request
 
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack import SlackChannel
@@ -36,8 +36,8 @@ class WebhookCommand(BaseCommand):
             form_params = [self.form_params]
         if form_params is not None:
             for p in form_params:
-                if p in request.forms:
-                    args[p] = request.forms[p]
+                if p in request.form:
+                    args[p] = request.form[p]
         return self.method(**args)
 
 
@@ -102,7 +102,8 @@ class MessageDispatcher(object):
             elif callable(method) and hasattr(method, 'is_webhook'):
                 self.log.info("Registered webhook %s", type(plugin).__name__ + '.' + name)
                 webhook = WebhookCommand(method, method.form_params)
-                app().route(method.route, 'POST', webhook.execute)
+                with plugin._bot.webserver.app.app_context():
+                    current_app.add_url_rule(method.route, method.__name__, webhook.execute, methods=[method.method])
 
     def ignore(self, channel):
         if isinstance(channel, SlackChannel):

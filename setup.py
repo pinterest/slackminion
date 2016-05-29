@@ -10,11 +10,11 @@ setup(
         author='Nick King',
         author_email='',
         description='A python bot framework for slack',
+        package_data={'slackminion': ['templates/*']},
         install_requires=[
-            'bottle',
+            'Flask',
             'PyYAML',
             'requests',
-            'Rocket',
             'six',
             'slackclient',
             'websocket-client',

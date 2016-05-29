@@ -56,11 +56,11 @@ class Bot(object):
         """Initializes the bot, plugins, and everything."""
         if self.test_mode:
             bot_start_time = datetime.now()
+        self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
         self.plugins.load()
         self.plugins.load_state()
         self._find_event_handlers()
         self.sc = ThreadedSlackClient(self.config['slack_token'])
-        self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
         self.always_send_dm = ['_unauthorized_']
         if 'always_send_dm' in self.config:
