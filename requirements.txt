@@ -6,6 +6,5 @@ PyYAML==3.11
 requests==2.10.0
 six==1.10.0
 slackclient==1.0.0
-slackminion==0.7.3
 websocket-client==0.37.0
 Werkzeug==0.11.10
