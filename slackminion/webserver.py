@@ -39,6 +39,12 @@ class Webserver(object):
                 self.running = False
             return ''
 
+        @self.app.template_filter()
+        def pluralize(val, str, suffix='s'):
+            if val != 1:
+                str += suffix
+            return '%d %s' % (val, str)
+
     def stop(self):
         if self.running:
             requests.post('http://localhost:%d/_/shutdown' % self.port, data={'code': self.shutdown_code})

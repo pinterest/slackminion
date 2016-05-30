@@ -38,6 +38,7 @@ class Bot(object):
         self.webserver = None
         self.test_mode = test_mode
         self.reconnect_needed = True
+        self.bot_start_time = None
 
         if self.test_mode:
             self.metrics = {
@@ -54,8 +55,7 @@ class Bot(object):
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
-        if self.test_mode:
-            bot_start_time = datetime.now()
+        self.bot_start_time = datetime.now()
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
         self.plugins.load()
         self.plugins.load_state()
@@ -71,7 +71,7 @@ class Bot(object):
 
         self.is_setup = True
         if self.test_mode:
-            self.metrics['startup_time'] = (datetime.now() - bot_start_time).total_seconds() * 1000.0
+            self.metrics['startup_time'] = (datetime.now() - self.bot_start_time).total_seconds() * 1000.0
 
     def _find_event_handlers(self):
         for name in dir(self):

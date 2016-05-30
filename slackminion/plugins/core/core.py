@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import render_template
 from functools import wraps
 from operator import itemgetter
@@ -112,16 +113,33 @@ class Core(BasePlugin):
 
     @webhook('/status', method='GET')
     def bot_status(self):
+        # TODO: Plugins should provide a get_status() or similar that
+        # outputs html/dict+template name.  This command should read
+        # from that.  The below should be provided by core.
         plugins = [{
             'name': type(x).__name__,
             'version': x._version,
             'commit': x._commit,
             } for x in self._bot.plugins.plugins]
+
+        uptime = datetime.now() - self._bot.bot_start_time
+        partial_day = uptime.seconds
+        u_hours = partial_day / 3600
+
+        partial_day %= 3600
+        u_minutes = partial_day / 60
+        u_seconds = partial_day % 60
         context = {
             'bot_name': self._bot.sc.server.username,
             'version': self._bot.version,
             'commit': self._bot.commit,
-            'plugins': plugins
+            'plugins': plugins,
+            'uptime': {
+                'days': uptime.days,
+                'hours': u_hours,
+                'minutes': u_minutes,
+                'seconds': u_seconds,
+            },
         }
         return render_template('status.html', **context)
 
