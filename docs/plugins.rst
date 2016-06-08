@@ -50,7 +50,7 @@ Let's take a look at what this does.
 
 * ``@webhook('/echo', form_params='foo')``
     * tells the bot the following function should be registered in the web server
-    * ``/echo`` - This is the route to register in the web server.  The syntax is the same as `Bottle <http://bottlepy.org/docs/dev/index.html>`_.
+    * ``/echo`` - This is the route to register in the web server.  The syntax is the same as `Flask <http://flask.pocoo.org/docs/0.11/quickstart/#routing>`_.
     * ``form_params='foo'`` - defines what form parameters the bot should extract from the HTTP POST.  This can be a string (for one parameter), or a list (for multiple parameters)
 * ``def web_echo(self, foo):`` - defines a function called ``web_echo`` with one parameter.  The parameter name *must* match the parameters listed in ``form_params``
 * ``self.send_message('general', foo)`` - sends a message to the channel ``#general`` with the contents of ``foo``.
