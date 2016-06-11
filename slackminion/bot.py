@@ -156,7 +156,9 @@ class Bot(object):
         """
         if isinstance(user, SlackUser):
             user = user.id
-        channelid = self._find_im_channel(user)
+            channelid = self._find_im_channel(user)
+        else:
+            channelid = user.id
         self.send_message(channelid, text)
 
     def _find_im_channel(self, user):
