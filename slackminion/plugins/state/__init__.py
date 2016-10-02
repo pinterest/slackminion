@@ -1,6 +1,7 @@
 from pkgutil import extend_path
-__path__ = extend_path(__path__, __name__)
 from slackminion.plugin.base import BasePlugin
+
+__path__ = extend_path(__path__, __name__)
 
 
 class BaseStateHandler(BasePlugin):

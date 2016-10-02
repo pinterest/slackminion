@@ -12,7 +12,8 @@ def main():
         bot.runnable = False
 
     p = argparse.ArgumentParser()
-    p.add_argument('--config', action='store', default='config.yaml', help='Specify a config file (default: config.yaml)')
+    p.add_argument('--config', action='store', default='config.yaml',
+                   help='Specify a config file (default: config.yaml)')
     p.add_argument('--test', action='store_true', help='Load plugins and exit')
     args = p.parse_args()
 
@@ -48,7 +49,8 @@ def main():
                 output.append(p)
         output.append("")
         output.append("Bot startup time: %.03f ms" % bot.metrics['startup_time'])
-        output.append("Plugins: %d total, %d loaded, %d failed" % (metrics['plugins_total'], metrics['plugins_loaded'], len(metrics['plugins_failed'])))
+        output.append("Plugins: %d total, %d loaded, %d failed" % (
+            metrics['plugins_total'], metrics['plugins_loaded'], len(metrics['plugins_failed'])))
         if metrics['plugins_total'] != metrics['plugins_loaded']:
             output.append("")
             output.append("=== Bot Failed Startup Tests ===")
@@ -57,6 +59,7 @@ def main():
 
         if not test_passed:
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
