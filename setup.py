@@ -19,6 +19,12 @@ setup(
             'slackclient',
             'websocket-client',
         ],
+        setup_requires=[
+            'pytest-runner'
+        ],
+        tests_require=[
+            'pytest==2.6.1'
+        ],
         entry_points={
             'console_scripts': [
                 'slackminion = slackminion.__main__:main',

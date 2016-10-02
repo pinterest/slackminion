@@ -31,12 +31,12 @@ class TestPlugin(BasePlugin):
         self.send_message(self.config['channel'], foo)
 
     @cmd()
-    def sleep(self, msg, args):
+    def shortsleep(self, msg, args):
         """Sleep for a bit, then print a message."""
         self.start_timer(5, self._sleep_func)
 
     @cmd()
-    def sleep2(self, msg, args):
+    def shortsleep2(self, msg, args):
         """Sleep for a bit, then echo the message back"""
         self.start_timer(5, self._sleep_func2, msg.channel, ' '.join(args))
 
