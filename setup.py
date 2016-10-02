@@ -23,7 +23,7 @@ setup(
             'pytest-runner'
         ],
         tests_require=[
-            'pytest==2.6.1'
+            'pytest==2.7.2'
         ],
         entry_points={
             'console_scripts': [
