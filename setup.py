@@ -25,7 +25,7 @@ setup(
         tests_require=[
             'pytest==2.7.2',
             'pytest-cov==2.2.1',
-            'codeclimate-test-reporter==0.1.1',
+            'codeclimate-test-reporter==0.1.2',
             'coverage==4.1'
         ],
         entry_points={
