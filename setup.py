@@ -23,7 +23,7 @@ setup(
             'pytest-runner'
         ],
         tests_require=[
-            'pytest==2.7.2',
+            'pytest==2.6.4',
             'pytest-cov==2.2.1',
             'codeclimate-test-reporter==0.1.2',
             'coverage==4.1'
