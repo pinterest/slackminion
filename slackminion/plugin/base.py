@@ -20,7 +20,8 @@ class BasePlugin(object):
         Executes when a plugin is loaded.
 
         Override this if your plugin needs to do initialization when loading.
-        Do not use this to restore runtime changes to variables -- they will be overwritten later on by PluginManager.load_state()
+        Do not use this to restore runtime changes to variables -- they will be overwritten later on by
+        PluginManager.load_state()
         """
         return True
 

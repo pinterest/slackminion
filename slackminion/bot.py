@@ -15,12 +15,14 @@ def eventhandler(*args, **kwargs):
 
     * events - String or list of events to handle
     """
+
     def wrapper(func):
         if isinstance(kwargs['events'], basestring):
             kwargs['events'] = [kwargs['events']]
         func.is_eventhandler = True
         func.events = kwargs['events']
         return func
+
     return wrapper
 
 
@@ -138,7 +140,8 @@ class Bot(object):
         """
         Sends a message to the specified channel
 
-        * channel - The channel to send to.  This can be a SlackChannel object, a channel id, or a channel name (without the #)
+        * channel - The channel to send to.  This can be a SlackChannel object, a channel id, or a channel name
+        (without the #)
         * text - String to send
         """
         # This doesn't want the # in the channel name

@@ -20,15 +20,16 @@ def patch_slackclient_channels_find(monkeypatch):
             def __init__(self, name):
                 self.id = test_channel_mapping[name]
                 self.name = name
+
         if name in test_channel_mapping:
             resp = Response(name)
             return resp
         return None
+
     monkeypatch.setattr('slackclient._util.SearchList.find', find)
 
 
 class TSlackRoom(object):
-
     room_class = None
     test_id = None
     test_room_name = None
@@ -72,10 +73,12 @@ class TSlackRoom(object):
 
     def test_set_topic(self, monkeypatch):
         api_name = self.room_class.API_PREFIX + '.setTopic'
+
         def api_call(self, name, *args, **kwargs):
             if 'setTopic' in name:
                 assert name == api_name
             return orig_api_call(self, name, *args, **kwargs)
+
         orig_api_call = DummySlackConnection.api_call
         monkeypatch.setattr(DummySlackConnection, 'api_call', api_call)
         assert self.object.topic == 'Test Topic'

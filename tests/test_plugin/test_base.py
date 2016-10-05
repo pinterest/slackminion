@@ -33,7 +33,6 @@ test_message_data = [
 
 
 class TestBasePlugin(object):
-
     def setup(self):
         self.object = BasePlugin(None)
         self.timer_started = False
@@ -107,12 +106,14 @@ class TestBasePlugin(object):
                     u._username = username
                     return u
                 return None
+
             def set(self, user):
                 pass
 
         class Bot(object):
             def __init__(self):
                 self.user_manager = UserManager()
+
         self.object._bot = Bot()
         self.object._bot.sc = DummySlackConnection()
         user = self.object.get_user(test_user_name)
@@ -137,4 +138,3 @@ class TestBasePlugin(object):
         self.object._bot = Bot()
         self.object.send_message(channel, 'Yet another test string')
         assert self.object._bot.method == result
-
