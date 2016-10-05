@@ -111,10 +111,14 @@ class PluginManager(object):
         if self.state_handler is None:
             self.log.warn("Unable to load state, no handler registered")
             return
+        try:
+            state_str = self.state_handler.load_state()
+        except IOError:
+            self.log.warn("No state information found")
+            return
 
         try:
-            state = self.state_handler.load_state()
-            state = json.loads(state)
+            state = json.loads(state_str)
         except:
             self.log.exception("Handler failed to load state")
             return

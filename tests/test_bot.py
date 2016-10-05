@@ -8,7 +8,7 @@ from slackminion.plugins.core import version
 
 class TestBot(object):
     def setup(self):
-        with open('config.yaml', 'r') as f:
+        with open('config.yaml.example', 'r') as f:
             self.object = Bot(config=yaml.load(f), test_mode=True)
 
     def teardown(self):

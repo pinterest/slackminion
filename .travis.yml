@@ -2,12 +2,9 @@ language: python
 python:
   - "2.7"
 install:
-  - python setup.py install
-  - pip install -U pytest
-  - pip install pytest-cov codeclimate-test-reporter
+  - pip install codeclimate-test-reporter
 script:
-  - cp config.yaml.example config.yaml
-  - py.test --cov=slackminion
+  - python setup.py test
 after_script:
   - codeclimate-test-reporter
 notifications:
