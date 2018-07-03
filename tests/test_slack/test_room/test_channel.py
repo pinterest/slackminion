@@ -26,7 +26,7 @@ def patch_slackclient_channels_find(monkeypatch):
             return resp
         return None
 
-    monkeypatch.setattr('slackclient._util.SearchList.find', find)
+    monkeypatch.setattr('slackclient.util.SearchList.find', find)
 
 
 class TSlackRoom(object):

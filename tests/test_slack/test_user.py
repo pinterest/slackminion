@@ -1,7 +1,7 @@
 import pytest
 
 from slackclient import SlackClient
-from slackclient._user import User
+from slackclient.user import User
 
 from slackminion.slack import SlackUser
 from slackminion.utils.test_helpers import *
@@ -13,14 +13,14 @@ test_user_mapping = []
 
 @pytest.fixture(autouse=True)
 def patch_slackclient_channels_find(monkeypatch):
-    test_user_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None))
+    test_user_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None, test_user_email))
 
     def find(self, id):
         users = filter(lambda x: x == id, test_user_mapping)
         if len(users) > 0:
             return users[0]
         return None
-    monkeypatch.setattr('slackclient._util.SearchList.find', find)
+    monkeypatch.setattr('slackclient.util.SearchList.find', find)
 
 
 class TestSlackUser(object):
@@ -47,10 +47,10 @@ class TestSlackUser(object):
         assert repr(self.object) == test_user_id
 
     def test_get_user(self):
-        user = SlackUser.get_user(SlackClient('xxx'), test_user_name)
+        user = SlackUser.get_user(DummySlackConnection(), test_user_name)
         assert isinstance(user, SlackUser)
 
 
 def test_get_user_none():
-    user = SlackUser.get_user(SlackClient('xxx'), 'doesnotexist')
+    user = SlackUser.get_user(DummySlackConnection(), 'doesnotexist')
     assert user is None

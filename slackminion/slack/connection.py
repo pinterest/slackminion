@@ -1,7 +1,7 @@
 import threading
 
-from slackclient._client import SlackClient
-from slackclient._server import Server
+from slackclient.server import Server
+from slackclient.client import SlackClient
 
 
 class ThreadedSlackClient(SlackClient):
