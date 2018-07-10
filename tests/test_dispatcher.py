@@ -1,7 +1,7 @@
 import pytest
 
-from slackclient._channel import Channel
-from slackclient._user import User
+from slackclient.channel import Channel
+from slackclient.user import User
 from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack import SlackChannel
@@ -12,7 +12,7 @@ test_data_mapping = []
 
 @pytest.fixture(autouse=True)
 def patch_slackclient_channels_find(monkeypatch):
-    test_data_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None))
+    test_data_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None, test_user_email))
     test_data_mapping.append(Channel(None, test_channel_name, test_channel_id, None))
 
     def find(self, id):
@@ -20,7 +20,7 @@ def patch_slackclient_channels_find(monkeypatch):
         if len(res) > 0:
             return res[0]
         return None
-    monkeypatch.setattr('slackclient._util.SearchList.find', find)
+    monkeypatch.setattr('slackclient.util.SearchList.find', find)
 
 
 class TestDispatcher(object):

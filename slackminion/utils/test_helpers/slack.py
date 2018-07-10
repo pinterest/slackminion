@@ -1,6 +1,6 @@
-from slackclient._channel import Channel
-from slackclient._user import User
-from slackclient._util import SearchList
+from slackclient.channel import Channel
+from slackclient.user import User
+from slackclient.util import SearchList
 
 from slackminion.slack import SlackEvent
 
@@ -10,6 +10,7 @@ test_group_id = 'G12345678'
 test_group_name = 'testgroup'
 test_user_id = 'U12345678'
 test_user_name = 'testuser'
+test_user_email = 'root@dev.null'
 
 
 class DummyServer(object):
@@ -23,7 +24,7 @@ class DummySlackConnection(object):
         self.server = DummyServer()
         self.server.channels.append(Channel(None, test_channel_name, test_channel_id))
         self.server.channels.append(Channel(None, test_group_name, test_group_id))
-        self.server.users.append(User(None, test_user_name, test_user_id, test_user_name, None))
+        self.server.users.append(User(None, test_user_name, test_user_id, test_user_name, None, test_user_email))
         self.topic = 'Test Topic'
 
     def api_call(self, name, *args, **kwargs):
