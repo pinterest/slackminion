@@ -45,9 +45,9 @@ class Core(BasePlugin):
 
     def _should_filter_help_commands(self, user):
         return hasattr(self._bot.dispatcher, 'auth_manager') \
-               and 'hide_admin_commands' in self._bot.config \
-               and self._bot.config['hide_admin_commands'] is True \
-               and not getattr(user, 'is_admin', False)
+            and 'hide_admin_commands' in self._bot.config \
+            and self._bot.config['hide_admin_commands'] is True \
+            and not getattr(user, 'is_admin', False)
 
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
@@ -120,7 +120,7 @@ class Core(BasePlugin):
             'name': type(x).__name__,
             'version': x._version,
             'commit': x._commit,
-            } for x in self._bot.plugins.plugins]
+        } for x in self._bot.plugins.plugins]
 
         uptime = datetime.now() - self._bot.bot_start_time
         partial_day = uptime.seconds
