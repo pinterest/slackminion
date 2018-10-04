@@ -103,6 +103,10 @@ class TestDispatcher(object):
         e = SlackEvent(DummySlackConnection(), **{'text': 'Not a command'})
         assert self.object.push(e) == (None, None)
 
+    def test_push_message_replied_event(self):
+        e = SlackEvent(DummySlackConnection(), **{'subtype': 'message_replied'})
+        assert self.object.push(e) == (None, None)
+
     def test_push_no_user(self):
         self.object.register_plugin(self.p)
         e = SlackEvent(DummySlackConnection(), **{'text': '!abc'})
