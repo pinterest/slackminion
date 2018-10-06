@@ -46,11 +46,14 @@ class MessageDispatcher(object):
         self.log = logging.getLogger(type(self).__name__)
         self.commands = {}
         self.ignored_channels = []
+        self.ignored_events = ['message_replied']
 
     def push(self, message):
         """
         Takes a SlackEvent, parses it for a command, and runs against registered plugin
         """
+        if self._ignore_event(message):
+            return None, None
         args = self._parse_message(message)
         self.log.debug("Searching for command using chunks: %s", args)
         cmd, msg_args = self._find_longest_prefix_command(args)
@@ -70,6 +73,15 @@ class MessageDispatcher(object):
                 return cmd, f.execute(message, msg_args)
             return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd
         return None, None
+
+    def _ignore_event(self, message):
+        """
+        message_replied event is not truly a message event and does not have a message.text
+        don't process such events
+        """
+        if hasattr(message, 'subtype') and message.subtype in self.ignored_events:
+            return True
+        return False
 
     def _parse_message(self, message):
         args = message.text.split(' ')
