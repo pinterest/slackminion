@@ -46,7 +46,7 @@ class MessageDispatcher(object):
         self.log = logging.getLogger(type(self).__name__)
         self.commands = {}
         self.ignored_channels = []
-        self.ignored_events = ['message_replied']
+        self.ignored_events = ['message_replied', 'message_changed']
 
     def push(self, message):
         """
@@ -78,6 +78,8 @@ class MessageDispatcher(object):
         """
         message_replied event is not truly a message event and does not have a message.text
         don't process such events
+
+        commands may not be idempotent, so ignore message_changed events.
         """
         if hasattr(message, 'subtype') and message.subtype in self.ignored_events:
             return True
