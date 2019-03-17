@@ -12,16 +12,16 @@ setup(
         description='A python bot framework for slack',
         package_data={'slackminion': ['templates/*']},
         install_requires=[
-            'Flask==0.10.1',
-            'itsdangerous==0.24',
-            'Jinja2==2.8',
-            'MarkupSafe==0.23',
-            'PyYAML==3.11',
+            'Flask>=0.10.1',
+            'itsdangerous>=0.24',
+            'Jinja2>=2.6',
+            'MarkupSafe>=0.23',
+            'PyYAML>=3.10',
             'requests >=2.11, <3.0a0',
             'six >=1.10, <2.0a0',
             'slackclient==1.3.1',
             'websocket-client >=0.35, <0.55.0',
-            'Werkzeug==0.11.10',
+            'Werkzeug>=0.10.4',
         ],
         setup_requires=[
             'pytest-runner'
