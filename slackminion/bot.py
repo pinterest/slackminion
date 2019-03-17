@@ -83,7 +83,14 @@ class Bot(object):
                     self.event_handlers[event] = method
 
     def run(self, start=True):
-        """Connects to slack and enters the main loop."""
+        """
+        Connects to slack and enters the main loop.
+
+        * start - If True, rtm.start API is used. Else rtm.connect API is used
+
+        For more info, refer to
+        https://python-slackclient.readthedocs.io/en/latest/real_time_messaging.html#rtm-start-vs-rtm-connect
+        """
         # Fail out if setup wasn't run
         if not self.is_setup:
             raise NotSetupError
