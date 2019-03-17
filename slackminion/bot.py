@@ -82,7 +82,7 @@ class Bot(object):
                 for event in method.events:
                     self.event_handlers[event] = method
 
-    def run(self):
+    def run(self, start=True):
         """Connects to slack and enters the main loop."""
         # Fail out if setup wasn't run
         if not self.is_setup:
@@ -96,7 +96,7 @@ class Bot(object):
         try:
             while self.runnable:
                 if self.reconnect_needed:
-                    if not self.sc.rtm_connect():
+                    if not self.sc.rtm_connect(with_team_state=start):
                         return False
                     self.reconnect_needed = False
                     if first_connect:
