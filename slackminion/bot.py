@@ -157,7 +157,7 @@ class Bot(object):
         if isinstance(channel, SlackRoomIMBase):
             channel = channel.id
         self.log.debug("Trying to send to %s: %s", channel, text)
-        self.sc.rtm_send_message(channel, text, thread=None, reply_broadcast=None)
+        self.sc.rtm_send_message(channel, text, thread=thread, reply_broadcast=reply_broadcast)
 
     def send_im(self, user, text):
         """
