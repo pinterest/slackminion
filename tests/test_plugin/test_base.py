@@ -152,5 +152,6 @@ class TestBasePlugin(object):
                 self.method = 'send_message'
 
         self.object._bot = Bot()
-        self.object.send_message(channel, 'Yet another test string', thread=12345.67)
+        self.object.send_message(channel, 'Yet another test string', thread=12345.67,
+                                 reply_broadcast=True)
         assert self.object._bot.method == result
