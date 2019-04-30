@@ -41,7 +41,7 @@ class BasePlugin(object):
         """
         return True
 
-    def send_message(self, channel, text):
+    def send_message(self, channel, text, thread=None):
         """
         Used to send a message to the specified channel.
 
@@ -51,16 +51,16 @@ class BasePlugin(object):
         if isinstance(channel, SlackIM) or isinstance(channel, SlackUser):
             self._bot.send_im(channel, text)
         elif isinstance(channel, SlackRoom):
-            self._bot.send_message(channel, text)
+            self._bot.send_message(channel, text, thread)
         elif isinstance(channel, basestring):
             if channel[0] == '@':
                 self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
-                self._bot.send_message(channel[1:], text)
+                self._bot.send_message(channel[1:], text, thread)
             else:
-                self._bot.send_message(channel, text)
+                self._bot.send_message(channel, text, thread)
         else:
-            self._bot.send_message(channel, text)
+            self._bot.send_message(channel, text, thread)
 
     def start_timer(self, duration, func, *args):
         """
