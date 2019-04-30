@@ -33,12 +33,13 @@ class BasicPluginTest(object):
         self.object = None
 
     def is_called(self, method, test_func, *args, **kwargs):
-        from _pytest.monkeypatch import monkeypatch
+        from _pytest.monkeypatch import MonkeyPatch
 
         def called_func(*args, **kwargs):
             self.called[method] = True
         self.called[method] = False
-        monkeypatch().setattr(method, called_func)
+        m = MonkeyPatch()
+        m.setattr(method, called_func)
         test_func(*args, **kwargs)
         return self.called[method]
 
