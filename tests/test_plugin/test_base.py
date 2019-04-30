@@ -138,20 +138,6 @@ class TestBasePlugin(object):
         self.object._bot = Bot()
         self.object.send_message(channel, 'Yet another test string')
         assert self.object._bot.method == result
-
-    @pytest.mark.parametrize('channel,result', test_message_data)
-    def test_send_message_to_thread(self, channel, result):
-        class Bot(object):
-            def __init__(self):
-                self.method = ''
-
-            def send_im(self, channel, text, thread=None, reply_broadcast=False):
-                self.method = 'send_im'
-
-            def send_message(self, channel, text, thread=None, reply_broadcast=False):
-                self.method = 'send_message'
-
-        self.object._bot = Bot()
         self.object.send_message(channel, 'Yet another test string', thread=12345.67,
                                  reply_broadcast=True)
         assert self.object._bot.method == result

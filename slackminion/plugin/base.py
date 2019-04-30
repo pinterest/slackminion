@@ -48,6 +48,7 @@ class BasePlugin(object):
         * channel - can be a channel or user
         * text - message to send
         * thread - thread to reply in
+        * reply_broadcast - whether or not to also send the message to the channel
         """
         if isinstance(channel, SlackIM) or isinstance(channel, SlackUser):
             self._bot.send_im(channel, text)
