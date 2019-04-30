@@ -159,7 +159,7 @@ class Bot(object):
         self.log.debug("Trying to send to %s: %s", channel, text)
         self.sc.rtm_send_message(channel, text, thread=thread, reply_broadcast=reply_broadcast)
 
-    def send_im(self, user, text, **kwargs):
+    def send_im(self, user, text):
         """
         Sends a message to a user as an IM
 
