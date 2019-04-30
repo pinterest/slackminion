@@ -57,11 +57,11 @@ class BasePlugin(object):
             if channel[0] == '@':
                 self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
-                self._bot.send_message(channel[1:], text, thread)
+                self._bot.send_message(channel[1:], text, thread, reply_broadcast)
             else:
-                self._bot.send_message(channel, text, thread)
+                self._bot.send_message(channel, text, thread, reply_broadcast)
         else:
-            self._bot.send_message(channel, text, thread)
+            self._bot.send_message(channel, text, thread, reply_broadcast)
 
     def start_timer(self, duration, func, *args):
         """
