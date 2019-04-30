@@ -27,10 +27,10 @@ setup(
             'pytest-runner'
         ],
         tests_require=[
-            'pytest>=4.4',
-            'pytest-cov>=2.2.1',
+            'pytest==4.4.1',
+            'pytest-cov==2.6.1',
             'codeclimate-test-reporter==0.1.2',
-            'coverage>=4.1'
+            'coverage==4.5.2'
         ],
         entry_points={
             'console_scripts': [
