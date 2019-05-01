@@ -22,6 +22,8 @@ class PluginCommand(BaseCommand):
         self.admin_only = method.admin_only
         self.is_subcmd = method.is_subcmd
         self.while_ignored = method.while_ignored
+        self.reply_in_thread = method.reply_in_thread
+        self.reply_broadcast = method.reply_broadcast
 
 
 class WebhookCommand(BaseCommand):
@@ -53,26 +55,30 @@ class MessageDispatcher(object):
         Takes a SlackEvent, parses it for a command, and runs against registered plugin
         """
         if self._ignore_event(message):
-            return None, None
+            return None, None, None
         args = self._parse_message(message)
         self.log.debug("Searching for command using chunks: %s", args)
         cmd, msg_args = self._find_longest_prefix_command(args)
         if cmd is not None:
             if message.user is None:
                 self.log.debug("Discarded message with no originating user: %s", message)
-                return None, None
+                return None, None, None
             sender = message.user.username
             if message.channel is not None:
                 sender = "#%s/%s" % (message.channel.name, sender)
             self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
             f = self._get_command(cmd, message.user)
             if f:
+                cmd_options = {
+                    'reply_in_thread': f.reply_in_thread,
+                    'reply_broadcast': f.reply_broadcast,
+                }
                 if self._is_channel_ignored(f, message.channel):
                     self.log.info("Channel %s is ignored, discarding command %s", message.channel, cmd)
-                    return '_ignored_', ""
-                return cmd, f.execute(message, msg_args)
-            return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd
-        return None, None
+                    return '_ignored_', "", None
+                return cmd, f.execute(message, msg_args), cmd_options
+            return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd, None
+        return None, None, None
 
     def _ignore_event(self, message):
         """

@@ -216,16 +216,23 @@ class Bot(object):
         if not hasattr(self, 'user_manager'):
             self._load_user_rights(msg.user)
         try:
-            cmd, output = self.dispatcher.push(msg)
+            cmd, output, cmd_options = self.dispatcher.push(msg)
         except:
             self.log.exception('Unhandled exception')
             return
         self.log.debug("Output from dispatcher: %s", output)
         if output:
+            if cmd_options.reply_in_thread:
+                if hasattr(msg, 'thread_ts'):
+                    thread_ts = msg.thread_ts
+                else:
+                    thread_ts = msg.ts
+            else:
+                thread_ts = None
             if cmd in self.always_send_dm:
                 self.send_im(msg.user, output)
             else:
-                self.send_message(msg.channel, output)
+                self.send_message(msg.channel, output, thread=thread_ts, reply_broadcast=cmd_options.reply_broadcast)
 
     @eventhandler(events='error')
     def _event_error(self, msg):

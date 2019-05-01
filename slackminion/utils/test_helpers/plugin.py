@@ -13,10 +13,17 @@ EXPECTED_PLUGIN_METHODS = [
 
 
 class DummyPlugin(BasePlugin):
-    @cmd(aliases='xyz')
+    @cmd(aliases='bca')
     def abc(self, msg, args):
-        return 'xyzzy'
+        return 'abcba'
 
+    @cmd(aliases='gfe', reply_in_thread=True)
+    def efg(self, msg, args):
+        return 'efgfe'
+
+    @cmd(aliases='jih', reply_in_thread=True, reply_broadcast=True)
+    def hij(self, msg, args):
+        return 'hijih'
 
 class BasicPluginTest(object):
     PLUGIN_CLASS = None
