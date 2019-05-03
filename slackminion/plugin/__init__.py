@@ -11,6 +11,8 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
     * acl - indicates which ACL to perform permission checks against (only used if AuthManager is loaded)
     * aliases - register function with additional commands (i.e. !alias1, !alias2, etc)
     * while_ignored - allows a command to be run, even if channel has been !sleep
+    * reply_in_thread - determines whether bot replies in the channel or a thread
+    * reply_broadcast - if replying in a thread, whether to also send the message to the channel
     """
     def wrapper(func):
         func.is_cmd = True
