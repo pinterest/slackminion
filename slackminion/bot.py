@@ -222,7 +222,7 @@ class Bot(object):
             return
         self.log.debug("Output from dispatcher: %s", output)
         if output:
-            if cmd_options.reply_in_thread:
+            if cmd_options.get('reply_in_thread'):
                 if hasattr(msg, 'thread_ts'):
                     thread_ts = msg.thread_ts
                 else:
@@ -232,7 +232,7 @@ class Bot(object):
             if cmd in self.always_send_dm:
                 self.send_im(msg.user, output)
             else:
-                self.send_message(msg.channel, output, thread=thread_ts, reply_broadcast=cmd_options.reply_broadcast)
+                self.send_message(msg.channel, output, thread=thread_ts, reply_broadcast=cmd_options.get('reply_broadcast'))
 
     @eventhandler(events='error')
     def _event_error(self, msg):
