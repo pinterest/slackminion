@@ -44,7 +44,7 @@ class TestDispatcher(object):
         self.object.register_plugin(self.p)
         method = self.object._get_command('!abc', None).method
         assert method == self.p.abc
-        assert method(None, None) == 'xyzzy'
+        assert method(None, None) == 'abcba'
 
     def test_get_invalid_command(self):
         self.object.register_plugin(self.p)
@@ -92,25 +92,63 @@ class TestDispatcher(object):
     def test_push(self):
         self.object.register_plugin(self.p)
         e = SlackEvent(DummySlackConnection(), **{'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
-        assert self.object.push(e) == ('!abc', 'xyzzy')
+        cmd, output, cmd_opts = self.object.push(e)
+        assert cmd == '!abc'
+        assert output == 'abcba'
+        assert type(cmd_opts) == dict
+        assert ('reply_in_thread' in cmd_opts.keys()) is True
+        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert cmd_opts.get('reply_broadcast') is False
+        assert cmd_opts.get('reply_in_thread') is False
 
     def test_push_alias(self):
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!xyz', 'user': test_user_id, 'channel': test_channel_id})
-        assert self.object.push(e) == ('!xyz', 'xyzzy')
+        e = SlackEvent(DummySlackConnection(), **{'text': '!bca', 'user': test_user_id, 'channel': test_channel_id})
+        cmd, output, cmd_opts = self.object.push(e)
+        assert cmd == '!bca'
+        assert output == 'abcba'
+        assert type(cmd_opts) == dict
+        assert ('reply_in_thread' in cmd_opts.keys()) is True
+        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert cmd_opts.get('reply_broadcast') is False
+        assert cmd_opts.get('reply_in_thread') is False
+
+    def test_push_to_thread(self):
+        self.object.register_plugin(self.p)
+        e = SlackEvent(DummySlackConnection(), **{'text': '!efg', 'user': test_user_id, 'channel': test_channel_id})
+        cmd, output, cmd_opts = self.object.push(e)
+        assert cmd == '!efg'
+        assert output == 'efgfe'
+        assert type(cmd_opts) == dict
+        assert ('reply_in_thread' in cmd_opts.keys()) is True
+        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert cmd_opts.get('reply_broadcast') is False
+        assert cmd_opts.get('reply_in_thread') is True
+
+    def test_push_to_thread_with_broadcast(self):
+        self.object.register_plugin(self.p)
+        e = SlackEvent(DummySlackConnection(), **{'text': '!hij', 'user': test_user_id, 'channel': test_channel_id})
+        cmd, output, cmd_opts = self.object.push(e)
+        assert cmd == '!hij'
+        assert output == 'hijih'
+        assert type(cmd_opts) == dict
+        assert ('reply_in_thread' in cmd_opts.keys()) is True
+        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert cmd_opts.get('reply_broadcast') is True
+        assert cmd_opts.get('reply_in_thread') is True
 
     def test_push_not_command(self):
         e = SlackEvent(DummySlackConnection(), **{'text': 'Not a command'})
-        assert self.object.push(e) == (None, None)
+        assert self.object.push(e) == (None, None, None)
 
     def test_push_message_replied_event(self):
         e = SlackEvent(DummySlackConnection(), **{'subtype': 'message_replied'})
-        assert self.object.push(e) == (None, None)
+        assert self.object.push(e) == (None, None, None)
 
     def test_push_no_user(self):
         self.object.register_plugin(self.p)
         e = SlackEvent(DummySlackConnection(), **{'text': '!abc'})
-        assert self.object.push(e) == (None, None)
+        assert self.object.push(e) == (None, None, None)
 
     def test_push_ignored_channel(self):
         c = SlackChannel('CTEST')
@@ -118,4 +156,4 @@ class TestDispatcher(object):
         self.object.ignore(c)
         self.object.register_plugin(self.p)
         e = SlackEvent(DummySlackConnection(), **{'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
-        assert self.object.push(e) == ('_ignored_', '')
+        assert self.object.push(e) == ('_ignored_', '', None)

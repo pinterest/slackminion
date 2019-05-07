@@ -2,7 +2,8 @@ from .base import BasePlugin
 from .manager import PluginManager
 
 
-def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False, *args, **kwargs):
+def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
+        reply_in_thread=False, reply_broadcast=False, *args, **kwargs):
     """
     Decorator to mark plugin functions as commands in the form of !<cmd_name>
 
@@ -10,6 +11,8 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False, *args, **k
     * acl - indicates which ACL to perform permission checks against (only used if AuthManager is loaded)
     * aliases - register function with additional commands (i.e. !alias1, !alias2, etc)
     * while_ignored - allows a command to be run, even if channel has been !sleep
+    * reply_in_thread - determines whether bot replies in the channel or a thread
+    * reply_broadcast - if replying in a thread, whether to also send the message to the channel
     """
     def wrapper(func):
         func.is_cmd = True
@@ -19,6 +22,8 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False, *args, **k
         func.acl = acl
         func.aliases = aliases
         func.while_ignored = while_ignored
+        func.reply_in_thread = reply_in_thread
+        func.reply_broadcast = reply_broadcast
         return func
     return wrapper
 
