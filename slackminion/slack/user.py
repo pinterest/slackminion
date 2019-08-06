@@ -1,3 +1,4 @@
+from builtins import object
 import logging
 
 
@@ -20,7 +21,7 @@ class SlackUser(object):
 
     @property
     def userid(self):
-        self.logger.warn('Use of userid is deprecated, use id instead')
+        self.logger.warning('Use of userid is deprecated, use id instead')
         return self.id
 
     @staticmethod

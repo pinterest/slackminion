@@ -190,7 +190,7 @@ class AuthManager(BasePlugin):
     def acl_check(self, cmd, user):
         effective_acl = cmd.acl
         if effective_acl not in self._acl:
-            self.log.warn("Unable to locate ACL %s for %s, defaulting to *", effective_acl, cmd.method.__name__)
+            self.log.warning("Unable to locate ACL %s for %s, defaulting to *", effective_acl, cmd.method.__name__)
             effective_acl = '*'
 
         if self._check_allow(self._acl[effective_acl], user):

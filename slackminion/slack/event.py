@@ -1,6 +1,7 @@
 from .room import SlackChannel, SlackGroup, SlackIM
 from .user import SlackUser
 
+from six import string_types
 
 class SlackEvent(object):
     """Encapsulates an event received from the RTM socket"""
@@ -10,7 +11,7 @@ class SlackEvent(object):
         self._channel = None
         self._user = None
 
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             setattr(self, k, v)
 
     @property
@@ -19,7 +20,7 @@ class SlackEvent(object):
 
     @channel.setter
     def channel(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, string_types):
             if value[0] == 'G':
                 # Slack groups have an ID starting with 'G'
                 self._channel = SlackGroup(value, sc=self._sc)
@@ -37,7 +38,7 @@ class SlackEvent(object):
 
     @user.setter
     def user(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, string_types):
             self._user = SlackUser(value, sc=self._sc)
         else:
             self._user = value

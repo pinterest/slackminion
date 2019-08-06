@@ -1,15 +1,28 @@
 import logging
-
+from six import string_types
 from flask import current_app, request
 
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack import SlackChannel
-
+from slackminion.utils.util import format_docstring
 
 class BaseCommand(object):
     def __init__(self, method):
         self.method = method
         self.help = method.__doc__
+
+    @property
+    def short_help(self):
+        if self.help:
+            if '.' in self.help:
+                return self.help[0:self.help.find('.') + 1]
+        return "No description provided."
+
+    @property
+    def formatted_help(self):
+        if self.help:
+            return format_docstring(self.help)
+        return "No description provided."
 
     def execute(self, *args, **kwargs):
         return self.method(*args, **kwargs)
@@ -22,8 +35,7 @@ class PluginCommand(BaseCommand):
         self.admin_only = method.admin_only
         self.is_subcmd = method.is_subcmd
         self.while_ignored = method.while_ignored
-        self.reply_in_thread = method.reply_in_thread
-        self.reply_broadcast = method.reply_broadcast
+        self.cmd_options = method.cmd_options
 
 
 class WebhookCommand(BaseCommand):
@@ -34,7 +46,7 @@ class WebhookCommand(BaseCommand):
     def execute(self):
         args = {}
         form_params = self.form_params
-        if isinstance(self.form_params, basestring):
+        if isinstance(self.form_params, string_types):
             form_params = [self.form_params]
         if form_params is not None:
             for p in form_params:
@@ -69,14 +81,10 @@ class MessageDispatcher(object):
             self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
             f = self._get_command(cmd, message.user)
             if f:
-                cmd_options = {
-                    'reply_in_thread': f.reply_in_thread,
-                    'reply_broadcast': f.reply_broadcast,
-                }
                 if self._is_channel_ignored(f, message.channel):
                     self.log.info("Channel %s is ignored, discarding command %s", message.channel, cmd)
                     return '_ignored_', "", None
-                return cmd, f.execute(message, msg_args), cmd_options
+                return cmd, f.execute(message, msg_args), f.cmd_options
             return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd, None
         return None, None, None
 
@@ -108,7 +116,7 @@ class MessageDispatcher(object):
                 commands = [method.cmd_name]
                 if method.aliases is not None:
                     aliases = method.aliases
-                    if isinstance(method.aliases, basestring):
+                    if isinstance(method.aliases, string_types):
                         aliases = [method.aliases]
                     for alias in aliases:
                         commands.append(alias)

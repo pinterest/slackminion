@@ -25,6 +25,7 @@ class DummyPlugin(BasePlugin):
     def hij(self, msg, args):
         return 'hijih'
 
+
 class BasicPluginTest(object):
     PLUGIN_CLASS = None
     BASE_METHODS = ['on_load', 'on_connect', 'on_unload']
