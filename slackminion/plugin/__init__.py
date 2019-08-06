@@ -3,8 +3,7 @@ from .manager import PluginManager
 
 
 def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
-        reply_in_thread=False, reply_broadcast=False, reply_in_dm=False,
-        num_required_args=0, required_kwargs=[], *args, **kwargs):
+        reply_in_thread=False, reply_broadcast=False, *args, **kwargs):
     """
     Decorator to mark plugin functions as commands in the form of !<cmd_name>
 
@@ -14,9 +13,6 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
     * while_ignored - allows a command to be run, even if channel has been !sleep
     * reply_in_thread - determines whether bot replies in the channel or a thread
     * reply_broadcast - if replying in a thread, whether to also send the message to the channel
-    * reply_in_dm - send a direct message rather than replying in channel or thread
-    * num_required_args - the number of required arguments for the command
-    * required_kwargs - list[str] of the required keyword arguments for the command
     """
 
     def wrapper(func):
@@ -30,11 +26,6 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
         func.cmd_options = {
             'reply_in_thread': reply_in_thread,
             'reply_broadcast': reply_broadcast,
-            'reply_in_dm': reply_in_dm,
-            'num_required_args': num_required_args,
-            'required_kwargs': required_kwargs,
-            'extra_args': args,  # pass on any args we weren't expecting
-            'extra_kwargs': kwargs,  # pass on any kwargs we weren't expecting
         }
         return func
 
