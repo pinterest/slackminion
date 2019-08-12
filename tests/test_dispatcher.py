@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 import pytest
 
 from slackclient.channel import Channel
@@ -16,7 +18,7 @@ def patch_slackclient_channels_find(monkeypatch):
     test_data_mapping.append(Channel(None, test_channel_name, test_channel_id, None))
 
     def find(self, id):
-        res = filter(lambda x: x == id, test_data_mapping)
+        res = [x for x in test_data_mapping if x == id]
         if len(res) > 0:
             return res[0]
         return None
@@ -96,8 +98,8 @@ class TestDispatcher(object):
         assert cmd == '!abc'
         assert output == 'abcba'
         assert type(cmd_opts) == dict
-        assert ('reply_in_thread' in cmd_opts.keys()) is True
-        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert ('reply_in_thread' in list(cmd_opts.keys())) is True
+        assert ('reply_broadcast' in list(cmd_opts.keys())) is True
         assert cmd_opts.get('reply_broadcast') is False
         assert cmd_opts.get('reply_in_thread') is False
 
@@ -108,8 +110,8 @@ class TestDispatcher(object):
         assert cmd == '!bca'
         assert output == 'abcba'
         assert type(cmd_opts) == dict
-        assert ('reply_in_thread' in cmd_opts.keys()) is True
-        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert ('reply_in_thread' in list(cmd_opts.keys())) is True
+        assert ('reply_broadcast' in list(cmd_opts.keys())) is True
         assert cmd_opts.get('reply_broadcast') is False
         assert cmd_opts.get('reply_in_thread') is False
 
@@ -120,8 +122,8 @@ class TestDispatcher(object):
         assert cmd == '!efg'
         assert output == 'efgfe'
         assert type(cmd_opts) == dict
-        assert ('reply_in_thread' in cmd_opts.keys()) is True
-        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert ('reply_in_thread' in list(cmd_opts.keys())) is True
+        assert ('reply_broadcast' in list(cmd_opts.keys())) is True
         assert cmd_opts.get('reply_broadcast') is False
         assert cmd_opts.get('reply_in_thread') is True
 
@@ -132,8 +134,8 @@ class TestDispatcher(object):
         assert cmd == '!hij'
         assert output == 'hijih'
         assert type(cmd_opts) == dict
-        assert ('reply_in_thread' in cmd_opts.keys()) is True
-        assert ('reply_broadcast' in cmd_opts.keys()) is True
+        assert ('reply_in_thread' in list(cmd_opts.keys())) is True
+        assert ('reply_broadcast' in list(cmd_opts.keys())) is True
         assert cmd_opts.get('reply_broadcast') is True
         assert cmd_opts.get('reply_in_thread') is True
 

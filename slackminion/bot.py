@@ -8,6 +8,8 @@ from slackminion.exceptions import NotSetupError
 from slackminion.plugin import PluginManager
 from slackminion.webserver import Webserver
 
+from six import string_types
+
 
 def eventhandler(*args, **kwargs):
     """
@@ -17,7 +19,7 @@ def eventhandler(*args, **kwargs):
     """
 
     def wrapper(func):
-        if isinstance(kwargs['events'], basestring):
+        if isinstance(kwargs['events'], string_types):
             kwargs['events'] = [kwargs['events']]
         func.is_eventhandler = True
         func.events = kwargs['events']
@@ -41,6 +43,7 @@ class Bot(object):
         self.test_mode = test_mode
         self.reconnect_needed = True
         self.bot_start_time = None
+        self.timers = []
 
         if self.test_mode:
             self.metrics = {
@@ -138,10 +141,14 @@ class Bot(object):
 
     def stop(self):
         """Does cleanup of bot and plugins."""
+        # cleanup any running timer threads so bot doesn't hang on shutdown
+        for t in self.timers:
+            t.cancel()
         if self.webserver is not None:
             self.webserver.stop()
         if not self.test_mode:
             self.plugins.save_state()
+        self.plugins.unload_all()
 
     def send_message(self, channel, text, thread=None, reply_broadcast=None):
         """
@@ -229,7 +236,7 @@ class Bot(object):
                     thread_ts = msg.ts
             else:
                 thread_ts = None
-            if cmd in self.always_send_dm:
+            if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
                 self.send_im(msg.user, output)
             else:
                 self.send_message(msg.channel, output, thread=thread_ts, reply_broadcast=cmd_options.get('reply_broadcast'))
@@ -240,5 +247,5 @@ class Bot(object):
 
     @eventhandler(events='team_migration_started')
     def _event_team_migration_started(self, msg):
-        self.log.warn("Slack has initiated a team migration to a new server.  Attempting to reconnect...")
+        self.log.warning("Slack has initiated a team migration to a new server.  Attempting to reconnect...")
         self.reconnect_needed = True

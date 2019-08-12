@@ -2,14 +2,15 @@ import pytest
 
 from slackminion.plugins.core.core import Core
 from slackminion.utils.test_helpers import *
+from slackminion.utils.util import format_docstring
 
 # command, help
 test_help_long_data = [
-    ('!sleep', """Causes the bot to ignore all messages from the channel.
+    ('!sleep', format_docstring("""Causes the bot to ignore all messages from the channel.
 
         Usage:
         !sleep [channel name] - ignore the specified channel (or current if none specified)
-        """),
+        """)),
     ('!abc', 'No description provided.'),
     ('!nosuchcommand', 'No such command: !nosuchcommand')
 ]
@@ -33,7 +34,7 @@ class TestCorePlugin(BasicPluginTest):
 
     def test_help_for_command(self):
         self.object._bot.dispatcher.register_plugin(self.object)
-        assert self.object.help(get_test_event(), ['help']) == 'Displays help for each command'
+        assert self.object.help(get_test_event(), ['help']) == format_docstring('Displays help for each command')
 
     def test_save(self):
         e = get_test_event()

@@ -1,3 +1,5 @@
+from six import string_types
+from builtins import object
 import logging
 import threading
 
@@ -27,7 +29,7 @@ class BasePlugin(object):
 
     def on_unload(self):
         """
-        (Not Implemented Yet) Executes when a plugin is unloaded.
+        Executes when a plugin is unloaded.
 
         Override this if your plugin needs to do cleanup when unloading.
         """
@@ -50,11 +52,12 @@ class BasePlugin(object):
         * thread - thread to reply in
         * reply_broadcast - whether or not to also send the message to the channel
         """
+        self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
         if isinstance(channel, SlackIM) or isinstance(channel, SlackUser):
             self._bot.send_im(channel, text)
         elif isinstance(channel, SlackRoom):
             self._bot.send_message(channel, text, thread, reply_broadcast)
-        elif isinstance(channel, basestring):
+        elif isinstance(channel, string_types):
             if channel[0] == '@':
                 self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
@@ -74,6 +77,7 @@ class BasePlugin(object):
         """
         t = threading.Timer(duration, self._timer_callback, (func, args))
         self._timer_callbacks[func] = t
+        self._bot.timers.append(t)
         t.start()
         self.log.info("Scheduled call to %s in %ds", func.__name__, duration)
 
@@ -85,12 +89,15 @@ class BasePlugin(object):
         """
         if func in self._timer_callbacks:
             t = self._timer_callbacks[func]
+            self._bot.timers.remove(t)
             t.cancel()
             del self._timer_callbacks[func]
 
     def _timer_callback(self, func, args):
-        del self._timer_callbacks[func]
-        func(*args)
+        try:
+            func(*args)
+        finally:
+            self.stop_timer(func)
 
     def get_user(self, username):
         """

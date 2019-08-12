@@ -9,7 +9,7 @@ class SlackIM(SlackRoomIMBase):
 
     @property
     def channel(self):
-        self.logger.warn('Use of channel is deprecated, use id instead')
+        self.logger.warning('Use of channel is deprecated, use id instead')
         return self.name
 
     @property

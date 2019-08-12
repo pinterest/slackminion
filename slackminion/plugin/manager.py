@@ -79,7 +79,7 @@ class PluginManager(object):
 
     def save_state(self):
         if self.state_handler is None:
-            self.log.warn("Unable to save state, no handler registered")
+            self.log.warning("Unable to save state, no handler registered")
             return
 
         state = {}
@@ -114,7 +114,7 @@ class PluginManager(object):
         try:
             state_str = self.state_handler.load_state()
         except IOError:
-            self.log.warn("No state information found")
+            self.log.warning("No state information found")
             return
 
         try:
@@ -130,3 +130,7 @@ class PluginManager(object):
                 for k, v in state[plugin_name].iteritems():
                     self.log.debug("%s.%s = %s", plugin_name, k, v)
                     setattr(p, k, v)
+
+    def unload_all(self):
+        for plugin in self.plugins:
+            plugin.on_unload()

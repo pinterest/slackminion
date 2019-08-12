@@ -30,7 +30,8 @@ setup(
             'pytest==4.4.1',
             'pytest-cov==2.6.1',
             'codeclimate-test-reporter==0.1.2',
-            'coverage==4.5.2'
+            'coverage==4.5.2',
+            'mock==3.0.5',
         ],
         entry_points={
             'console_scripts': [

@@ -14,6 +14,7 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
     * reply_in_thread - determines whether bot replies in the channel or a thread
     * reply_broadcast - if replying in a thread, whether to also send the message to the channel
     """
+
     def wrapper(func):
         func.is_cmd = True
         func.is_subcmd = len(func.__name__.split('_')) > 1
@@ -22,9 +23,12 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
         func.acl = acl
         func.aliases = aliases
         func.while_ignored = while_ignored
-        func.reply_in_thread = reply_in_thread
-        func.reply_broadcast = reply_broadcast
+        func.cmd_options = {
+            'reply_in_thread': reply_in_thread,
+            'reply_broadcast': reply_broadcast,
+        }
         return func
+
     return wrapper
 
 
@@ -35,10 +39,12 @@ def webhook(*args, **kwargs):
     * route - web route to register, uses Flask syntax
     * method - GET/POST, defaults to POST
     """
+
     def wrapper(func):
         func.is_webhook = True
         func.route = args[0]
         func.form_params = kwargs.get('form_params', [])
         func.method = kwargs.get('method', 'POST')
         return func
+
     return wrapper

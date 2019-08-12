@@ -52,16 +52,10 @@ class Core(BasePlugin):
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
             return 'No such command: %s' % name
-
-        helpstr = self._bot.dispatcher.commands[name].help
-        if helpstr is None:
-            helpstr = "No description provided."
-        return helpstr
+        return self._bot.dispatcher.commands[name].formatted_help
 
     def _get_short_help_for_command(self, name):
-        helpstr = self._get_help_for_command(name)
-        if '.' in helpstr:
-            helpstr = helpstr[0:helpstr.find('.') + 1]
+        helpstr = self._bot.dispatcher.commands[name].short_help
         return "*{name}*: {help}".format(name=name, help=helpstr)
 
     @cmd(admin_only=True)

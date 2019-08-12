@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 import pytest
 
 from slackclient import SlackClient
@@ -16,7 +18,7 @@ def patch_slackclient_channels_find(monkeypatch):
     test_user_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None, test_user_email))
 
     def find(self, id):
-        users = filter(lambda x: x == id, test_user_mapping)
+        users = [x for x in test_user_mapping if x == id]
         if len(users) > 0:
             return users[0]
         return None
