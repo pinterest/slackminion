@@ -75,11 +75,14 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
-        t = threading.Timer(duration, self._timer_callback, (func, args))
-        self._timer_callbacks[func] = t
-        self._bot.timers.append(t)
-        t.start()
-        self.log.info("Scheduled call to %s in %ds", func.__name__, duration)
+        if self._bot.runnable:
+            t = threading.Timer(duration, self._timer_callback, (func, args))
+            self._timer_callbacks[func] = t
+            self._bot.timers.append(t)
+            t.start()
+            self.log.info("Scheduled call to %s in %ds", func.__name__, duration)
+        else:
+            self.log.warning("Not scheduling call to %s in %ds because we're shutting down.", func.__name__, duration)
 
     def stop_timer(self, func):
         """
