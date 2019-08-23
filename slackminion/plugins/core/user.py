@@ -42,16 +42,17 @@ class UserManager(BasePlugin):
         user - a SlackUser object
         """
 
-        self.log.info("Loading user information for %s/%s", user.id, user.username)
+        self.log.debug("Loading user information for %s/%s", user.id, user.username)
         self.load_user_info(user)
-        self.log.info("Loading user rights for %s/%s", user.id, user.username)
+        self.log.debug("Loading user rights for %s/%s", user.id, user.username)
         self.load_user_rights(user)
-        self.log.info("Added user: %s/%s", user.id, user.username)
         self._add_user_to_cache(user)
         return user
 
     def _add_user_to_cache(self, user):
-        self.users[user.id] = user
+        if user.id not in self.users.keys():
+            self.users[user.id] = user
+            self.log.debug("Added user: %s/%s", user.id, user.username)
 
     def load_user_info(self, user):
         """Loads additional user information and stores in user object"""
