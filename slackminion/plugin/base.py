@@ -75,6 +75,7 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
+        self.log.info("Scheduling call to %s in %ds: %s", func.__name__, duration, args)
         if self._bot.runnable:
             t = threading.Timer(duration, self._timer_callback, (func, args))
             self._timer_callbacks[func] = t
@@ -90,6 +91,7 @@ class BasePlugin(object):
 
         * func - the function passed in start_timer
         """
+        self.log.debug('Stopping timer {}'.format(func.__name__))
         if func in self._timer_callbacks:
             t = self._timer_callbacks[func]
             self._bot.timers.remove(t)
@@ -97,10 +99,11 @@ class BasePlugin(object):
             del self._timer_callbacks[func]
 
     def _timer_callback(self, func, args):
+        self.log.debug('Executing timer function {}'.format(func.__name__))
         try:
             func(*args)
-        finally:
-            self.stop_timer(func)
+        except Exception:
+            self.log.exception("Caught exception executing timer function: {}".format(func.__name__))
 
     def get_user(self, username):
         """

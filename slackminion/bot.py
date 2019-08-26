@@ -60,6 +60,7 @@ class Bot(object):
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
+        self.log.info('Starting SlackMinion version {}'.format(self.version))
         self.bot_start_time = datetime.now()
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
         self.plugins.load()
