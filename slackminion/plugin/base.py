@@ -96,7 +96,7 @@ class BasePlugin(object):
             t.cancel()
             del self._timer_callbacks[func]
 
-    def _timer_callback(self, func, args, **kwargs):
+    def _timer_callback(self, func, *args, **kwargs):
         try:
             func(*args, **kwargs)
         except Exception as e:
