@@ -67,7 +67,7 @@ class BasePlugin(object):
         else:
             self._bot.send_message(channel, text, thread, reply_broadcast)
 
-    def start_timer(self, duration, func, *args):
+    def start_timer(self, duration, func, *args, **kwargs):
         """
         Schedules a function to be called after some period of time.
 
@@ -76,7 +76,7 @@ class BasePlugin(object):
         * args - arguments to pass to the function
         """
         if self._bot.runnable:
-            t = threading.Timer(duration, self._timer_callback, (func, args))
+            t = threading.Timer(duration, self._timer_callback, (func, args, kwargs))
             self._timer_callbacks[func] = t
             self._bot.timers.append(t)
             t.start()
@@ -96,9 +96,11 @@ class BasePlugin(object):
             t.cancel()
             del self._timer_callbacks[func]
 
-    def _timer_callback(self, func, args):
+    def _timer_callback(self, func, args, **kwargs):
         try:
-            func(*args)
+            func(*args, **kwargs)
+        except Exception as e:
+            self.log.exception("Caught exception executing function: {}".format(func))
         finally:
             self.stop_timer(func)
 
