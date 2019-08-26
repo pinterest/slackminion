@@ -75,7 +75,7 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
-        self.log.info("Scheduling call to %s in %ds: {}", func.__name__, duration, args)
+        self.log.info("Scheduling call to %s in %ds: %s", func.__name__, duration, args)
         if self._bot.runnable:
             t = threading.Timer(duration, self._timer_callback, (func, args))
             self._timer_callbacks[func] = t
