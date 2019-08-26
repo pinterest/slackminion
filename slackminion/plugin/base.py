@@ -91,6 +91,7 @@ class BasePlugin(object):
 
         * func - the function passed in start_timer
         """
+        self.log.info('Stopping timer {}'.format(func.__name__))
         if func in self._timer_callbacks:
             t = self._timer_callbacks[func]
             self._bot.timers.remove(t)
@@ -98,6 +99,7 @@ class BasePlugin(object):
             del self._timer_callbacks[func]
 
     def _timer_callback(self, func, args):
+        self.log.info('Executing timer function {}'.format(func.__name__))
         try:
             func(*args)
         except Exception as e:
