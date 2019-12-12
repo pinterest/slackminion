@@ -72,6 +72,9 @@ class SlackRoom(SlackRoomIMBase):
         self.logger.warning('Use of channelid is deprecated, use id instead')
         return self.id
 
+    @property
+    def formatted_name(self):
+        return '<#%s|%s>' % (self.id, self.name)
 
 class SlackChannel(SlackRoom):
     """Represents a Slack channel"""

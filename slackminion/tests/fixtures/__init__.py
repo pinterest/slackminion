@@ -1,10 +1,11 @@
 from slackminion.slack import SlackIM, SlackChannel, SlackGroup, SlackUser, SlackEvent
 from slackminion.bot import Bot
 from slackminion.webserver import Webserver
+from slackminion.dispatcher import MessageDispatcher
 
 from unittest import mock
 from slackminion.plugin import BasePlugin, cmd
-import pytest
+import unittest
 
 test_channel_id = 'C12345678'
 test_channel_name = 'testchannel'
@@ -15,7 +16,11 @@ test_user_name = 'testuser'
 test_user_email = 'root@dev.null'
 str_format = '<#{id}|{name}>'
 non_existent_user_name = 'doesnotexist'
-
+test_version = '0.0.42'
+test_commit = '969d561d'
+test_host = 'localhost'
+test_port = 80
+test_text = "Testing 1..2..3.."
 test_user = SlackUser(test_user_id, sc=mock.Mock())
 # Channel, result
 test_message_data = [
@@ -45,12 +50,20 @@ class DummyBot(Bot):
 
 
 class DummyPlugin(BasePlugin):
+    @cmd()
+    def sleep(self, msg, args):
+        """Causes the bot to ignore all messages from the channel.
+
+        Usage: !sleep [channel name] - ignore the specified channel (or current if none specified)
+        """
+
     @cmd(aliases='bca')
     def abc(self, msg, args):
         return 'abcba'
 
     @cmd(aliases='gfe', reply_in_thread=True)
     def efg(self, msg, args):
+        """The efg command."""
         return 'efgfe'
 
     @cmd(aliases='jih', reply_in_thread=True, reply_broadcast=True)
@@ -118,44 +131,6 @@ class DummySlackConnection(object):
         return api_responses[name]
 
 
-def get_test_event():
-    return SlackEvent(sc=DummySlackConnection(), user=test_user_id, channel=test_channel_id)
 
 
-class BasicPluginTest(object):
-    PLUGIN_CLASS = None
-    BASE_METHODS = ['on_load', 'on_connect', 'on_unload']
-    ADMIN_COMMANDS = []
 
-    def setup(self):
-        self.bot = mock.Mock()
-        self.object = self.PLUGIN_CLASS(self.bot)
-        self.called = {}
-
-    def teardown(self):
-        self.object = None
-
-    def is_called(self, method, test_func, *args, **kwargs):
-        from _pytest.monkeypatch import MonkeyPatch
-
-        def called_func(*args, **kwargs):
-            self.called[method] = True
-
-        self.called[method] = False
-        m = MonkeyPatch()
-        m.setattr(method, called_func)
-        test_func(*args, **kwargs)
-        return self.called[method]
-
-    @pytest.mark.parametrize('method', EXPECTED_PLUGIN_METHODS)
-    def test_has_base_method(self, method):
-        assert hasattr(self.object, method)
-
-    @pytest.mark.parametrize('method', EXPECTED_PLUGIN_METHODS)
-    def test_method_returns_true(self, method):
-        f = getattr(self.object, method)
-        assert f() is True
-
-    def test_admin_commands(self):
-        for c in self.ADMIN_COMMANDS:
-            assert getattr(self.object, c).admin_only is True

@@ -6,7 +6,7 @@ import slack
 import asyncio
 
 from slackminion.dispatcher import MessageDispatcher
-from slackminion.slack import SlackEvent, SlackUser, SlackRoomIMBase, ThreadedRTMClient
+from slackminion.slack import SlackEvent, SlackUser, SlackRoomIMBase
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin import PluginManager
 from slackminion.webserver import Webserver

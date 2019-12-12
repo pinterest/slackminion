@@ -1,11 +1,6 @@
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import object
-import logging
 from six import string_types
 from flask import current_app, request
-
+import logging
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack import SlackChannel
 from slackminion.utils.util import format_docstring
@@ -115,7 +110,8 @@ class MessageDispatcher(object):
         plugin.on_load()
 
     def _register_commands(self, plugin):
-        for name in dir(plugin):
+        possible_commands = [x for x in dir(plugin) if not x.startswith('_')]
+        for name in possible_commands:
             method = getattr(plugin, name)
             if callable(method) and hasattr(method, 'is_cmd'):
                 commands = [method.cmd_name]

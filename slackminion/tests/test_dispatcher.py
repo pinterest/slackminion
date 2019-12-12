@@ -1,35 +1,17 @@
 from builtins import str
-from builtins import object
-import pytest
 
-import slack
-from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import DuplicateCommandError
-from slackminion.slack import SlackChannel
 from slackminion.tests.fixtures import *
 
 test_data_mapping = []
 
 
-@pytest.fixture(autouse=True)
-def patch_slackclient_channels_find(monkeypatch):
-    test_data_mapping.append(User(None, test_user_name, test_user_id, test_user_name, None, test_user_email))
-    test_data_mapping.append(Channel(None, test_channel_name, test_channel_id, None))
-
-    def find(self, id):
-        res = [x for x in test_data_mapping if x == id]
-        if len(res) > 0:
-            return res[0]
-        return None
-    monkeypatch.setattr('slackclient.util.SearchList.find', find)
-
-
-class TestDispatcher(object):
-    def setup(self):
+class TestDispatcher(unittest.TestCase):
+    def setUp(self):
         self.object = MessageDispatcher()
         self.p = DummyPlugin(None)
 
-    def teardown(self):
+    def tearDown(self):
         self.object = None
 
     def test_register_plugin(self):
@@ -37,9 +19,9 @@ class TestDispatcher(object):
 
     def test_register_duplicate_plugin(self):
         self.object.register_plugin(self.p)
-        with pytest.raises(DuplicateCommandError) as e:
+        with self.assertRaises(DuplicateCommandError) as e:
             self.object.register_plugin(self.p)
-        assert 'abc' in str(e)
+            self.assertIn('abc', str(e))
 
     def test_get_command(self):
         self.object.register_plugin(self.p)
@@ -49,11 +31,11 @@ class TestDispatcher(object):
 
     def test_get_invalid_command(self):
         self.object.register_plugin(self.p)
-        with pytest.raises(KeyError):
+        with self.assertRaises(KeyError):
             self.object._get_command('!def', None)
 
     def test_parse_message(self):
-        e = SlackEvent(text='Hello world')
+        e = SlackEvent(event_type='message', **{'data': {'text': 'Hello world'}})
         assert self.object._parse_message(e) == ['Hello', 'world']
 
     def test_ignore_channel(self):
@@ -92,7 +74,8 @@ class TestDispatcher(object):
 
     def test_push(self):
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
+        e = SlackEvent(event_type="message", sc=mock.Mock(),
+                       **{'data': {'text': '!abc', 'user': test_user_id, 'channel': test_channel_id}})
         cmd, output, cmd_opts = self.object.push(e)
         assert cmd == '!abc'
         assert output == 'abcba'
@@ -104,7 +87,8 @@ class TestDispatcher(object):
 
     def test_push_alias(self):
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!bca', 'user': test_user_id, 'channel': test_channel_id})
+        e = SlackEvent(event_type="message", sc=mock.Mock(),
+                       **{'data': {'text': '!bca', 'user': test_user_id, 'channel': test_channel_id}})
         cmd, output, cmd_opts = self.object.push(e)
         assert cmd == '!bca'
         assert output == 'abcba'
@@ -116,7 +100,8 @@ class TestDispatcher(object):
 
     def test_push_to_thread(self):
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!efg', 'user': test_user_id, 'channel': test_channel_id})
+        e = SlackEvent(event_type="message", sc=mock.Mock(),
+                       **{'data': {'text': '!efg', 'user': test_user_id, 'channel': test_channel_id}})
         cmd, output, cmd_opts = self.object.push(e)
         assert cmd == '!efg'
         assert output == 'efgfe'
@@ -128,7 +113,8 @@ class TestDispatcher(object):
 
     def test_push_to_thread_with_broadcast(self):
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!hij', 'user': test_user_id, 'channel': test_channel_id})
+        e = SlackEvent(event_type="message", sc=mock.Mock(),
+                       **{'data': {'text': '!hij', 'user': test_user_id, 'channel': test_channel_id}})
         cmd, output, cmd_opts = self.object.push(e)
         assert cmd == '!hij'
         assert output == 'hijih'
@@ -139,16 +125,16 @@ class TestDispatcher(object):
         assert cmd_opts.get('reply_in_thread') is True
 
     def test_push_not_command(self):
-        e = SlackEvent(DummySlackConnection(), **{'text': 'Not a command'})
+        e = SlackEvent(event_type="message", sc=mock.Mock(), **{'data': {'text': 'Not a command'}})
         assert self.object.push(e) == (None, None, None)
 
     def test_push_message_replied_event(self):
-        e = SlackEvent(DummySlackConnection(), **{'subtype': 'message_replied'})
+        e = SlackEvent(event_type="message", sc=mock.Mock(), **{'data': {'subtype': 'message_replied'}})
         assert self.object.push(e) == (None, None, None)
 
     def test_push_no_user(self):
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!abc'})
+        e = SlackEvent(event_type="message", sc=mock.Mock(), **{'data': {'text': '!abc'}})
         assert self.object.push(e) == (None, None, None)
 
     def test_push_ignored_channel(self):
@@ -156,5 +142,7 @@ class TestDispatcher(object):
         c.name = 'testchannel'
         self.object.ignore(c)
         self.object.register_plugin(self.p)
-        e = SlackEvent(DummySlackConnection(), **{'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
+        self.object._is_channel_ignored = mock.Mock(return_value=True)
+        e = SlackEvent(event_type='message', sc=mock.Mock(),
+                       **{'data': {'text': '!abc', 'user': test_user_id, 'channel': test_channel_id}})
         assert self.object.push(e) == ('_ignored_', '', None)

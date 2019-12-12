@@ -21,7 +21,7 @@ test_payload = {
 }
 
 
-class TestSlackEvent(object):
+class TestSlackEvent(unittest.TestCase):
 
     def test_init(self):
         event = SlackEvent('test')
@@ -40,16 +40,16 @@ class TestSlackEvent(object):
         assert isinstance(event.user, SlackUser)
         assert event.channel is None
 
-    @pytest.mark.parametrize('channel_id,channel_class', test_event_data)
-    def test_init_channel(self, channel_id, channel_class):
-        test_payload['data'] = {'channel': channel_id}
-        event = SlackEvent('channel', **test_payload)
-        assert event.user is None
-        assert isinstance(event.channel, channel_class)
+    def test_init_channel(self):
+        for channel_id, channel_class in test_event_data:
+            test_payload['data'] = {'channel': channel_id}
+            event = SlackEvent('channel', **test_payload)
+            assert event.user is None
+            assert isinstance(event.channel, channel_class)
 
-    @pytest.mark.parametrize('channel_id,channel_class', test_event_data)
-    def test_init_channel_slackchannel(self, channel_id, channel_class):
-        test_payload['data'] = {'channel': channel_class(channel_id)}
-        event = SlackEvent('channel', **test_payload)
-        assert event.user is None
-        assert isinstance(event.channel, channel_class)
+    def test_init_channel_slackchannel(self):
+        for channel_id, channel_class in test_event_data:
+            test_payload['data'] = {'channel': channel_class(channel_id)}
+            event = SlackEvent('channel', **test_payload)
+            self.assertIsNone(event.user)
+            self.assertIsInstance(event.channel, channel_class)

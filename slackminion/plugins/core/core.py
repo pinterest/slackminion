@@ -2,7 +2,6 @@ from __future__ import division
 from past.utils import old_div
 from datetime import datetime
 from flask import render_template
-from functools import wraps
 from operator import itemgetter
 
 from slackminion.plugin import cmd, webhook
@@ -14,16 +13,6 @@ try:
     from . import commit
 except ImportError:
     commit = 'HEAD'
-
-
-def channel_wrapper(f):
-    @wraps(f)
-    def wrapper(self, msg, args):
-        channel = self._get_channel_from_msg_or_args(msg, args)
-        if channel is not None:
-            return f(self, channel)
-        return None
-    return wrapper
 
 
 class Core(BasePlugin):
@@ -53,10 +42,14 @@ class Core(BasePlugin):
 
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
+            print(self._bot.dispatcher.commands)
             return 'No such command: %s' % name
         return self._bot.dispatcher.commands[name].formatted_help
 
     def _get_short_help_for_command(self, name):
+        if name not in self._bot.dispatcher.commands:
+            print(self._bot.dispatcher.commands)
+            return 'No such command: %s' % name
         helpstr = self._bot.dispatcher.commands[name].short_help
         return "*{name}*: {help}".format(name=name, help=helpstr)
 
@@ -77,35 +70,41 @@ class Core(BasePlugin):
     @cmd()
     def whoami(self, msg, args):
         """Prints information about the user and bot version."""
-        output = ["Hello %s" % msg.user]
+        output = ["Hello %s" % msg.user.formatted_name]
         if hasattr(self._bot.dispatcher, 'auth_manager') and msg.user.is_admin is True:
             output.append("You are a *bot admin*.")
         output.append("Bot version: %s-%s" % (self._bot.version, self._bot.commit))
         return '\n'.join(output)
 
     @cmd()
-    @channel_wrapper
-    def sleep(self, channel):
+    def sleep(self, msg, args):
         """Causes the bot to ignore all messages from the channel.
 
         Usage:
         !sleep [channel name] - ignore the specified channel (or current if none specified)
         """
-        self.log.info('Sleeping in %s', channel)
-        self._bot.dispatcher.ignore(channel)
-        self.send_message(channel, 'Good night')
+        channel = self._get_channel_from_msg_or_args(msg, args)
+        if channel:
+            self.log.info('Sleeping in %s', channel)
+            self._bot.dispatcher.ignore(channel)
+            self.send_message(channel, 'Going to sleep, good night. Type !wake to wake me up')
+        else:
+            self.log.warning('!sleep called without a channel')
 
     @cmd(admin_only=True, while_ignored=True)
-    @channel_wrapper
-    def wake(self, channel):
+    def wake(self, msg, args):
         """Causes the bot to resume operation in the channel.
 
         Usage:
         !wake [channel name] - unignore the specified channel (or current if none specified)
         """
-        self.log.info('Waking up in %s', channel)
-        self._bot.dispatcher.unignore(channel)
-        self.send_message(channel, 'Hello, how may I be of service?')
+        channel = self._get_channel_from_msg_or_args(msg, args)
+        if channel:
+            self.log.info('Waking up in %s', channel.name)
+            self._bot.dispatcher.unignore(channel)
+            self.send_message(channel, 'Hello, how may I be of service?')
+        else:
+            self.log.warning('!wake called without a channel')
 
     @webhook('/status', method='GET')
     def bot_status(self):

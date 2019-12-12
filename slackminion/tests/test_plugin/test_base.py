@@ -1,6 +1,3 @@
-import pytest
-import mock
-
 from slackminion.plugin import BasePlugin
 import slackminion.plugin.base
 
@@ -85,14 +82,14 @@ class TestBasePlugin(object):
         self.object._bot.user_manager.get_by_username.assert_called_with(non_existent_user_name)
         assert user is None
 
-    @pytest.mark.parametrize('channel,result', test_message_data)
-    def test_send_message(self, channel, result):
-        self.object._bot = mock.Mock()
-        expected_method = getattr(self.object._bot, result)
+    def test_send_message(self):
+        for channel, result in test_message_data:
+            self.object._bot = mock.Mock()
+            expected_method = getattr(self.object._bot, result)
 
-        self.object.send_message(channel, 'Yet another test string')
-        expected_method.assert_called()
+            self.object.send_message(channel, 'Yet another test string')
+            expected_method.assert_called()
 
-        self.object.send_message(channel, 'Yet another test string', thread=12345.67,
-                                 reply_broadcast=True)
-        expected_method.assert_called()
+            self.object.send_message(channel, 'Yet another test string', thread=12345.67,
+                                     reply_broadcast=True)
+            expected_method.assert_called()
