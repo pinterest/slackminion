@@ -1,20 +1,18 @@
 import threading
-
-from slackclient.server import Server
-from slackclient.client import SlackClient
+import slack
 
 
-class ThreadedSlackClient(SlackClient):
+class ThreadedRTMClient(slack.RTMClient):
     def __init__(self, *args, **kwargs):
-        super(ThreadedSlackClient, self).__init__(*args, **kwargs)
-        self.server = ThreadedServer(self.token, False)
+        super(slack.RTMClient, self).__init__(*args, **kwargs)
+        self.server = ThreadWebClient(self.token, False)
 
 
-class ThreadedServer(Server):
+class ThreadWebClient(slack.WebClient):
     def __init__(self, *args, **kwargs):
-        super(ThreadedServer, self).__init__(*args, **kwargs)
+        super(ThreadWebClient, self).__init__(*args, **kwargs)
         self.api_call_lock = threading.RLock()
 
     def api_call(self, *args, **kwargs):
         with self.api_call_lock:
-            return super(ThreadedServer, self).api_call(*args, **kwargs)
+            return super(ThreadWebClient, self).api_call(*args, **kwargs)

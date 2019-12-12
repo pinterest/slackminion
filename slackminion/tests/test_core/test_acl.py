@@ -1,14 +1,19 @@
 import pytest
-
+from slackminion.plugin import BasePlugin, cmd
+import unittest
+import mock
 from slackminion.plugins.core.acl import AuthManager
-from slackminion.utils.test_helpers import *
+from slackminion.tests.fixtures import *
 
 
-class TestAuthManager(BasicPluginTest):
+class TestAuthManager(object):
     PLUGIN_CLASS = AuthManager
     ADMIN_COMMANDS = [
         'acl',
     ]
+
+    def setuUp(self):
+        self.object = AuthManager(bot=mock.Mock())
 
     def test_acl(self):
         e = get_test_event()

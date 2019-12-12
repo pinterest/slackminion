@@ -32,8 +32,3 @@ class SlackUser(object):
         user = SlackUser(resp.id, sc)
         return user
 
-    def __str__(self):
-        return '<@%s|%s>' % (self.id, self.username)
-
-    def __repr__(self):
-        return self.id

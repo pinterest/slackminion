@@ -1,8 +1,9 @@
 import pytest
 
 from slackminion.plugins.core.core import Core
-from slackminion.utils.test_helpers import *
+from slackminion.tests.fixtures import *
 from slackminion.utils.util import format_docstring
+from slackminion.dispatcher import MessageDispatcher
 
 # command, help
 test_help_long_data = [
@@ -67,6 +68,7 @@ class TestCorePlugin(BasicPluginTest):
 
     @pytest.mark.parametrize('command,helpstr', test_help_long_data)
     def test_get_help_for_command(self, command, helpstr):
+        self.object._bot.dispatcher = MessageDispatcher()
         self.object._bot.dispatcher.register_plugin(self.object)
         self.object._bot.dispatcher.register_plugin(DummyPlugin(self.object._bot))
         assert self.object._get_help_for_command(command) == helpstr

@@ -112,14 +112,15 @@ class BasePlugin(object):
         :param username: The username of the user to lookup
         :return: SlackUser object or None
         """
-        if hasattr(self._bot, 'user_manager'):
-            user = self._bot.user_manager.get_by_username(username)
-            if user:
-                return user
-            user = SlackUser.get_user(self._bot.sc, username)
-            self._bot.user_manager.set(user)
+        if not hasattr(self._bot, 'user_manager'):
+            return SlackUser.get_user(self._bot.sc, username)
+
+        user = self._bot.user_manager.get_by_username(username)
+        if user:
             return user
-        return SlackUser.get_user(self._bot.sc, username)
+        user = SlackUser.get_user(self._bot.sc, username)
+        self._bot.user_manager.set(user)
+        return user
 
     def get_channel(self, channel):
         """

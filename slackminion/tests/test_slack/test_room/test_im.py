@@ -23,8 +23,3 @@ class TestSlackIM(object):
     def test_channel(self):
         assert self.object.channel == test_id
 
-    def test_str(self):
-        assert str(self.object) == str_format.format(id=test_id)
-
-    def test_repr(self):
-        assert repr(self.object) == test_id

@@ -2,11 +2,10 @@ from builtins import str
 from builtins import object
 import pytest
 
-from slackclient import SlackClient
-from slackclient.user import User
+import slack
 
 from slackminion.slack import SlackUser
-from slackminion.utils.test_helpers import *
+from slackminion.tests.fixtures import *
 
 str_format = '<@{id}|{name}>'
 

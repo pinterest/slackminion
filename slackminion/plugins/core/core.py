@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 from datetime import datetime
 from flask import render_template
 from functools import wraps
@@ -31,11 +33,11 @@ class Core(BasePlugin):
         """Displays help for each command"""
         output = []
         if len(args) == 0:
-            commands = sorted(self._bot.dispatcher.commands.items(), key=itemgetter(0))
-            commands = filter(lambda x: x[1].is_subcmd is False, commands)
+            commands = sorted(list(self._bot.dispatcher.commands.items()), key=itemgetter(0))
+            commands = [x for x in commands if x[1].is_subcmd is False]
             # Filter commands if auth is enabled, hide_admin_commands is enabled, and user is not admin
             if self._should_filter_help_commands(msg.user):
-                commands = filter(lambda x: x[1].admin_only is False, commands)
+                commands = [x for x in commands if x[1].admin_only is False]
             for name, cmd in commands:
                 output.append(self._get_short_help_for_command(name))
         else:
@@ -118,10 +120,10 @@ class Core(BasePlugin):
 
         uptime = datetime.now() - self._bot.bot_start_time
         partial_day = uptime.seconds
-        u_hours = partial_day / 3600
+        u_hours = old_div(partial_day, 3600)
 
         partial_day %= 3600
-        u_minutes = partial_day / 60
+        u_minutes = old_div(partial_day, 60)
         u_seconds = partial_day % 60
         context = {
             'bot_name': self._bot.sc.server.username,

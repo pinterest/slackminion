@@ -1,3 +1,7 @@
+from future import standard_library
+
+standard_library.install_aliases()
+from builtins import object
 import logging
 from six import string_types
 from flask import current_app, request
@@ -5,6 +9,7 @@ from flask import current_app, request
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack import SlackChannel
 from slackminion.utils.util import format_docstring
+
 
 class BaseCommand(object):
     def __init__(self, method):

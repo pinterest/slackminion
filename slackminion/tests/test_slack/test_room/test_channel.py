@@ -1,9 +1,7 @@
 import pytest
 
-from slackclient import SlackClient
-
 from slackminion.slack.room.room import SlackChannel, SlackGroup
-from slackminion.utils.test_helpers import *
+from slackminion.tests.fixtures import *
 
 str_format = '<#{id}|{name}>'
 

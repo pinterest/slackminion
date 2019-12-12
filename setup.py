@@ -16,10 +16,10 @@ setup(
             'itsdangerous>=0.24',
             'Jinja2>=2.6',
             'MarkupSafe>=0.23',
-            'PyYAML>=3.10',
+            'PyYAML>=4.2b',
             'requests >=2.11, <3.0a0',
             'six >=1.10, <2.0a0',
-            'slackclient==1.3.1',
+            'slackclient==2.4.0',
             'websocket-client >=0.35, <0.55.0',
             'Werkzeug>=0.10.4',
         ],
@@ -27,7 +27,7 @@ setup(
             'pytest-runner'
         ],
         tests_require=[
-            'pytest==4.4.1',
+            'pytest==5.3.1',
             'pytest-cov==2.6.1',
             'codeclimate-test-reporter==0.1.2',
             'coverage==4.5.2',

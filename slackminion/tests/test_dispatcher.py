@@ -2,12 +2,11 @@ from builtins import str
 from builtins import object
 import pytest
 
-from slackclient.channel import Channel
-from slackclient.user import User
+import slack
 from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack import SlackChannel
-from slackminion.utils.test_helpers import *
+from slackminion.tests.fixtures import *
 
 test_data_mapping = []
 

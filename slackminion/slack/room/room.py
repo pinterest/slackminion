@@ -26,7 +26,7 @@ class SlackRoom(SlackRoomIMBase):
             if resp is not None:
                 self.name = resp.name
 
-        for k, v in kwargs.items():
+        for k, v in list(kwargs.items()):
             if k in self.BASE_ATTRIBUTES + self.EXTRA_ATTRIBUTES:
                 setattr(self, k, v)
 
@@ -41,8 +41,10 @@ class SlackRoom(SlackRoomIMBase):
             setattr(SlackChannel, attribute, attribute_class())
 
     def _load_extra_attributes(self):
+        if not self._sc:
+            return
         resp = self._sc.api_call(self.API_PREFIX + '.info', channel=self.id)
-        for k, v in resp[self.ATTRIBUTE_KEY].items():
+        for k, v in list(resp[self.ATTRIBUTE_KEY].items()):
             if k == 'creator':
                 v = SlackUser(v, sc=self._sc)
             elif k == 'topic':
@@ -68,12 +70,6 @@ class SlackRoom(SlackRoomIMBase):
     @property
     def channelid(self):
         self.logger.warning('Use of channelid is deprecated, use id instead')
-        return self.id
-
-    def __str__(self):
-        return '<#%s|%s>' % (self.id, self.name)
-
-    def __repr__(self):
         return self.id
 
 

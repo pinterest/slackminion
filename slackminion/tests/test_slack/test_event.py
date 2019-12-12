@@ -1,11 +1,11 @@
 from builtins import object
 import pytest
+from unittest import mock
 
 from slackminion.slack import SlackEvent, SlackChannel, SlackGroup, SlackIM, SlackUser
-from slackminion.utils.test_helpers import *
+from slackminion.tests.fixtures import *
 
 test_im_id = 'D12345678'
-
 
 # channel_id, channel_class
 test_event_data = [
@@ -14,36 +14,42 @@ test_event_data = [
     (test_im_id, SlackIM),
 ]
 
+test_payload = {
+    'rtm_client': mock.Mock(),
+    'web_client': mock.Mock(),
+    'data': {},
+}
+
 
 class TestSlackEvent(object):
 
     def test_init(self):
-        event = SlackEvent()
+        event = SlackEvent('test')
         assert event._user is None
         assert event._channel is None
 
     def test_init_user(self):
-        e = {'user': test_user_id}
-        event = SlackEvent(**e)
+        test_payload['data'] = {'user': test_user_id}
+        event = SlackEvent('user', **test_payload)
         assert isinstance(event.user, SlackUser)
         assert event.channel is None
 
     def test_init_user_slackuser(self):
-        e = {'user': SlackUser(test_user_id)}
-        event = SlackEvent(**e)
+        test_payload['data'] = {'user': SlackUser(test_user_id)}
+        event = SlackEvent('message', **test_payload)
         assert isinstance(event.user, SlackUser)
         assert event.channel is None
 
     @pytest.mark.parametrize('channel_id,channel_class', test_event_data)
     def test_init_channel(self, channel_id, channel_class):
-        e = {'channel': channel_id}
-        event = SlackEvent(**e)
+        test_payload['data'] = {'channel': channel_id}
+        event = SlackEvent('channel', **test_payload)
         assert event.user is None
         assert isinstance(event.channel, channel_class)
 
     @pytest.mark.parametrize('channel_id,channel_class', test_event_data)
     def test_init_channel_slackchannel(self, channel_id, channel_class):
-        e = {'channel': channel_class(channel_id)}
-        event = SlackEvent(**e)
+        test_payload['data'] = {'channel': channel_class(channel_id)}
+        event = SlackEvent('channel', **test_payload)
         assert event.user is None
         assert isinstance(event.channel, channel_class)
