@@ -1,4 +1,4 @@
-class DuplicateCommandError(Exception):
+class DuplicateCommandError(Exception):  # pragma: nocover
     def __init__(self, name):
         self.name = name
 
@@ -6,7 +6,7 @@ class DuplicateCommandError(Exception):
         return "Command already defined: %s" % self.name
 
 
-class DuplicatePluginError(Exception):
+class DuplicatePluginError(Exception):  # pragma: nocover
     def __init__(self, name):
         self.name = name
 
@@ -14,6 +14,6 @@ class DuplicatePluginError(Exception):
         return "Plugin already defined: %s" % self.name
 
 
-class NotSetupError(Exception):
+class NotSetupError(Exception):  # pragma: nocover
     def __str__(self):
         return "Bot not setup.  Please run start() before run()."

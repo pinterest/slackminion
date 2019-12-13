@@ -2,6 +2,7 @@ from builtins import str
 
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.tests.fixtures import *
+from slackminion.dispatcher import MessageDispatcher
 
 test_data_mapping = []
 

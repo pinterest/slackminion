@@ -50,7 +50,7 @@ class Bot(object):
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
-        self.log.info('Starting SlackMinion version {}'.format(self.version))
+        self.log.info(f'Starting SlackMinion version {self.version}')
         self.bot_start_time = datetime.datetime.now()
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
         self.plugins.load()
@@ -138,7 +138,8 @@ class Bot(object):
         if isinstance(channel, SlackRoomIMBase):
             channel = channel.id
         self.log.debug("Trying to send to %s: %s", channel, text)
-        await self.web_client.chat_postMessage(as_user=True, channel=channel, text=text, thread=thread, reply_broadcast=reply_broadcast)
+        await self.web_client.chat_postMessage(as_user=True, channel=channel, text=text, thread=thread,
+                                               reply_broadcast=reply_broadcast)
 
     async def send_im(self, user, text):
         """
@@ -196,9 +197,8 @@ class Bot(object):
         slack.RTMClient.on(event='team_migration_started', callback=self._event_error)
 
     async def _event_message(self, **payload):
-        self.log.debug(payload)
-        msg = self._handle_event('message', payload)
         self.log.debug(f"Received message: {payload}")
+        msg = self._handle_event('message', payload)
 
         # The user manager should load rights when a user is added
         if not hasattr(self, 'user_manager'):
@@ -208,20 +208,23 @@ class Bot(object):
         except:
             self.log.exception('Unhandled exception')
             return
-        self.log.debug("Output from dispatcher: %s", output)
+        self.log.debug(f"Output from dispatcher: {output}")
         if output:
-            if cmd_options.get('reply_in_thread'):
-                if hasattr(msg, 'thread_ts'):
-                    thread_ts = msg.thread_ts
-                else:
-                    thread_ts = msg.ts
+            await self._prepare_and_send_output(cmd, msg, cmd_options, output)
+
+    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
+        if cmd_options.get('reply_in_thread'):
+            if hasattr(msg, 'thread_ts'):
+                thread_ts = msg.thread_ts
             else:
-                thread_ts = None
-            if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
-                await self.send_im(msg.user, output)
-            else:
-                await self.send_message(msg.channel, output, thread=thread_ts,
-                                  reply_broadcast=cmd_options.get('reply_broadcast'))
+                thread_ts = msg.ts
+        else:
+            thread_ts = None
+        if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
+            await self.send_im(msg.user, output)
+        else:
+            await self.send_message(msg.channel, output, thread=thread_ts,
+                                    reply_broadcast=cmd_options.get('reply_broadcast'))
 
     def _event_error(self, **payload):
         msg = self._handle_event('error', payload)

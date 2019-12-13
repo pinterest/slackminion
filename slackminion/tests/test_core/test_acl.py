@@ -1,5 +1,6 @@
 import mock
 from slackminion.plugins.core.acl import AuthManager
+from slackminion.dispatcher import MessageDispatcher
 from slackminion.tests.fixtures import *
 
 
