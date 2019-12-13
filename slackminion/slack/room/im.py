@@ -15,3 +15,7 @@ class SlackIM(SlackRoomIMBase):
     @property
     def name(self):
         return self.id
+
+    @property
+    def formatted_name(self):
+        return '<#%s|%s>' % (self.id, self.name)
