@@ -1,5 +1,3 @@
-import pytest
-
 from slackminion.slack.room.room import SlackChannel, SlackGroup
 from slackminion.tests.fixtures import *
 

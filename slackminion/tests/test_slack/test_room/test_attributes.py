@@ -1,5 +1,3 @@
-import pytest
-
 from slackminion.slack.room.attributes import SlackRoomAttribute, SlackRoomTopic
 
 

@@ -1,5 +1,3 @@
-import pytest
-
 from slackminion.plugins.core.core import Core
 from slackminion.tests.fixtures import *
 from slackminion.utils.util import format_docstring
@@ -27,35 +25,38 @@ class BasicPluginTest(object):
     BASE_METHODS = ['on_load', 'on_connect', 'on_unload']
     ADMIN_COMMANDS = []
 
-    def setup(self):
+    def setUp(self):
         bot = mock.Mock()
-        self.object = self.PLUGIN_CLASS(bot)
-        test_payload = {
-            'data': {
-                'user': test_user_id,
-                'channel': test_channel_id,
-            },
-        }
-        self.test_event = SlackEvent(event_type='tests', sc=bot._sc, **test_payload)
+        if self.PLUGIN_CLASS:
+            self.object = self.PLUGIN_CLASS(bot)
+            test_payload = {
+                'data': {
+                    'user': test_user_id,
+                    'channel': test_channel_id,
+                },
+            }
+            self.test_event = SlackEvent(event_type='tests', sc=bot._sc, **test_payload)
 
-    def teardown(self):
+    def tearDown(self):
         self.object = None
 
     def test_has_base_method(self):
-        for method in EXPECTED_PLUGIN_METHODS:
-            assert hasattr(self.object, method)
+        if self.object:
+            for method in EXPECTED_PLUGIN_METHODS:
+                assert hasattr(self.object, method)
 
     def test_method_returns_true(self):
-        for method in EXPECTED_PLUGIN_METHODS:
-            f = getattr(self.object, method)
-            assert f() is True
+        if self.object:
+            for method in EXPECTED_PLUGIN_METHODS:
+                f = getattr(self.object, method)
+                assert f() is True
 
     def test_admin_commands(self):
         for c in self.ADMIN_COMMANDS:
             assert getattr(self.object, c).admin_only is True
 
 
-class TestCorePlugin(BasicPluginTest):
+class TestCorePlugin(BasicPluginTest, unittest.TestCase):
     PLUGIN_CLASS = Core
     ADMIN_COMMANDS = [
         'save',

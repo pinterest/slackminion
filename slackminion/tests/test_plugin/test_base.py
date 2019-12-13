@@ -20,12 +20,12 @@ test_user_manager = [
 slackminion.plugin.base.threading = mock.Mock()
 
 
-class TestBasePlugin(object):
-    def setup(self):
+class TestBasePlugin(unittest.TestCase):
+    def setUp(self):
         dummy_bot = mock.Mock()
         self.object = BasePlugin(dummy_bot)
 
-    def teardown(self):
+    def tearDown(self):
         self.object = None
 
     def test_on_load(self):
