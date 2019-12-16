@@ -39,7 +39,7 @@ class TSlackRoom(object):
         self.object.name = self.test_room_name
         assert self.object.name == self.test_room_name
 
-        self.object = SlackChannel(self.test_id, name=self.test_room_name, sc=DummySlackConnection())
+        self.object = SlackChannel(self.test_id, name=self.test_room_name, sc=mock.Mock())
         assert self.object.name == self.test_room_name
 
     def test_get_channel(self):

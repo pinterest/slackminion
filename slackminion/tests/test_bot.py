@@ -1,7 +1,5 @@
 import yaml
-import asyncio
 from slackminion.bot import Bot
-from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import NotSetupError
 from slackminion.plugins.core import version
 from slackminion.tests.fixtures import *
