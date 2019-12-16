@@ -92,7 +92,7 @@ class TestBot(unittest.TestCase):
         self.object._prepare_and_send_output = AsyncMock()
         self.object._load_user_rights = mock.Mock()
         self.object.user_manager = None
-        delattr(self.object,'user_manager')
+        delattr(self.object, 'user_manager')
 
         await self.object._event_message(**test_payload)
 
@@ -131,7 +131,6 @@ class TestBot(unittest.TestCase):
         self.object.user_manager.get.assert_called_with(test_user_id)
         self.object.user_manager.set.assert_called_with(test_user_id)
 
-
     # test _prepare_and_send_output without any command options set (reply in thread, etc.)
     @async_test
     async def test_prepare_and_send_output_no_cmd_options(self):
@@ -140,7 +139,8 @@ class TestBot(unittest.TestCase):
         self.object.web_client = AsyncMock()
         #    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         await self.object._prepare_and_send_output(test_command, self.test_event, {}, test_output)
-        self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=None, reply_broadcast=None)
+        self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=None,
+                                                    reply_broadcast=None)
 
     # test _prepare_and_send_output with various options
     @async_test
@@ -155,7 +155,7 @@ class TestBot(unittest.TestCase):
         self.test_event.thread_ts = test_thread_ts
         await self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
-                                                     reply_broadcast=None)
+                                                    reply_broadcast=None)
 
         cmd_options = {
             'reply_in_thread': True,
@@ -164,7 +164,7 @@ class TestBot(unittest.TestCase):
 
         await self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
-                                                     reply_broadcast=True)
+                                                    reply_broadcast=True)
 
     def test_event_error(self):
         self.object._handle_event = mock.Mock()
