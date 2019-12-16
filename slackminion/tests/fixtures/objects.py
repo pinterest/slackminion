@@ -3,6 +3,11 @@ from slackminion.bot import Bot
 
 from slackminion.webserver import Webserver
 from slackminion.plugin import BasePlugin, cmd
+from asyncio import coroutine
+from unittest import mock
+
+
+
 
 
 class TestChannel(object):

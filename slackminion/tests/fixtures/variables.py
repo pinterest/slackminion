@@ -1,5 +1,14 @@
 from unittest import mock
 from slackminion.slack import SlackIM, SlackChannel, SlackGroup, SlackUser, SlackEvent
+import asyncio
+
+
+def AsyncMock():
+    coro = mock.Mock(name="CoroutineResult")
+    corofunc = mock.Mock(name="CoroutineFunction", side_effect=asyncio.coroutine(coro))
+    corofunc.coro = coro
+    return corofunc
+
 
 test_channel_id = 'C12345678'
 test_channel_name = 'testchannel'
@@ -39,6 +48,8 @@ EXPECTED_PLUGIN_METHODS = [
 ]
 
 test_payload = {
+    'rtm_client': AsyncMock(),
+    'web_client': AsyncMock(),
     'data': {
         'user': test_user_id,
         'channel': test_channel_id,

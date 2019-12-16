@@ -14,7 +14,7 @@ setup(
         install_requires=[
             'Flask>=1.1.1',
             'itsdangerous>=0.24',
-            'Jinja2>=2.6',
+            'Jinja2>=2.10',
             'MarkupSafe>=0.23',
             'PyYAML>=4.2b',
             'requests >=2.11, <3.0a0',
@@ -28,10 +28,12 @@ setup(
         ],
         tests_require=[
             'pytest==5.3.1',
+            'pytest-asyncio',
             'pytest-cov==2.6.1',
             'codeclimate-test-reporter==0.1.2',
             'coverage==4.5.2',
             'mock==3.0.5',
+            'future',
         ],
         entry_points={
             'console_scripts': [
