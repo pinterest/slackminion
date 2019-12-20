@@ -124,7 +124,7 @@ class Bot(object):
             self.plugins.save_state()
         self.plugins.unload_all()
 
-    async def send_message(self, channel, text, thread=None, reply_broadcast=None):
+    async def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None):
         """
         Sends a message to the specified channel
 
@@ -139,7 +139,7 @@ class Bot(object):
             channel = channel.id
         self.log.debug("Trying to send to %s: %s", channel, text)
         await self.web_client.chat_postMessage(as_user=True, channel=channel, text=text, thread=thread,
-                                               reply_broadcast=reply_broadcast)
+                                               reply_broadcast=reply_broadcast, attachments=attachments)
 
     async def send_im(self, user, text):
         """
