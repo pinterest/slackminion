@@ -27,10 +27,13 @@ class Core(BasePlugin):
             # Filter commands if auth is enabled, hide_admin_commands is enabled, and user is not admin
             if self._should_filter_help_commands(msg.user):
                 commands = [x for x in commands if x[1].admin_only is False]
-            for name, cmd in commands:
+            for name, v in commands:
                 output.append(self._get_short_help_for_command(name))
         else:
             name = '!' + args[0]
+            if name not in self._bot.dispatcher.commands:
+                print(self._bot.dispatcher.commands)
+                return 'No such command: %s' % name
             output = [self._get_help_for_command(name)]
         return '\n'.join(output)
 
@@ -43,15 +46,12 @@ class Core(BasePlugin):
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
             print(self._bot.dispatcher.commands)
-            return 'No such command: %s' % name
+            return f'No such command: {name}'
         return self._bot.dispatcher.commands[name].formatted_help
 
     def _get_short_help_for_command(self, name):
-        if name not in self._bot.dispatcher.commands:
-            print(self._bot.dispatcher.commands)
-            return 'No such command: %s' % name
         helpstr = self._bot.dispatcher.commands[name].short_help
-        return "*{name}*: {help}".format(name=name, help=helpstr)
+        return f"*{name}*: {helpstr}"
 
     @cmd(admin_only=True)
     def save(self, msg, args):

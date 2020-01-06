@@ -2,6 +2,7 @@ from slackminion.plugins.core.core import Core
 from slackminion.tests.fixtures import *
 from slackminion.utils.util import format_docstring
 from slackminion.dispatcher import MessageDispatcher
+from slackminion.webserver import Webserver
 import slackminion.plugin.base
 
 # command, help
