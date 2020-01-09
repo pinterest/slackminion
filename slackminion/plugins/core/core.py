@@ -1,5 +1,3 @@
-from __future__ import division
-from past.utils import old_div
 from datetime import datetime
 from flask import render_template
 from operator import itemgetter
@@ -119,10 +117,9 @@ class Core(BasePlugin):
 
         uptime = datetime.now() - self._bot.bot_start_time
         partial_day = uptime.seconds
-        u_hours = old_div(partial_day, 3600)
-
+        u_hours = partial_day // 3600
         partial_day %= 3600
-        u_minutes = old_div(partial_day, 60)
+        u_minutes = partial_day // 60
         u_seconds = partial_day % 60
         context = {
             'bot_name': self._bot.sc.server.username,
