@@ -1,6 +1,3 @@
-from builtins import object
-
-
 class SlackRoomAttribute(object):
     """Represents a room attribute, such as name, creator, topic, etc"""
 

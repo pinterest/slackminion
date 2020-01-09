@@ -1,5 +1,4 @@
 from six import string_types
-from builtins import object
 import logging
 import threading
 

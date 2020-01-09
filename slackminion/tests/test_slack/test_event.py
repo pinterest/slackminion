@@ -1,6 +1,4 @@
-from builtins import object
 from unittest import mock
-
 from slackminion.slack import SlackEvent, SlackChannel, SlackGroup, SlackIM, SlackUser
 from slackminion.tests.fixtures import *
 

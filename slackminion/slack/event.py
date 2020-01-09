@@ -1,4 +1,3 @@
-from builtins import object
 from .room import SlackChannel, SlackGroup, SlackIM
 from .user import SlackUser
 
