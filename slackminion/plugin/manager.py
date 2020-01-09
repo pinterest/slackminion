@@ -66,7 +66,7 @@ class PluginManager(object):
                 if self.test_mode:
                     self.metrics['plugins_loaded'] += 1
                     self.metrics['load_times'][name] = (datetime.now() - plugin_start_time).total_seconds() * 1000.0
-            except:
+            except Exception: # noqa
                 self.log.exception("Failed to register plugin %s", name)
                 if self.test_mode:
                     self.metrics['plugins_failed'].append(name)
@@ -75,7 +75,7 @@ class PluginManager(object):
         for plugin in self.plugins:
             try:
                 plugin.on_connect()
-            except:
+            except Exception:  # noqa
                 self.log.exception('Unhandled exception')
 
     def save_state(self):
@@ -105,7 +105,7 @@ class PluginManager(object):
         self.log.debug("Sending the following to the handler: %s", state)
         try:
             self.state_handler.save_state(state)
-        except:
+        except Exception:  # noqa
             self.log.exception("Handler failed to save state")
 
     def load_state(self):
@@ -120,7 +120,7 @@ class PluginManager(object):
 
         try:
             state = json.loads(state_str)
-        except:
+        except Exception:  # noqa
             self.log.exception("Handler failed to load state")
             return
 
