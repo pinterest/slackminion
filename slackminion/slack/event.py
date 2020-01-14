@@ -1,44 +1,22 @@
-from .room import SlackChannel, SlackGroup, SlackIM
-from .user import SlackUser
+import slackminion.slack
 
-from six import string_types
 
 class SlackEvent(object):
     """Encapsulates an event received from the RTM socket"""
-    def __init__(self, sc=None, **kwargs):
 
-        self._sc = sc
-        self._channel = None
-        self._user = None
+    def __init__(self, event_type, **payload):
+        self.event_type = event_type
+        self.rtm_client = payload.get('rtm_client')
+        self.web_client = payload.get('web_client')
+        self.data = payload.get('data')
+        self.user_id = self.data.get('id')
+        if self.user_id:
+            self.user = slackminion.slack.SlackUser(user_id=self.user_id, api_client=self.web_client)
+        self.channel_id = self.data.get('channel')
+        self.channel = slackminion.slack.SlackConversation(self.data, api_client=self.rtm_client)
 
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+    def __getattr__(self, item):
+        return self.data.get(item)
 
-    @property
-    def channel(self):
-        return self._channel
-
-    @channel.setter
-    def channel(self, value):
-        if isinstance(value, string_types):
-            if value[0] == 'G':
-                # Slack groups have an ID starting with 'G'
-                self._channel = SlackGroup(value, sc=self._sc)
-            elif value[0] == 'D':
-                # Slack IMs have an ID starting with 'D'
-                self._channel = SlackIM(value, sc=self._sc)
-            else:
-                self._channel = SlackChannel(value, sc=self._sc)
-        else:
-            self._channel = value
-
-    @property
-    def user(self):
-        return self._user
-
-    @user.setter
-    def user(self, value):
-        if isinstance(value, string_types):
-            self._user = SlackUser(value, sc=self._sc)
-        else:
-            self._user = value
+    def __repr__(self):
+        return f'SlackEvent type {self.event_type} User: {self.user}'

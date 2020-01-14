@@ -1,39 +1,70 @@
-from builtins import object
 import logging
 
 
 class SlackUser(object):
-    """Represents a Slack user"""
-    def __init__(self, id, sc=None):
-        self.id = id
-        self._sc = sc
-        self._username = None
+    """Represents a Slack user.
+    :param user_id: str
+    :param user_info: dict
+    :param api_client: slack.WebClient
+
+    Accepts either a user id or 'user' dict from slack response from users.info
+    """
+    _is_bot_admin = False
+    user_info = {}
+
+    def __init__(self, user_id=None, user_info=None, api_client=None):
+        self.api_client = api_client
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
+        if user_info:
+            self.logger.debug(f'Loading user from supplied user_info: {user_info}')
+            self.user_info = user_info
+            self._user_id = self.user_info.get('id')
+        elif user_id:
+            self.logger.debug(f'Loading user from user_id: {user_id}')
+            self.load_user_from_slack(user_id)
+        else:
+            raise RuntimeError('Missing user_id or user_info')
+
+    def __getattr__(self, item):
+        return self.user_info.get(item)
+
+    def load_user_from_slack(self, user_id):
+        self.logger.debug(f'Loading user: {user_id}')
+        if self.api_client:
+            resp = self.api_client.users_info(user_id)
+            if resp:
+                self.user_info = resp.get('user')
+                self._user_id = self.user_info.get('id')
+            else:
+                raise RuntimeError('Failed to load user.')
+        else:
+            raise RuntimeError('Slack API connectivity not initialized.')
 
     @property
     def username(self):
-        if self._username is None and self._sc is not None:
-            resp = self._sc.server.users.find(self.id)
-            if resp is not None:
-                self._username = resp.name
-        return self._username
+        return self.user_info.get('name')
+
+    @property
+    def user_id(self):
+        return self._user_id
 
     @property
     def userid(self):
-        self.logger.warning('Use of userid is deprecated, use id instead')
-        return self.id
+        return self._user_id
 
-    @staticmethod
-    def get_user(sc, username):
-        resp = sc.server.users.find(username)
-        if resp is None:
-            return None
-        user = SlackUser(resp.id, sc)
-        return user
+    @property
+    def id(self):
+        print('id getter')
+        return self._user_id
 
-    def __str__(self):
+    @property
+    def formatted_name(self):
         return '<@%s|%s>' % (self.id, self.username)
 
-    def __repr__(self):
-        return self.id
+    @property
+    def is_bot_admin(self):
+        return self._is_bot_admin
+
+    def set_admin(self, value):
+        self._is_bot_admin = value

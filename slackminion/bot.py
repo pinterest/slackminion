@@ -1,99 +1,107 @@
-import logging
-from datetime import datetime
-from time import sleep
-
 from slackminion.dispatcher import MessageDispatcher
-from slackminion.slack import SlackEvent, SlackUser, SlackRoomIMBase, ThreadedSlackClient
+from slackminion.slack import SlackEvent, SlackUser, SlackConversation
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin import PluginManager
 from slackminion.webserver import Webserver
-
-from six import string_types
-
-
-def eventhandler(*args, **kwargs):
-    """
-    Decorator.  Marks a function as a receiver for the specified slack event(s).
-
-    * events - String or list of events to handle
-    """
-
-    def wrapper(func):
-        if isinstance(kwargs['events'], string_types):
-            kwargs['events'] = [kwargs['events']]
-        func.is_eventhandler = True
-        func.events = kwargs['events']
-        return func
-
-    return wrapper
+from slackminion.utils.util import dev_console, output_to_dev_console
+from slackminion.utils.async_task import AsyncTaskManager
+from slackminion.plugins.core import version as my_version
+import logging
+import datetime
+import slack
+import asyncio
+import signal
 
 
 class Bot(object):
-    def __init__(self, config, test_mode=False):
-        self.always_send_dm = []
+    rtm_client = None
+    api_client = None
+    webserver = None
+    _bot_info = None
+    _bot_channels = {}
+    runnable = True
+    always_send_dm = []
+    is_setup = False
+    bot_start_time = None
+    timers = []
+
+    def __init__(self, config, test_mode=False, dev_mode=False):
         self.config = config
         self.dispatcher = MessageDispatcher()
-        self.event_handlers = {}
-        self.is_setup = False
         self.log = logging.getLogger(type(self).__name__)
         self.plugins = PluginManager(self, test_mode)
-        self.runnable = True
-        self.sc = None
-        self.webserver = None
         self.test_mode = test_mode
-        self.reconnect_needed = True
-        self.bot_start_time = None
-        self.timers = []
+        self.dev_mode = dev_mode
 
         if self.test_mode:
             self.metrics = {
                 'startup_time': 0
             }
 
-        from slackminion.plugins.core import version
-        self.version = version
+        self.version = my_version
         try:
             from slackminion.plugins.core import commit
             self.commit = commit
         except ImportError:
             self.commit = "HEAD"
 
+    @property
+    def sc(self):
+        return self.api_client
+
+    @property
+    def channels(self):
+        if self.is_setup:
+            if self._bot_channels:
+                return self._bot_channels
+            else:
+                self.log.error('Bot.channels was called but self._bot_channels was empty!')
+                return {}
+        self.log.warning('Bot.channels was called before bot was setup.')
+
+    async def update_channels(self):
+        self.log.debug('Starting update_channels task')
+        while True:
+            resp = self.api_client.conversations_list()
+            if resp:
+                for channel in resp['channels']:
+                    self._bot_channels.update({channel.get('id'): SlackConversation(channel, self.api_client)})
+            self.log.debug('Comleted update_channels task')
+            await self.task_manager.sleep(600)
+
     def start(self):
         """Initializes the bot, plugins, and everything."""
-        self.log.info('Starting SlackMinion version {}'.format(self.version))
-        self.bot_start_time = datetime.now()
+        self.log.info(f'Starting SlackMinion version {self.version}')
+        self.task_manager = AsyncTaskManager()
+        self.task_manager.create_and_schedule_task(self.update_channels)
+        self.task_manager.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
+        self.task_manager.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
+        self.bot_start_time = datetime.datetime.now()
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
         self.plugins.load()
         self.plugins.load_state()
-        self._find_event_handlers()
-        self.sc = ThreadedSlackClient(self.config['slack_token'])
+        if self.dev_mode:
+            self.rtm_client = None
+        else:
+            self.rtm_client = slack.RTMClient(token=self.config.get('slack_token'), run_async=True)
+        self.api_client = slack.WebClient(token=self.config.get('slack_token'), run_async=True)
 
         self.always_send_dm = ['_unauthorized_']
         if 'always_send_dm' in self.config:
-            self.always_send_dm.extend(map(lambda x: '!' + x, self.config['always_send_dm']))
+            self.always_send_dm.extend(['!' + x for x in self.config['always_send_dm']])
 
-        # Rocket is very noisy at debug
-        logging.getLogger('Rocket.Errors.ThreadPool').setLevel(logging.INFO)
-
+        self._add_event_handlers()
         self.is_setup = True
         if self.test_mode:
-            self.metrics['startup_time'] = (datetime.now() - self.bot_start_time).total_seconds() * 1000.0
+            self.metrics['startup_time'] = (datetime.datetime.now() - self.bot_start_time).total_seconds() * 1000.0
 
-    def _find_event_handlers(self):
-        for name in dir(self):
-            method = getattr(self, name)
-            if callable(method) and hasattr(method, 'is_eventhandler'):
-                for event in method.events:
-                    self.event_handlers[event] = method
+    def graceful_shutdown(self):
+        self.log.debug('Starting graceful shutdown.')
+        self.runnable = False
 
-    def run(self, start=True):
+    async def run(self):
         """
         Connects to slack and enters the main loop.
-
-        * start - If True, rtm.start API is used. Else rtm.connect API is used
-
-        For more info, refer to
-        https://python-slackclient.readthedocs.io/en/latest/real_time_messaging.html#rtm-start-vs-rtm-connect
         """
         # Fail out if setup wasn't run
         if not self.is_setup:
@@ -104,44 +112,34 @@ class Bot(object):
 
         first_connect = True
 
+        if not self.dev_mode:
+            self.task_manager.create_and_schedule_task(self.rtm_client.start)
+
         try:
             while self.runnable:
-                if self.reconnect_needed:
-                    if not self.sc.rtm_connect(with_team_state=start):
-                        return False
-                    self.reconnect_needed = False
-                    if first_connect:
-                        first_connect = False
-                        self.plugins.connect()
+                if first_connect:
+                    self.plugins.connect()
+                    first_connect = False
 
-                # Get all waiting events - this always returns a list
-                try:
-                    events = self.sc.rtm_read()
-                except AttributeError:
-                    self.log.exception('Something has failed in the slack rtm library.  This is fatal.')
-                    self.runnable = False
-                    events = []
-                except:
-                    self.log.exception('Unhandled exception in rtm_read()')
-                    self.reconnect_needed = True
-                    events = []
-                for e in events:
+                if self.dev_mode:
                     try:
-                        self._handle_event(e)
-                    except KeyboardInterrupt:
-                        # Gracefully shutdown
+                        await dev_console(self)
+                    except EOFError:
                         self.runnable = False
-                    except:
-                        self.log.exception('Unhandled exception in event handler')
-                sleep(0.1)
-        except KeyboardInterrupt:
-            # On ctrl-c, just exit
-            pass
-        except:
+                await self.task_manager.sleep(60)
+        except asyncio.exceptions.CancelledError:
+            self.log.info('Bot shutdown has been triggered by CTRL-C')
+        except Exception:
             self.log.exception('Unhandled exception')
+            raise
 
     def stop(self):
         """Does cleanup of bot and plugins."""
+        if hasattr(self, 'task_manager'):
+            self.task_manager.shutdown()
+        if not self.dev_mode:
+            self.log.debug('Stopping RTM client.')
+            self.rtm_client.stop()
         # cleanup any running timer threads so bot doesn't hang on shutdown
         for t in self.timers:
             t.cancel()
@@ -151,7 +149,7 @@ class Bot(object):
             self.plugins.save_state()
         self.plugins.unload_all()
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=None):
+    def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None):
         """
         Sends a message to the specified channel
 
@@ -161,11 +159,19 @@ class Bot(object):
         * thread - reply to the thread. See https://api.slack.com/docs/message-threading#threads_party
         * reply_broadcast - Set to true to indicate your reply is germane to all members of a channel
         """
+        if not text:
+            self.log.debug('send_message was called without text to send')
+            return
         # This doesn't want the # in the channel name
-        if isinstance(channel, SlackRoomIMBase):
+        if isinstance(channel, SlackConversation):
             channel = channel.id
-        self.log.debug("Trying to send to %s: %s", channel, text)
-        self.sc.rtm_send_message(channel, text, thread=thread, reply_broadcast=reply_broadcast)
+        self.log.debug(f'Trying to send to {channel}: {text[:40]} (truncated)')
+        if self.dev_mode:
+            output_to_dev_console(text)
+        else:
+            self.task_manager.create_and_schedule_task(
+                self.api_client.chat_postMessage, as_user=True, channel=channel, text=text, thread=thread,
+                reply_broadcast=reply_broadcast, attachments=attachments)
 
     def send_im(self, user, text):
         """
@@ -174,79 +180,88 @@ class Bot(object):
         * user - The user to send to.  This can be a SlackUser object, a user id, or the username (without the @)
         * text - String to send
         """
+        if self.dev_mode:
+            output_to_dev_console(text)
+            return
         if isinstance(user, SlackUser):
-            user = user.id
+            user = user.user_id
             channelid = self._find_im_channel(user)
         else:
             channelid = user.id
-        self.send_message(channelid, text)
 
-    def _find_im_channel(self, user):
-        resp = self.sc.api_call('im.list')
-        channels = filter(lambda x: x['user'] == user, resp['ims'])
-        if len(channels) > 0:
-            return channels[0]['id']
-        resp = self.sc.api_call('im.open', user=user)
-        return resp['channel']['id']
+        self.send_message(channelid, text)
 
     def _load_user_rights(self, user):
         if user is not None:
             if 'bot_admins' in self.config:
                 if user.username in self.config['bot_admins']:
-                    user.is_admin = True
+                    user.set_admin(True)
 
-    def _handle_event(self, event):
-        if 'type' not in event:
-            # This is likely a notification that the bot was mentioned
-            self.log.debug("Received odd event: %s", event)
-            return
-        e = SlackEvent(sc=self.sc, **event)
-        self.log.debug("Received event type: %s", e.type)
+    def _handle_event(self, event_type, payload):
+        self.log.debug(payload)
+        data = payload.get('data')
+        if 'subtype' in payload.get('data'):
+            if payload.get('data').get('subtype') == 'bot_message':
+                self.log.info(f"Ignoring bot message from {data.get('username')}")
+                self.log.debug(data.get('text'))
+                return
 
-        if e.user is not None:
+        e = SlackEvent(event_type=event_type, **payload)
+        self.log.debug("Received event type: %s", e.event_type)
+
+        if e.user_id:
             if hasattr(self, 'user_manager'):
-                if not isinstance(e.user, SlackUser):
-                    self.log.debug("User is not SlackUser: %s", e.user)
-                else:
-                    user = self.user_manager.get(e.user.id)
-                    if user is None:
-                        user = self.user_manager.set(e.user)
-                    e.user = user
+                e.user = self.user_manager.get(e.user_id)
+                if e.user is None:
+                    e.user = self.user_manager.set(e.user)
+        if e.channel_id:
+            e.channel = self.get_channel(e.channel_id)
+        return e
 
-        if e.type in self.event_handlers:
-            self.event_handlers[e.type](e)
+    def _add_event_handlers(self):
+        slack.RTMClient.on(event='message', callback=self._event_message)
+        slack.RTMClient.on(event='error', callback=self._event_error)
 
-    @eventhandler(events='message')
-    def _event_message(self, msg):
-        self.log.debug("Message.message: %s: %s: %s", msg.channel, msg.user, msg.__dict__)
+    async def _event_message(self, **payload):
+        self.log.debug(f"Received message: {payload}")
+        msg = self._handle_event('message', payload)
 
         # The user manager should load rights when a user is added
         if not hasattr(self, 'user_manager'):
             self._load_user_rights(msg.user)
         try:
             cmd, output, cmd_options = self.dispatcher.push(msg)
-        except:
-            self.log.exception('Unhandled exception')
-            return
-        self.log.debug("Output from dispatcher: %s", output)
-        if output:
-            if cmd_options.get('reply_in_thread'):
-                if hasattr(msg, 'thread_ts'):
-                    thread_ts = msg.thread_ts
-                else:
-                    thread_ts = msg.ts
-            else:
-                thread_ts = None
-            if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
-                self.send_im(msg.user, output)
-            else:
-                self.send_message(msg.channel, output, thread=thread_ts, reply_broadcast=cmd_options.get('reply_broadcast'))
+            self.log.debug(f"Output from dispatcher: {output}")
 
-    @eventhandler(events='error')
-    def _event_error(self, msg):
+            if output:
+                self._prepare_and_send_output(cmd, msg, cmd_options, output)
+        except Exception:
+            self.log.exception('Unhandled exception')
+            raise
+            return
+
+    def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
+        if cmd_options.get('reply_in_thread'):
+            if hasattr(msg, 'thread_ts'):
+                thread_ts = msg.thread_ts
+            else:
+                thread_ts = msg.ts
+        else:
+            thread_ts = None
+        if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
+            self.send_im(msg.user, output)
+        else:
+            self.send_message(msg.channel, output, thread=thread_ts,
+                              reply_broadcast=cmd_options.get('reply_broadcast'))
+
+    def _event_error(self, **payload):
+        msg = self._handle_event('error', payload)
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
 
-    @eventhandler(events='team_migration_started')
-    def _event_team_migration_started(self, msg):
-        self.log.warning("Slack has initiated a team migration to a new server.  Attempting to reconnect...")
-        self.reconnect_needed = True
+    def get_channel(self, channel_id):
+        if channel_id in self.channels.keys():
+            channel = self.channels.get(channel_id)
+        else:
+            channel = SlackConversation(None, self.api_client)
+            channel.load(channel_id)
+        return channel

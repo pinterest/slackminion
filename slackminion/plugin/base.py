@@ -1,9 +1,8 @@
 from six import string_types
-from builtins import object
 import logging
 import threading
 
-from slackminion.slack import SlackChannel, SlackIM, SlackUser, SlackRoom
+from slackminion.slack import SlackConversation, SlackUser
 
 
 class BasePlugin(object):
@@ -53,9 +52,7 @@ class BasePlugin(object):
         * reply_broadcast - whether or not to also send the message to the channel
         """
         self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
-        if isinstance(channel, SlackIM) or isinstance(channel, SlackUser):
-            self._bot.send_im(channel, text)
-        elif isinstance(channel, SlackRoom):
+        if isinstance(channel, SlackConversation):
             self._bot.send_message(channel, text, thread, reply_broadcast)
         elif isinstance(channel, string_types):
             if channel[0] == '@':
@@ -112,14 +109,15 @@ class BasePlugin(object):
         :param username: The username of the user to lookup
         :return: SlackUser object or None
         """
-        if hasattr(self._bot, 'user_manager'):
-            user = self._bot.user_manager.get_by_username(username)
-            if user:
-                return user
-            user = SlackUser.get_user(self._bot.sc, username)
-            self._bot.user_manager.set(user)
+        if not hasattr(self._bot, 'user_manager'):
+            return SlackUser.load_user_from_slack(self._bot.api_client, username)
+
+        user = self._bot.user_manager.get_by_username(username)
+        if user:
             return user
-        return SlackUser.get_user(self._bot.sc, username)
+        user = SlackUser.load_user_from_slack(self._bot.sc, username)
+        self._bot.user_manager.set(user)
+        return user
 
     def get_channel(self, channel):
         """
@@ -128,4 +126,4 @@ class BasePlugin(object):
         :param channel: The channel name or id of the channel to lookup
         :return: SlackChannel object or None
         """
-        return SlackChannel.get_channel(self._bot.sc, channel)
+        return self._bot.get_channel(channel)
