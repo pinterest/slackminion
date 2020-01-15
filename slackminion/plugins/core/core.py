@@ -30,7 +30,6 @@ class Core(BasePlugin):
         else:
             name = '!' + args[0]
             if name not in self._bot.dispatcher.commands:
-                print(self._bot.dispatcher.commands)
                 return 'No such command: %s' % name
             output = [self._get_help_for_command(name)]
         return '\n'.join(output)
@@ -43,7 +42,6 @@ class Core(BasePlugin):
 
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
-            print(self._bot.dispatcher.commands)
             return f'No such command: {name}'
         return self._bot.dispatcher.commands[name].formatted_help
 

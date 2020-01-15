@@ -86,11 +86,16 @@ class MessageDispatcher(object):
                 if self._is_channel_ignored(f, event.channel):
                     self.log.info("Channel %s is ignored, discarding command %s", event.channel, cmd)
                     return '_ignored_', "", None
-                if f.is_async:
-                    output = await f.execute(event, msg_args)
+                try:
+                    if f.is_async:
+                        output = await f.execute(event, msg_args)
+                        return cmd, output, f.cmd_options
+                    else:
+                        return cmd, f.execute(event, msg_args), f.cmd_options
+                except Exception as e:  # noqa we don't want plugins to crash the bot so
+                    self.log.exception('Plugin raised exception')
+                    output = f"Command failed due to an exception: {str(e)}"
                     return cmd, output, f.cmd_options
-                else:
-                    return cmd, f.execute(event, msg_args), f.cmd_options
             return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd, None
         return None, None, None
 

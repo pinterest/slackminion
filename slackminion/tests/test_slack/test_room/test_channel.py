@@ -48,13 +48,11 @@ class TSlackRoom(object):
         test_channel.name = self.test_room_name
         self.object.api_client.server.channels.find.return_value = test_channel
         channel = self.room_class.get_channel(self.object.api_client, self.test_room_name)
-        print(self.object.api_client.mock_calls)
         assert isinstance(channel, self.room_class)
 
     def test_set_topic(self):
         api_name = self.room_class.API_PREFIX + '.setTopic'
         new_topic_name = 'A new topic'
         self.object.set_topic(new_topic_name)
-        print(self.object.api_client.mock_calls)
         self.object.api_client.api_call.assert_called_with(api_name, channel=self.test_id, topic=new_topic_name)
 

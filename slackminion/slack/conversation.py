@@ -21,18 +21,11 @@ class SlackConversation(object):
         self.api_client.conversations_setTopic(channel=self.id, topic=topic)
 
     def load(self, id):
-        # fake channel/user objects if we are in dev mode since we can't call slack
-        if id == 'CDEVMODE':
-            self.conversation = {
-                    'name': '#srebot_dev',
-                    'id': 'CDEVMODE',
-            }
+        resp = self.api_client.conversations_info(channel=id)
+        if resp:
+            self.conversation = resp['channel']
         else:
-            resp = self.api_client.conversations_info(channel=id)
-            if resp:
-                self.conversation = resp['channel']
-            else:
-                raise RuntimeError('Unable to load channel')
+            raise RuntimeError('Unable to load channel')
 
     @property
     def formatted_name(self):

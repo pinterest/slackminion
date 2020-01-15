@@ -115,7 +115,6 @@ class TestDispatcher(unittest.TestCase):
     async def test_push_to_thread_with_broadcast(self):
         self.dispatcher.register_plugin(self.p)
         payload = dict(self.test_payload)
-        print(payload)
         payload['data'].update({'text': '!hij'})
         e = SlackEvent(event_type="message", **self.test_payload)
         cmd, output, cmd_opts = await self.dispatcher.push(e)
@@ -164,7 +163,6 @@ class TestDispatcher(unittest.TestCase):
     async def test_async_cmd(self):
         self.dispatcher.register_plugin(self.p)
         payload = dict(self.test_payload)
-        print(payload)
         payload['data'].update({'text': '!asyncabc'})
         e = SlackEvent(event_type="message", **self.test_payload)
         cmd, output, cmd_opts = await self.dispatcher.push(e)

@@ -25,6 +25,12 @@ class AsyncTaskManager(object):
                     self.log.debug(f'removing task: {task}')
                     self.log.debug(f'task {task} ended with result {task.result()}')
                     self.tasks.remove(task)
+            for task in self.sleep_tasks:
+                self.log.debug(f'awaiting task: {task}')
+                if task.done():
+                    self.log.debug(f'removing task: {task}')
+                    self.log.debug(f'task {task} ended with result {task.result()}')
+                    self.tasks.remove(task)
             await asyncio.sleep(0.1)
 
     def create_and_schedule_task(self, func, *args, **kwargs):

@@ -55,25 +55,26 @@ class Bot(object):
             if self._bot_channels:
                 return self._bot_channels
             else:
-                self.log.error('Bot.channels was called but self._bot_channels was empty!')
+                self.log.warning('Bot.channels was called but self._bot_channels was empty!')
                 return {}
         self.log.warning('Bot.channels was called before bot was setup.')
 
     async def update_channels(self):
         self.log.debug('Starting update_channels task')
         while True:
-            resp = self.api_client.conversations_list()
+            resp = await self.api_client.conversations_list()
             if resp:
                 for channel in resp['channels']:
                     self._bot_channels.update({channel.get('id'): SlackConversation(channel, self.api_client)})
-            self.log.debug('Comleted update_channels task')
+            self.log.debug('Completed update_channels task')
             await self.task_manager.sleep(600)
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
         self.log.info(f'Starting SlackMinion version {self.version}')
         self.task_manager = AsyncTaskManager()
-        self.task_manager.create_and_schedule_task(self.update_channels)
+        if not self.dev_mode:
+            self.task_manager.create_and_schedule_task(self.update_channels)
         self.task_manager.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
         self.task_manager.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
         self.bot_start_time = datetime.datetime.now()
@@ -131,7 +132,6 @@ class Bot(object):
             self.log.info('Bot shutdown has been triggered by CTRL-C')
         except Exception:
             self.log.exception('Unhandled exception')
-            raise
 
     def stop(self):
         """Does cleanup of bot and plugins."""
@@ -214,8 +214,6 @@ class Bot(object):
                 e.user = self.user_manager.get(e.user_id)
                 if e.user is None:
                     e.user = self.user_manager.set(e.user)
-        if e.channel_id:
-            e.channel = self.get_channel(e.channel_id)
         return e
 
     def _add_event_handlers(self):
@@ -230,14 +228,13 @@ class Bot(object):
         if not hasattr(self, 'user_manager'):
             self._load_user_rights(msg.user)
         try:
-            cmd, output, cmd_options = self.dispatcher.push(msg)
+            cmd, output, cmd_options = await self.dispatcher.push(msg)
             self.log.debug(f"Output from dispatcher: {output}")
 
             if output:
                 self._prepare_and_send_output(cmd, msg, cmd_options, output)
         except Exception:
             self.log.exception('Unhandled exception')
-            raise
             return
 
     def _prepare_and_send_output(self, cmd, msg, cmd_options, output):

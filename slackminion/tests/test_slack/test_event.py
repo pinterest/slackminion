@@ -42,7 +42,6 @@ class TestSlackEvent(unittest.TestCase):
         self.assertEqual(event.user_id, test_user_id)
 
     def test_init_channel(self):
-        print(self.test_payload)
         event = SlackEvent('channel', **self.test_payload)
         assert event.user is None
         assert isinstance(event.channel, SlackConversation)

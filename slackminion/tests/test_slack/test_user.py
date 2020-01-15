@@ -23,7 +23,6 @@ class TestSlackUser(unittest.TestCase):
     def test_init_with_user_info(self):
         self.api_client.users_info.return_value = None
         user = SlackUser(user_info=test_user_response['user'], api_client=self.api_client)
-        print(user._user_id)
         self.assertEqual(user.id, test_user_id)
         self.assertEqual(user.user_id, test_user_id)
         self.assertEqual(user.userid, test_user_id)

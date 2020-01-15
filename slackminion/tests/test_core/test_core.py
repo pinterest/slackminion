@@ -97,7 +97,6 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
         self.object._bot.commit = test_commit
         from slackminion.plugins.core import version
         self.object._bot.version = version
-        print(self.test_event.user.api_client.mock_calls)
         output = self.object.whoami(self.test_event, None)
 
         assert output == f'Hello <@{test_user_id}|{test_user_name}>\nBot version: {version}-{test_commit}'
@@ -115,7 +114,6 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
     def test_wake(self):
         self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
         self.object.wake(self.test_event, [])
-        print(self.object._bot.mock_calls)
         self.object._bot.dispatcher.unignore.assert_called_with(TestChannel)
 
     @mock.patch('slackminion.plugin.base.SlackConversation')

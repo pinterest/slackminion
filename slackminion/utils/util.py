@@ -66,11 +66,16 @@ async def dev_console(bot):
             bot.log.exception('Caught {}'.format(e))
             bot.runnable = False
             raise
-        user = SlackUser(user_id="UDEVMODE")
-        channel_id = 'CDEVMODE'
-        channel = SlackConversation(None, None)
-        channel.load(channel_id)
-        user._username = getpass.getuser()
+        user = SlackUser(user_info={
+            'id': 'UDEVMODE',
+            'name': getpass.getuser()
+        })
+        user.set_admin(True)
+        user.groups = ['sre']
+        channel = SlackConversation(conversation={
+            'name': '#srebot_dev',
+            'id': 'CDEVMODE',
+        }, api_client=None)
         payload = {
             'data': {
                 'user': user,
@@ -79,4 +84,5 @@ async def dev_console(bot):
                 'ts': None,
             }
         }
+        bot._bot_channels = {'CDEVMODE': channel}
         await bot._event_message(**payload)

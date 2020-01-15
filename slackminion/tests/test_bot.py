@@ -47,8 +47,10 @@ class TestBot(unittest.TestCase):
         # mock out the methods we don't want to actually call
         self.object._handle_event = mock.Mock(return_value=self.test_event)
         self.object.dispatcher = mock.Mock()
+        self.object.dispatcher.push = AsyncMock()
+        self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
         self.object.log = mock.Mock()
-        self.object.dispatcher.push.return_value = (test_command, test_output, None)
+        self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
         self.object._prepare_and_send_output = AsyncMock()
         self.object._load_user_rights = mock.Mock()
 
@@ -67,7 +69,8 @@ class TestBot(unittest.TestCase):
         # mock out the methods we don't want to actually call
         self.object._handle_event = mock.Mock(return_value=self.test_event)
         self.object.dispatcher = mock.Mock()
-        self.object.dispatcher.push.return_value = (test_command, test_output, None)
+        self.object.dispatcher.push = AsyncMock()
+        self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
         self.object._prepare_and_send_output = AsyncMock()
         self.object._load_user_rights = mock.Mock()
         self.object.log = mock.Mock()
@@ -89,8 +92,9 @@ class TestBot(unittest.TestCase):
         # mock out the methods we don't want to actually call
         self.object._handle_event = mock.Mock(return_value=self.test_event)
         self.object.dispatcher = mock.Mock()
+        self.object.dispatcher.push = AsyncMock()
         self.object.log = mock.Mock()
-        self.object.dispatcher.push.return_value = (test_command, test_output, None)
+        self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
         self.object._prepare_and_send_output = mock.Mock()
         self.object._load_user_rights = mock.Mock()
         self.object.user_manager = None
@@ -108,8 +112,9 @@ class TestBot(unittest.TestCase):
         # mock out the methods we don't want to actually call
         self.object._handle_event = mock.Mock(return_value=self.test_event)
         self.object.dispatcher = mock.Mock()
+        self.object.dispatcher.push = AsyncMock()
         self.object.log = mock.Mock()
-        self.object.dispatcher.push.return_value = (test_command, test_output, None)
+        self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
         self.object._prepare_and_send_output = AsyncMock()
         self.object._load_user_rights = mock.Mock()
         self.object.user_manager = mock.Mock()
