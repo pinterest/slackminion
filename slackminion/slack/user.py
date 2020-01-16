@@ -66,5 +66,6 @@ class SlackUser(object):
     def is_bot_admin(self):
         return self._is_bot_admin
 
+    @is_bot_admin.setter
     def set_admin(self, value):
         self._is_bot_admin = value
