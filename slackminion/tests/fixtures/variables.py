@@ -11,7 +11,7 @@ def AsyncMock():
 
 
 mock_api_client = AsyncMock()
-test_channel_id = 'C12345678'
+test_channel_id = 'CTESTCHAN'
 test_channel_name = 'testchannel'
 test_group_id = 'G12345678'
 test_group_name = 'testgroup'
@@ -49,7 +49,7 @@ test_payload = {
 
 test_channel = {
     'name': '#test_channel',
-    'id': 'CTESTCHAN',
+    'id': test_channel_id,
     'is_channel': True,
     'is_im': False
 }

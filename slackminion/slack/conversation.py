@@ -30,3 +30,6 @@ class SlackConversation(object):
     @property
     def formatted_name(self):
         return '<#%s|%s>' % (self.id, self.name)
+
+    def get_channel(self):
+        return self
