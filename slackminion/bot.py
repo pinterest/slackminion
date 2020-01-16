@@ -78,14 +78,16 @@ class Bot(object):
         self.task_manager.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
         self.task_manager.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
         self.bot_start_time = datetime.datetime.now()
-        self.plugins.load()
-        self.plugins.load_state()
         if self.dev_mode:
             self.rtm_client = None
         else:
             self.rtm_client = slack.RTMClient(token=self.config.get('slack_token'), run_async=True)
         self.api_client = slack.WebClient(token=self.config.get('slack_token'), run_async=True)
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
+
+        self.plugins.load()
+        self.plugins.load_state()
+
         self.always_send_dm = ['_unauthorized_']
         if 'always_send_dm' in self.config:
             self.always_send_dm.extend(['!' + x for x in self.config['always_send_dm']])
