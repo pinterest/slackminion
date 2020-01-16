@@ -7,6 +7,7 @@ from slackminion.plugin.base import BasePlugin
 from slackminion.slack import SlackConversation
 
 from . import version
+
 try:
     from . import commit
 except ImportError:
@@ -119,8 +120,13 @@ class Core(BasePlugin):
         partial_day %= 3600
         u_minutes = partial_day // 60
         u_seconds = partial_day % 60
+        try:
+            username = self._bot.api_client.auth_test().get('user')
+        except Exception as e:  # noqa
+            self.log.exception(f'Caught exception looking up my username: {e}')
+            username = 'slackminion'
         context = {
-            'bot_name': self._bot.sc.server.username,
+            'bot_name': username,
             'version': self._bot.version,
             'commit': self._bot.commit,
             'plugins': plugins,
