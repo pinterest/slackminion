@@ -37,9 +37,9 @@ class Core(BasePlugin):
 
     def _should_filter_help_commands(self, user):
         return hasattr(self._bot.dispatcher, 'auth_manager') \
-            and 'hide_admin_commands' in self._bot.config \
-            and self._bot.config['hide_admin_commands'] is True \
-            and not getattr(user, 'is_admin', False)
+               and 'hide_admin_commands' in self._bot.config \
+               and self._bot.config['hide_admin_commands'] is True \
+               and not getattr(user, 'is_admin', False)
 
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
@@ -120,13 +120,8 @@ class Core(BasePlugin):
         partial_day %= 3600
         u_minutes = partial_day // 60
         u_seconds = partial_day % 60
-        try:
-            username = self._bot.api_client.auth_test().get('user')
-        except Exception as e:  # noqa
-            self.log.exception(f'Caught exception looking up my username: {e}')
-            username = 'slackminion'
         context = {
-            'bot_name': username,
+            'bot_name': self._bot.my_username,
             'version': self._bot.version,
             'commit': self._bot.commit,
             'plugins': plugins,

@@ -17,7 +17,7 @@ class Bot(object):
     rtm_client = None
     api_client = None
     webserver = None
-    _bot_info = None
+    _bot_info = {}
     _bot_channels = {}
     runnable = True
     always_send_dm = []
@@ -50,6 +50,14 @@ class Bot(object):
         return self.api_client
 
     @property
+    def my_username(self):
+        return self._bot_info.get('name')
+
+    @property
+    def my_userid(self):
+        return self._bot_info.get('user_id')
+
+    @property
     def channels(self):
         if self.is_setup:
             if self._bot_channels:
@@ -78,15 +86,18 @@ class Bot(object):
         self.task_manager.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
         self.task_manager.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
         self.bot_start_time = datetime.datetime.now()
+
+        self.log.debug('Slack clients initialized.')
+        self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
+
+        self.plugins.load()
+        self.plugins.load_state()
+
         if self.dev_mode:
             self.rtm_client = None
         else:
             self.rtm_client = slack.RTMClient(token=self.config.get('slack_token'), run_async=True)
         self.api_client = slack.WebClient(token=self.config.get('slack_token'), run_async=True)
-        self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
-
-        self.plugins.load()
-        self.plugins.load_state()
 
         self.always_send_dm = ['_unauthorized_']
         if 'always_send_dm' in self.config:
@@ -121,6 +132,7 @@ class Bot(object):
             while self.runnable:
                 if first_connect:
                     self.plugins.connect()
+                    self._bot_info = await self.api_client.auth_test(token=self.config.get('slack_token'))
                     first_connect = False
 
                 if self.dev_mode:
@@ -154,7 +166,7 @@ class Bot(object):
         """
         Sends a message to the specified channel
 
-        * channel - The channel to send to.  This can be a SlackChannel object, a channel id, or a channel name
+        * channel - The channel to send to.  This can be a SlackConversation object, a channel id, or a channel name
         (without the #)
         * text - String to send
         * thread - reply to the thread. See https://api.slack.com/docs/message-threading#threads_party
@@ -185,10 +197,9 @@ class Bot(object):
             output_to_dev_console(text)
             return
         if isinstance(user, SlackUser):
-            user = user.user_id
-            channelid = self._find_im_channel(user)
+            channelid = user.user_id
         else:
-            channelid = user.id
+            channelid = user
 
         self.send_message(channelid, text)
 
