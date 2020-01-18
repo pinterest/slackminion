@@ -64,23 +64,31 @@ class MessageDispatcher(object):
         self.ignored_channels = []
         self.ignored_events = ['message_replied', 'message_changed']
 
-    async def push(self, event):
+    async def push(self, event, dev_mode=False):
         """
         Takes a SlackEvent, parses it for a command, and runs against registered plugin
         """
+        self.log.debug(event)
         if self._ignore_event(event):
             return None, None, None
         args = self._parse_message(event)
+
+        # commands will always start with !
+        if not args[0].startswith('!'):
+            return None, None, None
+
         self.log.debug("Searching for command using chunks: %s", args)
         cmd, msg_args = self._find_longest_prefix_command(args)
         if cmd is not None:
             if event.user is None:
                 self.log.debug("Discarded message with no originating user: %s", event)
                 return None, None, None
-            sender = event.user.username
+
             if event.channel is not None:
-                sender = "#%s/%s" % (event.channel.name, sender)
-            self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
+                sender = "#%s/%s" % (event.channel.name, event.user.formatted_name)
+            else:
+                sender = event.user.slack_user.formatted_name
+            self.log.info(f'Received from {sender}: {cmd}, args {msg_args}')
             f = self._get_command(cmd, event.user)
             if f:
                 if self._is_channel_ignored(f, event.channel):
@@ -88,10 +96,17 @@ class MessageDispatcher(object):
                     return '_ignored_', "", None
                 try:
                     if f.is_async:
-                        output = await f.execute(event, msg_args)
+                        if not dev_mode:
+                            output = await f.execute(event, msg_args)
+                        else:
+                            output = f'DEV_MODE: Would have run async function {cmd} with args {msg_args}'
                         return cmd, output, f.cmd_options
                     else:
-                        return cmd, f.execute(event, msg_args), f.cmd_options
+                        if not dev_mode:
+                            output = f.execute(event, msg_args)
+                        else:
+                            output = f'DEV_MODE: Would have run function {cmd} with args {msg_args}'
+                        return cmd, output, f.cmd_options
                 except Exception as e:  # noqa we don't want plugins to crash the bot so
                     self.log.exception('Plugin raised exception')
                     output = f"Command failed due to an exception: {str(e)}"
@@ -111,8 +126,10 @@ class MessageDispatcher(object):
         return False
 
     def _parse_message(self, message):
-        args = message.text.split(' ')
-        return args
+        if message:
+            args = message.text.split(' ')
+            return args
+        return []
 
     def register_plugin(self, plugin):
         """Registers a plugin and commands with the dispatcher for push()"""

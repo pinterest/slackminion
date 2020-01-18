@@ -20,8 +20,8 @@ class SlackConversation(object):
     def set_topic(self, topic):
         self.api_client.conversations_setTopic(channel=self.id, topic=topic)
 
-    def load(self, id):
-        resp = self.api_client.conversations_info(channel=id)
+    async def load(self, id):
+        resp = await self.api_client.conversations_info(channel=id)
         if resp:
             self.conversation = resp['channel']
         else:

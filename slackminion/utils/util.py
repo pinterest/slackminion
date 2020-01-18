@@ -86,3 +86,4 @@ async def dev_console(bot):
         }
         bot._bot_channels = {'CDEVMODE': channel}
         await bot._event_message(**payload)
+        await asyncio.sleep(0.5)

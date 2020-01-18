@@ -1,4 +1,5 @@
 import logging
+import asyncio
 
 
 class SlackUser(object):
@@ -21,21 +22,18 @@ class SlackUser(object):
             self.user_info = user_info
             self._user_id = self.user_info.get('id')
         elif user_id:
-            self.logger.debug(f'Loading user from user_id: {user_id}')
-            self.load_user_from_slack(user_id)
+            self._user_id = user_id
         else:
             raise RuntimeError('Missing user_id or user_info')
 
-    def __getattr__(self, item):
-        return self.user_info.get(item)
-
-    def load_user_from_slack(self, user_id):
-        self.logger.debug(f'Loading user: {user_id}')
+    async def load(self):
+        if self.user_info:
+            return
+        self.logger.debug(f'Loading user: {self._user_id}')
         if self.api_client:
-            resp = self.api_client.users_info(user_id)
+            resp = await self.api_client.users_info(user=self._user_id)
             if resp:
                 self.user_info = resp.get('user')
-                self._user_id = self.user_info.get('id')
             else:
                 raise RuntimeError('Failed to load user.')
         else:
@@ -55,7 +53,6 @@ class SlackUser(object):
 
     @property
     def id(self):
-        print('id getter')
         return self._user_id
 
     @property
