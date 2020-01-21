@@ -10,7 +10,8 @@ class SlackConversation(object):
         """Base class for rooms (channels, groups) and IMs"""
         self.api_client = api_client
         self.conversation = conversation  # the dict slack sent us
-        self.channel = conversation.get('id')
+        if conversation:
+            self.channel = conversation.get('id')
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
 
