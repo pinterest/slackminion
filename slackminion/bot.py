@@ -134,7 +134,7 @@ class Bot(object):
         while self.runnable:
             if first_connect:
                 self.plugins.connect()
-                await self.task_manager.start_periodic_task(60, self.update_channels)
+                await self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
             await self.task_manager.start()
 
@@ -263,6 +263,14 @@ class Bot(object):
     def _event_error(self, **payload):
         msg = self._handle_event('error', payload)
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
+
+    def get_channel_by_name(self, channel_name):
+        channels = [x for x in self.channels.values() if x.name == channel_name]
+        if len(channels) == 0:
+            return
+        if len(channels) > 1:
+            self.log.warning(f'Found more than one channel named {channel_name}')
+        return self.get_channel(channels[0].id)
 
     def get_channel(self, channel_id):
         if channel_id in self.channels.keys():
