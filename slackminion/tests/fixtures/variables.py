@@ -19,7 +19,7 @@ test_user_id = 'U12345678'
 test_user_name = 'testuser'
 test_user_email = 'root@dev.null'
 str_format = '<#{id}|{name}>'
-non_existent_user_name = 'doesnotexist'
+non_existent_user_id = 'UABCDEFGH'
 test_version = '0.0.42'
 test_commit = '969d561d'
 test_host = 'localhost'
@@ -41,9 +41,11 @@ test_payload = {
     'rtm_client': AsyncMock(),
     'web_client': AsyncMock(),
     'data': {
-        'id': test_user_id,
+        'user': test_user_id,
         'channel': test_channel_id,
         'text': test_text,
+        'ts': test_thread_ts,
+        'thread_ts': test_thread_ts,
     },
 }
 

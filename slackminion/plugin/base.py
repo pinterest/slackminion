@@ -102,20 +102,23 @@ class BasePlugin(object):
         except Exception:
             self.log.exception("Caught exception executing timer function: {}".format(func.__name__))
 
-    def get_user(self, username):
+    async def get_user(self, user_id):
         """
         Utility function to query slack for a particular user
 
-        :param username: The username of the user to lookup
+        :param user_id: The username of the user to lookup
         :return: SlackUser object or None
         """
         if not hasattr(self._bot, 'user_manager'):
-            return SlackUser.load_user_from_slack(self._bot.api_client, username)
+            user = SlackUser(user_id=user_id, api_client=self._bot.api_client)
+            await user.load()
+            return user
 
-        user = self._bot.user_manager.get_by_username(username)
+        user = self._bot.user_manager.get_by_username(user_id)
         if user:
             return user
-        user = SlackUser.load_user_from_slack(self._bot.sc, username)
+        user = SlackUser(user_id=user_id)
+        await user.load()
         self._bot.user_manager.set(user)
         return user
 
@@ -127,3 +130,12 @@ class BasePlugin(object):
         :return: SlackChannel object or None
         """
         return self._bot.get_channel(channel)
+
+    def get_channel_by_name(self, channel_name):
+        """
+        Utility function to query slack for a particular channel
+
+        :param channel: The channel name of the channel to lookup
+        :return: SlackChannel object or None
+        """
+        return self._bot.get_channel(channel_name)

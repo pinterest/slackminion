@@ -15,6 +15,7 @@ class TestAuthManager(unittest.TestCase):
         self.object._bot.api_client.users_find.return_value = TestUser()
         self.test_event = SlackEvent(event_type='tests', **test_payload)
         self.test_user = SlackUser(user_info=test_user_response['user'], api_client=self.object._bot.api_client)
+        self.test_event.user = self.test_user
 
     def test_acl(self):
         e = self.test_event
@@ -100,6 +101,7 @@ class TestAuthManager(unittest.TestCase):
     def test_admin_check_non_cmd_non_user(self):
         self.object._bot.dispatcher.register_plugin(DummyPlugin(self.object._bot))
         e = self.test_event
+        e.user = mock.Mock()
         cmd = self.object._bot.dispatcher.commands['!abc']
         assert AuthManager.admin_check(cmd, e.user) is True
 

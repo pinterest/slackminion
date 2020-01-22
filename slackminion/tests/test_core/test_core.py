@@ -24,7 +24,7 @@ test_payload = {
     'rtm_client': mock.Mock(),
     'web_client': mock.Mock(),
     'data': {
-        'id': test_user_id,
+        'user': test_user_id,
         'name': test_user_name,
         'channel': test_channel_id,
     },
@@ -43,6 +43,7 @@ class BasicPluginTest(object):
         if self.PLUGIN_CLASS:
             self.object = self.PLUGIN_CLASS(bot)
             self.test_event = SlackEvent(event_type='tests', **test_payload)
+            self.test_event.user = mock.Mock()
 
     def tearDown(self):
         self.object = None
@@ -92,13 +93,16 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
         self.object.shutdown(self.test_event, None)
         assert self.object._bot.runnable is False
 
-    def test_whoami(self):
-        self.test_event.user.api_client.users_info.return_value = test_user_response
+    @async_test
+    async def test_whoami(self):
+        self.object._bot.api_client.users_info = AsyncMock()
+        self.object._bot.api_client.users_info.coro.return_value = test_user_response
         self.object._bot.commit = test_commit
         from slackminion.plugins.core import version
         self.object._bot.version = version
+        self.test_event.user = SlackUser(api_client=self.object._bot.api_client, user_id=test_payload.get('data').get('user'))
+        await self.test_event.user.load()
         output = self.object.whoami(self.test_event, None)
-
         assert output == f'Hello <@{test_user_id}|{test_user_name}>\nBot version: {version}-{test_commit}'
 
     def test_sleep(self):

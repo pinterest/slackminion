@@ -33,16 +33,14 @@ class TestSlackEvent(unittest.TestCase):
         self.assertEqual(event.rtm_client, self.test_payload.get('rtm_client'))
         self.assertEqual(event.web_client, self.test_payload.get('web_client'))
         self.assertEqual(event.data, self.test_payload.get('data'))
-        self.assertEqual(event.user, self.test_payload.get('user'))
 
     def test_init_user(self):
-        self.test_payload['data'].update({'id': test_user_id})
+        self.test_payload['data'].update({'user': test_user_id})
         event = SlackEvent('message', **self.test_payload)
-        assert isinstance(event.user, SlackUser)
         self.assertEqual(event.user_id, test_user_id)
 
     def test_init_channel(self):
         event = SlackEvent('channel', **self.test_payload)
-        assert event.user is None
+        assert event.user_id is None
         assert isinstance(event.channel, SlackConversation)
 
