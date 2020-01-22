@@ -76,6 +76,6 @@ class AsyncTaskManager(object):
         for periodic in self.periodic_tasks:
             await periodic.stop()
 
-    async def start_periodic_task(self, period, func, *args, **kwargs):
+    def start_periodic_task(self, period, func, *args, **kwargs):
         task = AsyncTimer(period, func, *args, **kwargs)
         self.periodic_tasks.append(task)

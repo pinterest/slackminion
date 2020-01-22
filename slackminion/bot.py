@@ -134,7 +134,7 @@ class Bot(object):
         while self.runnable:
             if first_connect:
                 self.plugins.connect()
-                await self.task_manager.start_periodic_task(600, self.update_channels)
+                self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
             await self.task_manager.start()
 
@@ -206,7 +206,7 @@ class Bot(object):
         data = payload.get('data')
         subtype = payload.get('data').get('subtype')
         if subtype in ignore_subtypes:
-            self.log.info(f"Ignoring message subtype {subtype} from {data.get('username')}")
+            self.log.info(f"Ignoring message subtype {subtype} from {data.get('user')}")
             self.log.debug(data.get('text'))
             return
 
@@ -264,19 +264,19 @@ class Bot(object):
         msg = self._handle_event('error', payload)
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
 
-    def get_channel_by_name(self, channel_name):
+    async def get_channel_by_name(self, channel_name):
         channels = [x for x in self.channels.values() if x.name == channel_name]
         if len(channels) == 0:
-            return
+            raise RuntimeError(f'Unable to find channel {channel_name}')
         if len(channels) > 1:
             self.log.warning(f'Found more than one channel named {channel_name}')
-        return self.get_channel(channels[0].id)
+        return channels[0]
 
-    def get_channel(self, channel_id):
+    async def get_channel(self, channel_id):
         if channel_id in self.channels.keys():
             channel = self.channels.get(channel_id)
         else:
             channel = SlackConversation(None, self.api_client)
-            channel.load(channel_id)
+            await channel.load(channel_id)
         if channel:
             return channel
