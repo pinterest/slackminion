@@ -80,8 +80,10 @@ class Bot(object):
         resp = await self.api_client.conversations_list()
         if resp:
             for channel in resp['channels']:
-                self._channels.update({channel.get('id'): SlackConversation(channel, self.api_client)})
+                self._channels.update(
+                    {channel.get('id'): SlackConversation(conversation=channel, api_client=self.api_client)})
         self.log.debug('Completed update_channels task')
+        self.log.debug(self.channels)
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
