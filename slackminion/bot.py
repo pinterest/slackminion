@@ -73,6 +73,7 @@ class Bot(object):
                 self.log.warning('Bot.channels was called but self._bot_channels was empty!')
                 return {}
         self.log.warning('Bot.channels was called before bot was setup.')
+        return {}
 
     async def update_channels(self):
         self.log.debug('Starting update_channels')
@@ -264,7 +265,7 @@ class Bot(object):
         msg = self._handle_event('error', payload)
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
 
-    async def get_channel_by_name(self, channel_name):
+    def get_channel_by_name(self, channel_name):
         channels = [x for x in self.channels.values() if x.name == channel_name]
         if len(channels) == 0:
             raise RuntimeError(f'Unable to find channel {channel_name}')

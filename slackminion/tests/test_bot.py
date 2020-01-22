@@ -14,6 +14,7 @@ class TestBot(unittest.TestCase):
         self.test_event = SlackEvent(event_type='tests', **test_payload)
         self.object.rtm_client = AsyncMock()
         self.object.api_client = AsyncMock()
+        self.object.log = mock.Mock()
         self.test_payload = deepcopy(test_payload)
 
     def tearDown(self):
@@ -55,7 +56,6 @@ class TestBot(unittest.TestCase):
         self.object.dispatcher = mock.Mock()
         self.object.dispatcher.push = AsyncMock()
         self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
-        self.object.log = mock.Mock()
         self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
         self.object._prepare_and_send_output = AsyncMock()
         self.object._load_user_rights = mock.Mock()
@@ -189,6 +189,24 @@ class TestBot(unittest.TestCase):
         self.object._event_error(**test_payload)
         self.object._handle_event.assert_called_with('error', test_payload)
 
+    def test_get_channel_by_name(self):
+        self.object.is_setup = True
+        self.object._channels = {test_channel_name: TestChannel}
+        self.assertEqual(self.object.get_channel_by_name(test_channel_name), TestChannel)
+
+    def test_get_channel_by_name_bot_not_setup(self):
+        self.object.is_setup = False
+        self.object._channels = {test_channel_name: TestChannel}
+        with self.assertRaises(RuntimeError):
+            self.object.get_channel_by_name(test_channel_name)
+        self.object.log.warning.assert_called_with('Bot.channels was called before bot was setup.')
+
+    def test_get_channel_by_name_bot_no_channels(self):
+        self.object.is_setup = True
+        self.object._channels = {}
+        with self.assertRaises(RuntimeError):
+            self.object.get_channel_by_name(test_channel_name)
+        self.object.log.warning.assert_called_with('Bot.channels was called but self._bot_channels was empty!')
 
 if __name__ == "__main__":
     unittest.main()
