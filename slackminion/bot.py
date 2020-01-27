@@ -193,9 +193,14 @@ class Bot(object):
         if self.dev_mode:
             output_to_dev_console(text)
         else:
-            self.task_manager.create_and_schedule_task(
-                self.api_client.chat_postMessage, as_user=True, channel=channel, text=text, thread=thread,
-                reply_broadcast=reply_broadcast, attachments=attachments)
+            self.api_client.chat_postMessage(
+                as_user=True,
+                channel=channel,
+                text=text,
+                thread=thread,
+                reply_broadcast=reply_broadcast,
+                attachments=attachments
+            )
 
     def send_im(self, user, text):
         """
@@ -278,11 +283,10 @@ class Bot(object):
             return
 
     def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
-        if cmd_options.get('reply_in_thread'):
-            if hasattr(msg, 'thread_ts'):
-                thread_ts = msg.thread_ts
-            else:
-                thread_ts = msg.ts
+        if hasattr(msg, 'thread_ts'):
+            thread_ts = msg.thread_ts
+        elif cmd_options.get('reply_in_thread'):
+            thread_ts = msg.ts
         else:
             thread_ts = None
         if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
