@@ -190,17 +190,14 @@ class Bot(object):
         if isinstance(channel, SlackConversation):
             channel = channel.channel_id
         self.log.debug(f'Trying to send to {channel}: {text[:40]} (truncated)')
-        if self.dev_mode:
-            output_to_dev_console(text)
-        else:
-            self.api_client.chat_postMessage(
-                as_user=True,
-                channel=channel,
-                text=text,
-                thread=thread,
-                reply_broadcast=reply_broadcast,
-                attachments=attachments
-            )
+        self.api_client.chat_postMessage(
+            as_user=True,
+            channel=channel,
+            text=text,
+            thread=thread,
+            reply_broadcast=reply_broadcast,
+            attachments=attachments
+        )
 
     def send_im(self, user, text):
         """
@@ -209,14 +206,10 @@ class Bot(object):
         * user - The user to send to.  This can be a SlackUser object, a user id, or the username (without the @)
         * text - String to send
         """
-        if self.dev_mode:
-            output_to_dev_console(text)
-            return
         if isinstance(user, SlackUser):
             channelid = user.user_id
         else:
             channelid = user
-
         self.send_message(channelid, text)
 
     def _load_user_rights(self, user):
@@ -248,7 +241,7 @@ class Bot(object):
                     await slack_user.load()
                     e.user = self.user_manager.set(slack_user)
         if e.channel_id:
-            e.channel = self.get_channel(e.channel_id)
+            e.channel = await self.get_channel(e.channel_id)
         return e
 
     def _add_event_handlers(self):
