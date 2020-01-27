@@ -1,6 +1,38 @@
+from contextlib import suppress
 import asyncio
 import logging
-from contextlib import suppress
+import time
+import functools
+
+
+class CallLater:
+    called = False
+    partial_func = None
+    timer_handle = None
+
+    def __init__(self, func, delay, loop=None, *args, **kwargs):
+        self.log = logging.getLogger(type(self).__name__)
+        self.func = func
+        self.args = args
+        self.delay = delay
+        if loop:
+            self.event_loop = loop
+        else:
+            self.event_loop = asyncio.get_event_loop()
+        self.kwargs = kwargs
+        self.name = f'{self.func.__name__}_{int(time.time())}'
+
+    def schedule(self):
+        self.log.debug(f'Scheduling func {self.name}')
+        self.partial_func = functools.partial(self.func, *self.args, **self.kwargs)
+        self.timer_handle = self.event_loop.call_later(self.delay, self.run_and_update_status)
+
+    def run_and_update_status(self):
+        self.partial_func()
+        self.called = True
+
+    def cancel(self):
+        self.timer_handle.cancel()
 
 
 class AsyncTimer(object):
@@ -36,6 +68,7 @@ class AsyncTaskManager(object):
     runnable = True
     tasks = []
     periodic_tasks = []
+    delayed_tasks = []
     awaited_tasks = []
 
     def __init__(self):
@@ -48,23 +81,32 @@ class AsyncTaskManager(object):
     async def start(self):
         self.log.debug('Starting task waiter')
         while self.runnable:
-            self.log.debug('tick')
-            for task in self.tasks:
-                if task not in self.awaited_tasks:
-                    self.log.debug(f'awaiting task: {task}')
-                    await task
-                    self.awaited_tasks.append(task)
-                if task.done():
-                    self.log.debug(f'removing task: {task}')
-                    self.log.debug(f'task {task} ended with result {task.result()}')
-                    self.tasks.remove(task)
-            for periodic in self.periodic_tasks:
-                if not periodic.is_started:
-                    await periodic.start()
-            await asyncio.sleep(1)
+            try:
+                self.log.debug('tick')
+                for task in self.tasks:
+                    if task not in self.awaited_tasks:
+                        self.log.debug(f'awaiting task: {task}')
+                        await task
+                        self.awaited_tasks.append(task)
+                    if task.done():
+                        self.log.debug(f'removing task: {task}')
+                        self.log.debug(f'task {task} ended with result {task.result()}')
+                        self.tasks.remove(task)
+                for periodic in self.periodic_tasks:
+                    if not periodic.is_started:
+                        await periodic.start()
+                for delayed in self.delayed_tasks:
+                    if delayed.called:
+                        self.delayed_tasks.remove(delayed)
+                await asyncio.sleep(1)
+            except Exception as e:
+                self.log.exception("Unexpected exception caught in task loop!")
 
     def create_and_schedule_task(self, func, *args, **kwargs):
-        task = asyncio.create_task(func(*args, **kwargs))
+        if isinstance(func, asyncio.Task):
+            task = func
+        else:
+            task = asyncio.create_task(func(*args, **kwargs))
         self.schedule_task(task)
         return task
 
@@ -75,7 +117,24 @@ class AsyncTaskManager(object):
             task.cancel()
         for periodic in self.periodic_tasks:
             await periodic.stop()
+        for timer in self.delayed_tasks:
+            timer.cancel()
 
     def start_periodic_task(self, period, func, *args, **kwargs):
         task = AsyncTimer(period, func, *args, **kwargs)
         self.periodic_tasks.append(task)
+
+    def start_timer(self, delay, func, *args, **kwargs):
+        task = CallLater(func, delay, self.event_loop, *args, **kwargs)
+        if task.name not in self.delayed_tasks:
+            self.delayed_tasks.append(task)
+            task.schedule()
+        else:
+            self.log.debug(f'start_timer called for {task.name} but it was already scheduled.')
+
+    def stop_timer(self, func_name):
+        try:
+            timer = self.delayed_tasks.pop(func_name)
+            timer.cancel()
+        except KeyError:
+            self.log.exception(f'stop_timer called with unknown func {func_name}')

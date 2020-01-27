@@ -64,7 +64,7 @@ class BasePlugin(object):
         else:
             self._bot.send_message(channel, text, thread, reply_broadcast)
 
-    def start_timer(self, duration, func, *args):
+    def start_periodic_task(self, duration, func, *args, **kwargs):
         """
         Schedules a function to be called after some period of time.
 
@@ -72,15 +72,27 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
-        self.log.info("Scheduling call to %s in %ds: %s", func.__name__, duration, args)
+        self.log.debug(f"Scheduling periodic task {func.__name__} every {duration}s (args: {args}, kwargs: {kwargs})")
         if self._bot.runnable:
-            t = threading.Timer(duration, self._timer_callback, (func, args))
-            self._timer_callbacks[func] = t
-            self._bot.timers.append(t)
-            t.start()
-            self.log.info("Scheduled call to %s in %ds", func.__name__, duration)
+            self._bot.task_manager.start_periodic_task(duration, func, *args, **kwargs)
+            self.log.info(f"Successfully scheduled call to {func.__name__} every {duration}")
         else:
-            self.log.warning("Not scheduling call to %s in %ds because we're shutting down.", func.__name__, duration)
+            self.log.warning(f"Not scheduling call to {func.__name__} because we're shutting down.")
+
+    def start_timer(self, duration, func, *args, **kwargs):
+        """
+        Schedules a function to be called after some period of time.
+
+        * duration - time in seconds to wait before firing
+        * func - function to be called
+        * args - arguments to pass to the function
+        """
+        self.log.debug(f"Scheduling call to {func.__name__} in {duration}s (args: {args}, kwargs: {kwargs})")
+        if self._bot.runnable:
+            self._bot.task_manager.start_timer(duration, func, *args, **kwargs)
+            self.log.info(f"Successfully scheduled call to {func.__name__} in {duration}")
+        else:
+            self.log.warning(f"Not scheduling call to {func.__name__} because we're shutting down.")
 
     def stop_timer(self, func):
         """
@@ -89,6 +101,7 @@ class BasePlugin(object):
         * func - the function passed in start_timer
         """
         self.log.debug('Stopping timer {}'.format(func.__name__))
+        self._bot.task_manager.stop_timer(func.__name__)
         if func in self._timer_callbacks:
             t = self._timer_callbacks[func]
             self._bot.timers.remove(t)
@@ -138,4 +151,4 @@ class BasePlugin(object):
         :param channel: The channel name of the channel to lookup
         :return: SlackChannel object or None
         """
-        return self._bot.get_channel(channel_name)
+        return self._bot.get_channel_by_name(channel_name)

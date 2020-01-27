@@ -12,7 +12,6 @@ class SlackEvent(object):
         self.subtype = payload.get('subtype')
         self.user_id = self.data.get('user')
         self.channel_id = self.data.get('channel')
-        self.channel = slackminion.slack.SlackConversation(self.data, api_client=self.rtm_client)
 
     @property
     def text(self):

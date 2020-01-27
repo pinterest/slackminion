@@ -15,6 +15,7 @@ import signal
 ignore_subtypes = [
     'bot_message',
     'message_changed',
+    'message_replied',
 ]
 
 
@@ -75,15 +76,31 @@ class Bot(object):
         self.log.warning('Bot.channels was called before bot was setup.')
         return {}
 
+    async def get_my_conversations(self, *args, **kwargs):
+        return await self.api_client.users_conversations(
+            exclude_archived='true',
+            limit=200,
+            types='public_channel,private_channel',
+            *args, **kwargs)
+
     async def update_channels(self):
         self.log.debug('Starting update_channels')
-        resp = await self.api_client.conversations_list()
-        if resp:
-            for channel in resp['channels']:
+        try:
+            resp = await self.get_my_conversations()
+            results = resp.get('channels')
+
+            while resp.get('response_metadata').get('next_cursor'):
+                cursor = resp.get('response_metadata').get('next_cursor')
+                resp = await self.get_my_conversations(cursor=cursor)
+                results.extend(resp.get('channels'))
+                await asyncio.sleep(1)
+
+            for channel in results:
                 self._channels.update(
                     {channel.get('id'): SlackConversation(conversation=channel, api_client=self.api_client)})
-        self.log.debug('Completed update_channels task')
-        self.log.debug(self.channels)
+        except Exception:  # noqa
+            self.log.exception('update_channels failed due to exception')
+        self.log.debug(f'Loaded {len(self.channels)} channels.')
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
@@ -171,7 +188,7 @@ class Bot(object):
             return
         # This doesn't want the # in the channel name
         if isinstance(channel, SlackConversation):
-            channel = channel.id
+            channel = channel.channel_id
         self.log.debug(f'Trying to send to {channel}: {text[:40]} (truncated)')
         if self.dev_mode:
             output_to_dev_console(text)
@@ -208,6 +225,8 @@ class Bot(object):
         self.log.debug(payload)
         data = payload.get('data')
         subtype = payload.get('data').get('subtype')
+
+        # ignore message subtypes we aren't interested in
         if subtype in ignore_subtypes:
             self.log.info(f"Ignoring message subtype {subtype} from {data.get('user')}")
             self.log.debug(data.get('text'))
@@ -216,21 +235,30 @@ class Bot(object):
         e = SlackEvent(event_type=event_type, **payload)
         self.log.debug("Received event type: %s", e.event_type)
 
-        if e.user_id:
+        if e.user_id and e.user_id != self.my_userid:
             if hasattr(self, 'user_manager'):
                 e.user = self.user_manager.get(e.user_id)
                 if e.user is None:
                     slack_user = SlackUser(user_id=e.user_id, api_client=self.api_client)
                     await slack_user.load()
                     e.user = self.user_manager.set(slack_user)
+        if e.channel_id:
+            e.channel = self.get_channel(e.channel_id)
         return e
 
     def _add_event_handlers(self):
+        slack.RTMClient.on(event='channel_joined', callback=self._event_channel_joined)
         slack.RTMClient.on(event='message', callback=self._event_message)
         slack.RTMClient.on(event='error', callback=self._event_error)
 
+    # when the bot is invited to a channel, add the channel to self.channels
+    async def _event_channel_joined(self, **payload):
+        self.log.debug(f'Channel joined: {payload}')
+        channel_info = payload.get('data').get('channel')
+        channel = SlackConversation(conversation=channel_info, api_client=self.api_client)
+        self._channels.update({channel.id: channel})
+
     async def _event_message(self, **payload):
-        self.log.debug(f"Received message: {payload}")
         msg = await self._handle_event('message', payload)
         if not msg:
             return
@@ -281,5 +309,6 @@ class Bot(object):
         else:
             channel = SlackConversation(None, self.api_client)
             await channel.load(channel_id)
+            self._channels.update({channel_id: channel})
         if channel:
             return channel

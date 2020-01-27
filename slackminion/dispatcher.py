@@ -99,7 +99,7 @@ class MessageDispatcher(object):
                         if not dev_mode:
                             output = await f.execute(event, msg_args)
                         else:
-                            output = f'DEV_MODE: Would have run async function {cmd} with args {msg_args}'
+                            output = f'DEV_MODE: Would have run async function {f} with args {msg_args}'
                         return cmd, output, f.cmd_options
                     else:
                         if not dev_mode:
