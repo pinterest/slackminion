@@ -14,6 +14,10 @@ class SlackEvent(object):
         self.channel_id = self.data.get('channel')
 
     @property
+    def channel(self):
+        return self.channel_id
+
+    @property
     def text(self):
         if 'text' in self.data:
             return self.data['text']

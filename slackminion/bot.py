@@ -293,7 +293,7 @@ class Bot(object):
         self.log.error("Received an error response from Slack: %s", msg.__dict__)
 
     def get_channel_by_name(self, channel_name):
-        channels = [x for x in self.channels.values() if (x.name == channel_name or channel_name in x.previous_names)]
+        channels = [x for x in self.channels.values() if channel_name in x.all_names]
         if len(channels) == 0:
             raise RuntimeError(f'Unable to find channel {channel_name}')
         if len(channels) > 1:
