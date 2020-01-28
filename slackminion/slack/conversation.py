@@ -10,7 +10,7 @@ class SlackConversation(object):
         """Base class for rooms (channels, groups) and IMs"""
         self.api_client = api_client
         self.conversation = conversation  # the dict slack sent us
-        self._topic = conversation.get('topic')
+        self._topic = conversation.get('topic', {}).get('value')
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
 
@@ -45,6 +45,11 @@ class SlackConversation(object):
             self.conversation = resp['channel']
         else:
             raise RuntimeError('Unable to load channel')
+
+    def _load_extra_attributes(self):
+        resp = self.api_client.conversations_info(channel=self.channel_id)
+        if resp:
+            self.conversation = resp['channel']
 
     @property
     def formatted_name(self):
