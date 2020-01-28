@@ -2,6 +2,7 @@ import slackminion.slack
 
 
 class SlackEvent(object):
+    _channel = None
     """Encapsulates an event received from the RTM socket"""
 
     def __init__(self, event_type, **payload):
@@ -15,7 +16,13 @@ class SlackEvent(object):
 
     @property
     def channel(self):
+        if self._channel:
+            return self._channel
         return self.channel_id
+
+    @channel.setter
+    def channel(self, channel):
+        self._channel = channel
 
     @property
     def text(self):
