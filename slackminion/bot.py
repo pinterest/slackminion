@@ -145,14 +145,15 @@ class Bot(object):
         self.log.debug('Starting Web Server')
         self.webserver.start()
         first_connect = True
-        self.log.debug('Starting RTM Client')
-        self.rtm_client.start()
+
         self.event_loop.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
         self.event_loop.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
         self._info = await self.api_client.auth_test()
 
         while self.runnable:
             if first_connect:
+                self.log.debug('Starting RTM Client')
+                await self.rtm_client.start()
                 self.plugins.connect()
                 self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
