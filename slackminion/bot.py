@@ -153,11 +153,12 @@ class Bot(object):
         while self.runnable:
             if first_connect:
                 self.log.debug('Starting RTM Client')
-                await self.rtm_client.start()
+                self.rtm_client.start()
                 self.plugins.connect()
                 self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
             await self.task_manager.start()
+            await asyncio.sleep(1)
 
     async def stop(self):
         """Does cleanup of bot and plugins."""
