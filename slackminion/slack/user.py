@@ -64,6 +64,10 @@ class SlackUser(object):
         return '<@%s|%s>' % (self.id, self.username)
 
     @property
+    def is_admin(self):
+        return self._is_bot_admin
+
+    @property
     def is_bot_admin(self):
         return self._is_bot_admin
 

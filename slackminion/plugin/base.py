@@ -147,3 +147,6 @@ class BasePlugin(object):
         :return: SlackChannel object or None
         """
         return self._bot.get_channel_by_name(channel_name)
+
+    def at_user(self, *args, **kwargs):
+        return self._bot.at_user(*args, **kwargs)
