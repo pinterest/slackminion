@@ -41,14 +41,14 @@ class TestBasePlugin(unittest.TestCase):
         assert self.plugin.on_connect() is True
 
     def test_start_timer(self):
-        self.plugin.start_timer(30, dummy_func, self.plugin)
-        assert dummy_func in self.plugin._timer_callbacks
+        self.plugin._bot.task_manager = mock.Mock()
+        self.plugin.start_timer(30, dummy_func)
+        self.plugin._bot.task_manager.start_timer.assert_called_with(30, dummy_func)
 
     def test_stop_timer(self):
-        self.plugin.start_timer(30, dummy_func, self.plugin)
-        assert dummy_func in self.plugin._timer_callbacks
+        self.plugin._bot.task_manager = mock.Mock()
         self.plugin.stop_timer(dummy_func)
-        assert dummy_func not in self.plugin._timer_callbacks
+        self.plugin._bot.task_manager.stop_timer.assert_called_with(dummy_func.__name__)
 
     def test_get_channel(self):
         self.plugin.get_channel(test_channel_name)

@@ -75,6 +75,7 @@ class TestDispatcher(unittest.TestCase):
         self.test_payload['data'].update({'text': '!abc'})
         e = SlackEvent(event_type="message", **self.test_payload)
         e.user = mock.Mock()
+        e.channel = test_conversation
         cmd, output, cmd_opts = await self.dispatcher.push(e)
         assert cmd == '!abc'
         assert output == 'abcba'
@@ -90,6 +91,7 @@ class TestDispatcher(unittest.TestCase):
         self.test_payload['data'].update({'text': '!bca'})
         e = SlackEvent(event_type="message", **self.test_payload)
         e.user = mock.Mock()
+        e.channel = test_conversation
         cmd, output, cmd_opts = await self.dispatcher.push(e)
         assert cmd == '!bca'
         assert output == 'abcba'
@@ -104,6 +106,7 @@ class TestDispatcher(unittest.TestCase):
         self.dispatcher.register_plugin(self.p)
         self.test_payload['data'].update({'text': '!efg'})
         e = SlackEvent(event_type="message", **self.test_payload)
+        e.channel = test_conversation
         e.user = mock.Mock()
         cmd, output, cmd_opts = await self.dispatcher.push(e)
         assert cmd == '!efg'
@@ -121,6 +124,7 @@ class TestDispatcher(unittest.TestCase):
         payload['data'].update({'text': '!hij'})
         e = SlackEvent(event_type="message", **self.test_payload)
         e.user = mock.Mock()
+        e.channel = test_conversation
         cmd, output, cmd_opts = await self.dispatcher.push(e)
         assert cmd == '!hij'
         assert output == 'hijih'
@@ -161,6 +165,7 @@ class TestDispatcher(unittest.TestCase):
         self.dispatcher._is_channel_ignored = mock.Mock(return_value=True)
         self.test_payload['data'].update({'text': '!abc', 'user': test_user_id, 'channel': test_channel_id})
         e = SlackEvent(event_type='message', **self.test_payload)
+        e.channel = test_conversation
         e.user = mock.Mock()
         assert await self.dispatcher.push(e) == ('_ignored_', '', None)
 
@@ -171,6 +176,7 @@ class TestDispatcher(unittest.TestCase):
         payload['data'].update({'text': '!asyncabc'})
         e = SlackEvent(event_type="message", **self.test_payload)
         e.user = mock.Mock()
+        e.channel = test_conversation
         cmd, output, cmd_opts = await self.dispatcher.push(e)
         assert cmd == '!asyncabc'
         assert output == 'asyncabc response'

@@ -50,15 +50,15 @@ test_payload = {
 }
 
 test_channel = {
-    'name': '#test_channel',
+    'name': test_channel_name,
     'id': test_channel_id,
     'is_channel': True,
     'is_im': False
 }
 
 test_dm = {
-    'name': '#test_channel',
-    'id': 'CTESTCHAN',
+    'name': test_channel_name,
+    'id': test_channel_id,
     'is_channel': True,
     'is_im': True
 }
@@ -72,4 +72,4 @@ test_user_response = {
 }
 
 test_user = SlackUser(user_info=test_user_response['user'], api_client=mock.Mock())
-test_conversation = SlackConversation(test_payload['data'], api_client=mock.Mock())
+test_conversation = SlackConversation(test_channel, api_client=mock.Mock())

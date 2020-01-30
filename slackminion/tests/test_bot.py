@@ -46,7 +46,7 @@ class TestBot(unittest.TestCase):
     @mock.patch('slackminion.bot.slack.RTMClient.on')
     def test_add_callbacks(self, mock_rtmclient_on):
         self.object._add_event_handlers()
-        self.assertEqual(mock_rtmclient_on.call_count, 2)
+        self.assertEqual(mock_rtmclient_on.call_count, 3)
 
     @async_test
     async def test_event_message_no_user_manager(self):
@@ -145,6 +145,7 @@ class TestBot(unittest.TestCase):
         self.object.user_manager = mock.Mock()
         self.object.user_manager.get.return_value = None
         self.object.user_manager.set.return_value = test_user
+        self.object.get_channel = AsyncMock()
         self.object.api_client.users_info = AsyncMock()
         self.object.api_client.users_info.coro.return_value = test_user_response
         await self.object._handle_event('message', test_payload)
@@ -158,7 +159,7 @@ class TestBot(unittest.TestCase):
         self.object.web_client = AsyncMock()
         #    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         self.object._prepare_and_send_output(test_command, self.test_event, {}, test_output)
-        self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=None,
+        self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
                                                     reply_broadcast=None)
 
     # test _prepare_and_send_output with various options
@@ -191,8 +192,8 @@ class TestBot(unittest.TestCase):
 
     def test_get_channel_by_name(self):
         self.object.is_setup = True
-        self.object._channels = {test_channel_name: TestChannel}
-        self.assertEqual(self.object.get_channel_by_name(test_channel_name), TestChannel)
+        self.object._channels = {test_channel_name: test_conversation}
+        self.assertEqual(self.object.get_channel_by_name(test_channel_name), test_conversation)
 
     def test_get_channel_by_name_bot_not_setup(self):
         self.object.is_setup = False
