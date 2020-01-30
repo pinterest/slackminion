@@ -1,6 +1,3 @@
-import slackminion.slack
-
-
 class SlackEvent(object):
     _channel = None
     """Encapsulates an event received from the RTM socket"""
@@ -21,8 +18,8 @@ class SlackEvent(object):
         return self.channel_id
 
     @channel.setter
-    def channel(self, channel):
-        self._channel = channel
+    def channel(self, c):
+        self._channel = c
 
     @property
     def text(self):
@@ -37,10 +34,7 @@ class SlackEvent(object):
 
     @property
     def thread_ts(self):
-        if 'message' in self.data:
-            return self.data['message'].get('thread_ts')
-        elif 'thread_ts' in self.data:
-            return self.data['ts']
+        return self.data.get('thread_ts')
 
     def __repr__(self):
         return f'SlackEvent type {self.event_type} User: {self.user_id}'
