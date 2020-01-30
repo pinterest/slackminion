@@ -163,8 +163,8 @@ class TestBot(unittest.TestCase):
 
     # test _prepare_and_send_output with various options
     def test_prepare_and_send_output_with_cmd_options(self):
-        self.object.send_message = AsyncMock()
-        self.object.send_im = AsyncMock()
+        self.object.send_message = mock.Mock()
+        self.object.send_im = mock.Mock()
         self.object.web_client = AsyncMock()
         #    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         cmd_options = {
@@ -207,6 +207,14 @@ class TestBot(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.object.get_channel_by_name(test_channel_name)
         self.object.log.warning.assert_called_with('Bot.channels was called but self._bot_channels was empty!')
+
+    def test_at_user(self):
+        self.object.send_message = mock.Mock()
+        test_message = "hi"
+        expected_message = f'{test_user.at_user}: {test_message}'
+        self.object.at_user(test_user, test_channel_id, test_message)
+        self.object.send_message.assert_called_with(test_channel_id, expected_message)
+
 
 if __name__ == "__main__":
     unittest.main()

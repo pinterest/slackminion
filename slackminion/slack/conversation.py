@@ -36,9 +36,9 @@ class SlackConversation(object):
         return self._topic
 
     @topic.setter
-    def topic(self, topic):
-        self._topic = topic
-        self.api_client.conversations_setTopic(channel=self.id, topic=topic)
+    def topic(self, new_topic):
+        self._topic = new_topic
+        self.api_client.conversations_setTopic(channel=self.id, topic=new_topic)
 
     async def load(self, channel_id):
         resp = await self.api_client.conversations_info(channel=channel_id)

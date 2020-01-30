@@ -214,6 +214,17 @@ class Bot(object):
             channelid = user
         self.send_message(channelid, text)
 
+    def at_user(self, user, channel_id, text):
+        """
+        Appends @user Slack formatting to the beginning of a message.
+
+        * user - The SlackUser to send to.
+        * channel_id - The channel ID of the channel to send  to
+        * text - String to send
+        """
+        message = f'{user.at_user}: {text}'
+        self.send_message(channel_id, message)
+
     def _load_user_rights(self, user):
         self.log.debug(f'Loading user rights for {user}')
         if user is not None:

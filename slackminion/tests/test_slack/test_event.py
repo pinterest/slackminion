@@ -39,8 +39,13 @@ class TestSlackEvent(unittest.TestCase):
         event = SlackEvent('message', **self.test_payload)
         self.assertEqual(event.user_id, test_user_id)
 
-    def test_init_channel(self):
+    def test_init_channel_no_user(self):
         event = SlackEvent('channel', **self.test_payload)
-        assert event.user_id is None
-        assert isinstance(event.channel, SlackConversation)
+        self.assertIsNone(event.user_id)
+        self.assertEqual(event.channel_id, test_payload.get('data').get('channel'))
 
+    def test_init_channel_with_user(self):
+        self.test_payload['data'].update({'user': test_user_id})
+        event = SlackEvent('channel', **self.test_payload)
+        self.assertEqual(event.channel_id, test_payload.get('data').get('channel'))
+        self.assertEqual(event.user_id, test_payload.get('data').get('user'))
