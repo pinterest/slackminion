@@ -49,3 +49,23 @@ class TestSlackEvent(unittest.TestCase):
         event = SlackEvent('channel', **self.test_payload)
         self.assertEqual(event.channel_id, test_payload.get('data').get('channel'))
         self.assertEqual(event.user_id, test_payload.get('data').get('user'))
+
+    def test_get_ts(self):
+        self.test_payload['data'].update({'ts': test_thread_ts})
+        event = SlackEvent('channel', **self.test_payload)
+        self.assertEqual(event.ts, test_thread_ts)
+
+    def test_get_thread_ts(self):
+        self.test_payload['data'].update({'thread_ts': test_thread_ts})
+        event = SlackEvent('channel', **self.test_payload)
+        self.assertEqual(event.thread_ts, test_thread_ts)
+
+    def test_get_text(self):
+        self.test_payload['data'].update({'text': test_text})
+        event = SlackEvent('channel', **self.test_payload)
+        self.assertEqual(event.text, test_text)
+
+    def test_get_text_2(self):
+        self.test_payload['data'].update({'message': {'text': test_text}})
+        event = SlackEvent('channel', **self.test_payload)
+        self.assertEqual(event.text, test_text)

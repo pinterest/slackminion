@@ -3,6 +3,7 @@ import asyncio
 import logging
 import time
 import functools
+import inspect
 
 
 class CallLater:
@@ -125,6 +126,8 @@ class AsyncTaskManager(object):
         self.periodic_tasks.append(task)
 
     def start_timer(self, delay, func, *args, **kwargs):
+        if inspect.iscoroutinefunction(func):
+            raise RuntimeError('Timer can only be run on non-async functions.')
         task = CallLater(func, delay, self.event_loop, *args, **kwargs)
         if task.name not in self.delayed_tasks:
             self.delayed_tasks.append(task)
