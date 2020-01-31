@@ -103,6 +103,9 @@ class BasePlugin(object):
         self.log.debug('Stopping timer {}'.format(func.__name__))
         self._bot.task_manager.stop_timer(func.__name__)
 
+    def run_async(self, func, *args, **kwargs):
+        return self._bot.task_manager.create_and_schedule_task(func, *args, **kwargs)
+
     def _timer_callback(self, func, args):
         self.log.debug('Executing timer function {}'.format(func.__name__))
         try:
