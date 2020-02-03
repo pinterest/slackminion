@@ -19,7 +19,7 @@ setup(
             'PyYAML>=4.2b',
             'requests >=2.11, <3.0a0',
             'six >=1.10, <2.0a0',
-            'slackclient==2.4.0',
+            'slackclient==2.5.0',
             'websocket-client >=0.35, <0.55.0',
             'Werkzeug>=0.10.4',
         ],
