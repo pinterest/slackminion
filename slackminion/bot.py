@@ -303,8 +303,7 @@ class Bot(object):
                               reply_broadcast=cmd_options.get('reply_broadcast'))
 
     def _event_error(self, **payload):
-        msg = self._handle_event('error', payload)
-        self.log.error("Received an error response from Slack: %s", msg.__dict__)
+        self.log.error(f"Received an error response from Slack: {payload}")
 
     def get_channel_by_name(self, channel_name):
         channels = [x for x in self.channels.values() if channel_name in x.all_names]

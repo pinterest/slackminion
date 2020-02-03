@@ -4,6 +4,9 @@ import logging
 import time
 import functools
 import inspect
+import multiprocessing
+
+NUM_CPUS = multiprocessing.cpu_count()
 
 
 class CallLater:
@@ -85,29 +88,36 @@ class AsyncTaskManager(object):
             try:
                 self.log.debug('tick')
                 for task in self.tasks:
+                    await asyncio.sleep(1)
                     if task not in self.awaited_tasks:
                         self.log.debug(f'awaiting task: {task}')
-                        await task
-                        self.awaited_tasks.append(task)
-                    if task.done():
-                        self.log.debug(f'removing task: {task}')
-                        self.log.debug(f'task {task} ended with result {task.result()}')
-                        self.tasks.remove(task)
+                        try:
+                            await task
+                            if task.done():
+                                self.log.debug(f'task {task} ended with result {task.result()}')
+                        except Exception:
+                            self.log.exception(f"Unexpected exception caught awaiting {task}!")
+                        finally:
+                            self.awaited_tasks.append(task)
+                            self.log.debug(f'removing task: {task}')
+                            self.tasks.remove(task)
                 for periodic in self.periodic_tasks:
                     if not periodic.is_started:
                         await periodic.start()
                 for delayed in self.delayed_tasks:
                     if delayed.called:
                         self.delayed_tasks.remove(delayed)
-                await asyncio.sleep(1)
             except Exception as e:
                 self.log.exception("Unexpected exception caught in task loop!")
 
     def create_and_schedule_task(self, func, *args, **kwargs):
+        self.log.info(f'creating task for {func.__name__}({args}, {kwargs})')
         if isinstance(func, asyncio.Task):
             task = func
-        else:
+        elif inspect.iscoroutinefunction(func):
             task = asyncio.create_task(func(*args, **kwargs))
+        else:
+            raise RuntimeError('create_and_schedule_task can only be run with async functions or tasks.')
         self.schedule_task(task)
         return task
 
