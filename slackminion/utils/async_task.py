@@ -4,9 +4,6 @@ import logging
 import time
 import functools
 import inspect
-import multiprocessing
-
-NUM_CPUS = multiprocessing.cpu_count()
 
 
 class CallLater:
@@ -87,12 +84,13 @@ class AsyncTaskManager(object):
         while self.runnable:
             try:
                 self.log.debug('tick')
+                await asyncio.sleep(1)
                 for task in self.tasks:
-                    await asyncio.sleep(1)
                     if task not in self.awaited_tasks:
                         self.log.debug(f'awaiting task: {task}')
                         try:
                             await task
+                            await asyncio.sleep(1)
                             if task.done():
                                 try:
                                     self.log.debug(f'task {task} ended with result {task.result()}')
