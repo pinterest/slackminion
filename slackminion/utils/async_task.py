@@ -94,13 +94,17 @@ class AsyncTaskManager(object):
                         try:
                             await task
                             if task.done():
-                                self.log.debug(f'task {task} ended with result {task.result()}')
+                                try:
+                                    self.log.debug(f'task {task} ended with result {task.result()}')
+                                except asyncio.CancelledError:
+                                    self.log.debug(f'task {task} was cancelled')
+                                finally:
+                                    self.log.debug(f'removing task: {task}')
+                                    self.tasks.remove(task)
                         except Exception:
                             self.log.exception(f"Unexpected exception caught awaiting {task}!")
                         finally:
                             self.awaited_tasks.append(task)
-                            self.log.debug(f'removing task: {task}')
-                            self.tasks.remove(task)
                 for periodic in self.periodic_tasks:
                     if not periodic.is_started:
                         await periodic.start()
