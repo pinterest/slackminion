@@ -147,14 +147,14 @@ class Bot(object):
         self.webserver.start()
         first_connect = True
 
-        self.event_loop.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
-        self.event_loop.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
         self._info = await self.api_client.auth_test()
 
         while self.runnable:
             if first_connect:
                 self.log.debug('Starting RTM Client')
-                self.rtm_client.start()
+                self.rtm_client_task = self.rtm_client.start()
+                self.event_loop.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
+                self.event_loop.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
                 self.plugins.connect()
                 self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
@@ -163,17 +163,18 @@ class Bot(object):
 
     async def stop(self):
         """Does cleanup of bot and plugins."""
+        if not self.test_mode:
+            self.plugins.save_state()
         self.log.debug('Stopping Task Manager')
         await self.task_manager.shutdown()
         self.log.debug('Stopping RTM client.')
         self.rtm_client.stop()
+        self.rtm_client_task.cancel()
         # cleanup any running timer threads so bot doesn't hang on shutdown
         for t in self.timers:
             t.cancel()
         if self.webserver is not None:
             self.webserver.stop()
-        if not self.test_mode:
-            self.plugins.save_state()
         self.plugins.unload_all()
 
     def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None):
@@ -266,10 +267,13 @@ class Bot(object):
 
     # when the bot is invited to a channel, add the channel to self.channels
     async def _event_channel_joined(self, **payload):
-        self.log.debug(f'Channel joined: {payload}')
-        channel_info = payload.get('data').get('channel')
-        channel = SlackConversation(conversation=channel_info, api_client=self.api_client)
-        self._channels.update({channel.id: channel})
+        try:
+            self.log.debug(f'Channel joined: {payload}')
+            channel_info = payload.get('data').get('channel')
+            channel = SlackConversation(conversation=channel_info, api_client=self.api_client)
+            self._channels.update({channel.id: channel})
+        except Exception:  # noqa
+            self.log.exception('Uncaught exception')
 
     async def _event_message(self, **payload):
         msg = await self._handle_event('message', payload)
