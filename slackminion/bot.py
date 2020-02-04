@@ -16,6 +16,7 @@ ignore_subtypes = [
     'bot_message',
     'message_changed',
     'message_replied',
+    'message_deleted',
 ]
 
 

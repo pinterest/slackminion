@@ -127,8 +127,11 @@ class MessageDispatcher(object):
 
     def _parse_message(self, message):
         if message:
-            args = message.text.split(' ')
-            return args
+            try:
+                args = message.text.split(' ')
+                return args
+            except AttributeError:
+                pass
         return []
 
     def register_plugin(self, plugin):

@@ -27,6 +27,7 @@ class SlackEvent(object):
             return self.data['text']
         elif 'message' in self.data:
             return self.data['message'].get('text', '')
+        return ''
 
     @property
     def ts(self):
