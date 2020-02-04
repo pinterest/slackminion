@@ -153,6 +153,8 @@ class Bot(object):
             if first_connect:
                 self.log.debug('Starting RTM Client')
                 self.rtm_client_task = self.rtm_client.start()
+                # these need to be added after rtm client starts, as
+                # slackclient adds its own signal handler which overrides these
                 self.event_loop.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
                 self.event_loop.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
                 self.plugins.connect()
