@@ -4,6 +4,7 @@ import logging
 import time
 import functools
 import inspect
+import signal
 
 
 class CallLater:
@@ -71,38 +72,80 @@ class AsyncTaskManager(object):
     periodic_tasks = []
     delayed_tasks = []
     awaited_tasks = []
+    rtm_client = None
+    rtm_client_task = None
 
-    def __init__(self):
+    def __init__(self, bot):
+        self._bot = bot
         self.log = logging.getLogger(type(self).__name__)
         self.event_loop = asyncio.get_event_loop()
 
+    def start_rtm_client(self, rtm_client=None):
+        if rtm_client:
+            self.rtm_client = rtm_client
+        self.rtm_client_task = self.rtm_client.start()
+
+    def add_signal_handlers(self):
+        self.event_loop.add_signal_handler(signal.SIGINT, self.shutdown)
+        self.event_loop.add_signal_handler(signal.SIGTERM, self.shutdown)
+
+    async def check_rtm_client(self):
+        if self.rtm_client_task.done():
+            try:
+                result = self.rtm_client_task.result()
+                self.log.info(f'RTM client task ended with result {result}')
+            except asyncio.CancelledError:
+                self.log.info('RTM client task was cancelled.')
+            except asyncio.TimeoutError:
+                self.log.info('RTM client task timed out.')
+            except Exception as e:
+                self.log.exception(f'Caught unexpected exception: {e}')
+            finally:
+                if self.runnable:
+                    self.log.info('Restarting RTM client')
+                    self.start_rtm_client()
+                else:
+                    self.log.info('Stopping RTM client')
+                    self.rtm_client.stop()
+                    try:
+                        self.rtm_client_task.cancel()
+                        await self.rtm_client_task
+                    except asyncio.CancelledError:
+                        self.log.info("RTM client task cancelled")
+
     def schedule_task(self, task):
         self.tasks.append(task)
+
+    async def await_tasks(self):
+        await asyncio.sleep(1)
+        await self.check_rtm_client()
+        pending_tasks = [task for task in self.tasks if task not in self.awaited_tasks]
+        self.log.debug(f'tick: Gathering {len(pending_tasks)} tasks...')
+        try:
+            await asyncio.gather(*pending_tasks)
+            for task in pending_tasks:
+                try:
+                    if task.done():
+                        try:
+                            self.log.debug(f'task {task} ended with result {task.result()}')
+                        except asyncio.CancelledError:
+                            self.log.debug(f'task {task} was cancelled')
+                        finally:
+                            self.log.debug(f'removing task: {task}')
+                            self.tasks.remove(task)
+                            self.awaited_tasks.remove(task)
+                except Exception:  # noqa
+                    self.log.exception(f"Unexpected exception caught awaiting {task}!")
+                finally:
+                    self.awaited_tasks.append(task)
+        except Exception:  # noqa
+            self.log.exception("Unexpected exception caught during asyncio.gather()")
 
     async def start(self):
         self.log.debug('Starting task waiter')
         while self.runnable:
             try:
-                self.log.debug('tick')
-                await asyncio.sleep(1)
-                for task in self.tasks:
-                    if task not in self.awaited_tasks:
-                        self.log.debug(f'awaiting task: {task}')
-                        try:
-                            await task
-                            await asyncio.sleep(1)
-                            if task.done():
-                                try:
-                                    self.log.debug(f'task {task} ended with result {task.result()}')
-                                except asyncio.CancelledError:
-                                    self.log.debug(f'task {task} was cancelled')
-                                finally:
-                                    self.log.debug(f'removing task: {task}')
-                                    self.tasks.remove(task)
-                        except Exception:
-                            self.log.exception(f"Unexpected exception caught awaiting {task}!")
-                        finally:
-                            self.awaited_tasks.append(task)
+                await self.await_tasks()
                 for periodic in self.periodic_tasks:
                     if not periodic.is_started:
                         await periodic.start()
@@ -125,6 +168,7 @@ class AsyncTaskManager(object):
 
     async def shutdown(self):
         self.log.debug('AsyncTaskManager: shutting down')
+        self._bot.runnable = False
         self.runnable = False
         for task in self.tasks:
             task.cancel()

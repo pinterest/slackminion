@@ -106,7 +106,7 @@ class Bot(object):
     def start(self):
         """Initializes the bot, plugins, and everything."""
         self.log.info(f'Starting SlackMinion version {self.version}')
-        self.task_manager = AsyncTaskManager()
+        self.task_manager = AsyncTaskManager(self)
         self.bot_start_time = datetime.datetime.now()
 
         self.log.debug('Slack clients initialized.')
@@ -152,7 +152,7 @@ class Bot(object):
         while self.runnable:
             if first_connect:
                 self.log.debug('Starting RTM Client')
-                self.rtm_client_task = self.rtm_client.start()
+                self.task_manager.start_rtm_client(self.rtm_client)
                 # these need to be added after rtm client starts, as
                 # slackclient adds its own signal handler which overrides these
                 self.event_loop.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
@@ -170,8 +170,7 @@ class Bot(object):
         self.log.debug('Stopping Task Manager')
         await self.task_manager.shutdown()
         self.log.debug('Stopping RTM client.')
-        self.rtm_client.stop()
-        self.rtm_client_task.cancel()
+
         # cleanup any running timer threads so bot doesn't hang on shutdown
         for t in self.timers:
             t.cancel()
