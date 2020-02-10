@@ -72,6 +72,7 @@ class AsyncTaskManager(object):
     periodic_tasks = []
     delayed_tasks = []
     awaited_tasks = []
+    shutting_down = False
     rtm_client = None
     rtm_client_task = None
 
@@ -81,15 +82,23 @@ class AsyncTaskManager(object):
         self.event_loop = asyncio.get_event_loop()
 
     def start_rtm_client(self, rtm_client=None):
-        if rtm_client:
-            self.rtm_client = rtm_client
-        self.rtm_client_task = self.rtm_client.start()
+        if self.runnable:
+            if rtm_client:
+                self.rtm_client = rtm_client
+            self.rtm_client_task = self.rtm_client.start()
+            self.add_signal_handlers()
 
     def add_signal_handlers(self):
-        self.event_loop.add_signal_handler(signal.SIGINT, self.shutdown)
-        self.event_loop.add_signal_handler(signal.SIGTERM, self.shutdown)
+        signals = [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]
+        # these need to be added every time RTMClient starts/restarts, as
+        # slackclient adds its own signal handler which overrides these
+        for sig in signals:
+            if self.event_loop._signal_handlers[sig]._callback != self.graceful_shutdown:
+                self.log.debug(f'Adding signal handler for {sig}')
+                self.event_loop.add_signal_handler(sig, self.graceful_shutdown)
 
     async def check_rtm_client(self):
+        self.log.debug('Enter check_rtm_client')
         if self.rtm_client_task.done():
             try:
                 result = self.rtm_client_task.result()
@@ -117,29 +126,31 @@ class AsyncTaskManager(object):
         self.tasks.append(task)
 
     async def await_tasks(self):
-        await asyncio.sleep(1)
-        await self.check_rtm_client()
-        pending_tasks = [task for task in self.tasks if task not in self.awaited_tasks]
-        self.log.debug(f'tick: Gathering {len(pending_tasks)} tasks...')
-        try:
-            await asyncio.gather(*pending_tasks)
-            for task in pending_tasks:
-                try:
-                    if task.done():
-                        try:
-                            self.log.debug(f'task {task} ended with result {task.result()}')
-                        except asyncio.CancelledError:
-                            self.log.debug(f'task {task} was cancelled')
-                        finally:
-                            self.log.debug(f'removing task: {task}')
-                            self.tasks.remove(task)
-                            self.awaited_tasks.remove(task)
-                except Exception:  # noqa
-                    self.log.exception(f"Unexpected exception caught awaiting {task}!")
-                finally:
-                    self.awaited_tasks.append(task)
-        except Exception:  # noqa
-            self.log.exception("Unexpected exception caught during asyncio.gather()")
+        self.add_signal_handlers()
+        if self.runnable:
+            await asyncio.sleep(1)
+            await self.check_rtm_client()
+            pending_tasks = [task for task in self.tasks if task not in self.awaited_tasks]
+            self.log.debug(f'tick: Gathering {len(pending_tasks)} tasks...')
+            try:
+                await asyncio.gather(*pending_tasks)
+                for task in pending_tasks:
+                    try:
+                        if task.done():
+                            try:
+                                self.log.debug(f'task {task} ended with result {task.result()}')
+                            except asyncio.CancelledError:
+                                self.log.debug(f'task {task} was cancelled')
+                            finally:
+                                self.log.debug(f'removing task: {task}')
+                                self.tasks.remove(task)
+                                self.awaited_tasks.remove(task)
+                    except Exception:  # noqa
+                        self.log.exception(f"Unexpected exception caught awaiting {task}!")
+                    finally:
+                        self.awaited_tasks.append(task)
+            except Exception:  # noqa
+                self.log.exception("Unexpected exception caught during asyncio.gather()")
 
     async def start(self):
         self.log.debug('Starting task waiter')
@@ -154,6 +165,7 @@ class AsyncTaskManager(object):
                         self.delayed_tasks.remove(delayed)
             except Exception as e:
                 self.log.exception("Unexpected exception caught in task loop!")
+        await self.shutdown()
 
     def create_and_schedule_task(self, func, *args, **kwargs):
         self.log.info(f'creating task for {func.__name__}({args}, {kwargs})')
@@ -166,10 +178,14 @@ class AsyncTaskManager(object):
         self.schedule_task(task)
         return task
 
+    def graceful_shutdown(self):
+        if not self.shutting_down:
+            self.log.debug('AsyncTaskManager: shutting down')
+            self.shutting_down = True
+            self.runnable = False
+            self._bot.runnable = False
+
     async def shutdown(self):
-        self.log.debug('AsyncTaskManager: shutting down')
-        self._bot.runnable = False
-        self.runnable = False
         for task in self.tasks:
             task.cancel()
         for periodic in self.periodic_tasks:

@@ -10,7 +10,6 @@ import logging
 import datetime
 import slack
 import asyncio
-import signal
 
 ignore_subtypes = [
     'bot_message',
@@ -153,10 +152,6 @@ class Bot(object):
             if first_connect:
                 self.log.debug('Starting RTM Client')
                 self.task_manager.start_rtm_client(self.rtm_client)
-                # these need to be added after rtm client starts, as
-                # slackclient adds its own signal handler which overrides these
-                self.event_loop.add_signal_handler(signal.SIGINT, self.graceful_shutdown)
-                self.event_loop.add_signal_handler(signal.SIGTERM, self.graceful_shutdown)
                 self.plugins.connect()
                 self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
