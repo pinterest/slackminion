@@ -186,6 +186,7 @@ class AsyncTaskManager(object):
             self._bot.runnable = False
 
     async def shutdown(self):
+        self.rtm_client.stop()
         for task in self.tasks:
             task.cancel()
         for periodic in self.periodic_tasks:
