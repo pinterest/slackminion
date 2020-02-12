@@ -194,7 +194,7 @@ class Bot(object):
             as_user=True,
             channel=channel,
             text=text,
-            thread=thread,
+            thread_ts=thread,
             reply_broadcast=reply_broadcast,
             attachments=attachments
         )
