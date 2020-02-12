@@ -37,5 +37,9 @@ class SlackEvent(object):
     def thread_ts(self):
         return self.data.get('thread_ts')
 
+    @property
+    def event_ts(self):
+        return self.data.get('event_ts')
+
     def __repr__(self):
         return f'SlackEvent type {self.event_type} User: {self.user_id}'
