@@ -31,7 +31,7 @@ class SlackEvent(object):
 
     @property
     def ts(self):
-        return self.data.get('ts')
+        return self.data.get('ts', self.data.get('event_ts'))
 
     @property
     def thread_ts(self):

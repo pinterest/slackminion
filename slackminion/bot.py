@@ -291,6 +291,7 @@ class Bot(object):
             return
 
     def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
+        self.log.debug(f'Preparing to send  output for  {cmd} with options {cmd_options}')
         if hasattr(msg, 'thread_ts'):
             thread_ts = msg.thread_ts
         elif cmd_options.get('reply_in_thread'):
