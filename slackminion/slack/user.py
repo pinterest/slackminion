@@ -73,3 +73,6 @@ class SlackUser(object):
 
     def set_admin(self, value):
         self._is_bot_admin = value
+
+    def __repr__(self):
+        return self.formatted_name

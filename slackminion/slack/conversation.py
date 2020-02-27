@@ -56,5 +56,8 @@ class SlackConversation(object):
     def formatted_name(self):
         return '<#%s|%s>' % (self.id, self.name)
 
+    def __repr__(self):
+        return self.formatted_name
+
     def get_channel(self):
         return self
