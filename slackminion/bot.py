@@ -173,7 +173,7 @@ class Bot(object):
             self.webserver.stop()
         self.plugins.unload_all()
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None):
+    def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None, parse=None):
         """
         Sends a message to the specified channel
 
@@ -196,7 +196,8 @@ class Bot(object):
             text=text,
             thread_ts=thread,
             reply_broadcast=reply_broadcast,
-            attachments=attachments
+            attachments=attachments,
+            parse=parse,
         )
 
     def send_im(self, user, text):
