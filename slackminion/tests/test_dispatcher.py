@@ -183,9 +183,29 @@ class TestDispatcher(unittest.TestCase):
         assert type(cmd_opts) == dict
         assert ('reply_in_thread' in list(cmd_opts.keys())) is True
         assert ('reply_broadcast' in list(cmd_opts.keys())) is True
+        assert ('parse' in list(cmd_opts.keys())) is True
         assert cmd_opts.get('reply_broadcast') is True
         assert cmd_opts.get('reply_in_thread') is True
+        assert cmd_opts.get('parse') is None
 
+    @async_test
+    async def test_async_cmd_parse(self):
+        self.dispatcher.register_plugin(self.p)
+        payload = dict(self.test_payload)
+        payload['data'].update({'text': '!asyncparse'})
+        e = SlackEvent(event_type="message", **self.test_payload)
+        e.user = mock.Mock()
+        e.channel = test_conversation
+        cmd, output, cmd_opts = await self.dispatcher.push(e)
+        assert cmd == '!asyncparse'
+        assert output == 'async parse command #parse'
+        assert type(cmd_opts) == dict
+        assert ('reply_in_thread' in list(cmd_opts.keys())) is True
+        assert ('reply_broadcast' in list(cmd_opts.keys())) is True
+        assert ('parse' in list(cmd_opts.keys())) is True
+        assert cmd_opts.get('reply_broadcast') is False
+        assert cmd_opts.get('reply_in_thread') is False
+        assert cmd_opts.get('parse') is True
 
 if __name__ == "__main__":
     unittest.main()

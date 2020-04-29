@@ -46,6 +46,7 @@ test_payload = {
         'text': test_text,
         'ts': test_thread_ts,
         'thread_ts': test_thread_ts,
+        'parse': None
     },
 }
 

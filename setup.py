@@ -28,7 +28,7 @@ setup(
             'pytest-runner'
         ],
         tests_require=[
-            'pytest==5.3.1',
+            'pytest>=5.4.0',
             'pytest-asyncio',
             'pytest-cov==2.6.1',
             'codeclimate-test-reporter==0.1.2',

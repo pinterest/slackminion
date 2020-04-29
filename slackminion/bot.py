@@ -182,6 +182,7 @@ class Bot(object):
         * text - String to send
         * thread - reply to the thread. See https://api.slack.com/docs/message-threading#threads_party
         * reply_broadcast - Set to true to indicate your reply is germane to all members of a channel
+        * parse - Set to "full" for the slack api to linkify names and channels
         """
         if not text:
             self.log.debug('send_message was called without text to send')
@@ -200,7 +201,7 @@ class Bot(object):
             parse=parse,
         )
 
-    def send_im(self, user, text):
+    def send_im(self, user, text, parse=None):
         """
         Sends a message to a user as an IM
 
@@ -211,7 +212,7 @@ class Bot(object):
             channelid = user.user_id
         else:
             channelid = user
-        self.send_message(channelid, text)
+        self.send_message(channelid, text, parse)
 
     def at_user(self, user, channel_id, text, **kwargs):
         """
@@ -299,11 +300,12 @@ class Bot(object):
             thread_ts = msg.ts
         else:
             thread_ts = None
+        parse = cmd_options.get('parse', None)
         if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
-            self.send_im(msg.user, output)
+            self.send_im(msg.user, output, parse=parse)
         else:
             self.send_message(msg.channel, output, thread=thread_ts,
-                              reply_broadcast=cmd_options.get('reply_broadcast'))
+                              reply_broadcast=cmd_options.get('reply_broadcast'), parse=parse)
 
     def _event_error(self, **payload):
         self.log.error(f"Received an error response from Slack: {payload}")

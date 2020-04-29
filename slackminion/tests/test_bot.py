@@ -160,7 +160,7 @@ class TestBot(unittest.TestCase):
         #    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         self.object._prepare_and_send_output(test_command, self.test_event, {}, test_output)
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
-                                                    reply_broadcast=None)
+                                                    reply_broadcast=None, parse=None)
 
     # test _prepare_and_send_output with various options
     def test_prepare_and_send_output_with_cmd_options(self):
@@ -174,7 +174,7 @@ class TestBot(unittest.TestCase):
         self.assertEqual(self.test_event.thread_ts, test_thread_ts)
         self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
-                                                    reply_broadcast=None)
+                                                    reply_broadcast=None, parse=None)
 
         cmd_options = {
             'reply_in_thread': True,
@@ -183,7 +183,22 @@ class TestBot(unittest.TestCase):
 
         self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
-                                                    reply_broadcast=True)
+                                                    reply_broadcast=True, parse=None)
+
+        cmd_options = {
+            'parse': "full"
+        }
+
+        self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
+        self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
+                                                    reply_broadcast=None, parse="full")
+
+        cmd_options = {
+        }
+
+        self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
+        self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
+                                                    reply_broadcast=None, parse=None)
 
     def test_event_error(self):
         self.object._handle_event = mock.Mock()
