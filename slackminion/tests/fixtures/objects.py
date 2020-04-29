@@ -37,3 +37,7 @@ class DummyPlugin(BasePlugin):
     @cmd(reply_in_thread=True, reply_broadcast=True)
     async def asyncabc(self, msg, args):
         return 'asyncabc response'
+
+    @cmd(parse=True)
+    async def asyncparse(self, msg, args):
+        return 'async parse command #parse'

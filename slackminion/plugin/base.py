@@ -42,7 +42,7 @@ class BasePlugin(object):
         """
         return True
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=False):
+    def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
         """
         Used to send a message to the specified channel.
 
@@ -50,19 +50,20 @@ class BasePlugin(object):
         * text - message to send
         * thread - thread to reply in
         * reply_broadcast - whether or not to also send the message to the channel
+        * parse - Set to "full" for the slack api to linkify names and channels
         """
         self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
         if isinstance(channel, SlackConversation):
-            self._bot.send_message(channel, text, thread, reply_broadcast)
+            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         elif isinstance(channel, string_types):
             if channel[0] == '@':
                 self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
-                self._bot.send_message(channel[1:], text, thread, reply_broadcast)
+                self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
             else:
-                self._bot.send_message(channel, text, thread, reply_broadcast)
+                self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         else:
-            self._bot.send_message(channel, text, thread, reply_broadcast)
+            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
 
     def start_periodic_task(self, duration, func, *args, **kwargs):
         """
