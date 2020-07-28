@@ -130,19 +130,11 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
     def test_get_help_for_command(self):
         for command, helpstr in test_help_long_data:
             self.object._bot.dispatcher = MessageDispatcher()
-            self.object._bot.is_cmd = None
-            self.object._bot.is_webhook = None
-            delattr(self.object._bot, 'is_cmd')
-            delattr(self.object._bot, 'is_webhook')
             self.object._bot.dispatcher.register_plugin(DummyPlugin(self.object._bot))
             assert self.object._get_help_for_command(command) == helpstr
 
     def test_get_short_help_for_command(self):
         for command, helpstr in test_help_short_data:
-            self.object._bot.is_cmd = None
-            self.object._bot.is_webhook = None
-            delattr(self.object._bot, 'is_cmd')
-            delattr(self.object._bot, 'is_webhook')
             self.object._bot.dispatcher = MessageDispatcher()
             self.object._bot.dispatcher.register_plugin(DummyPlugin(self.object._bot))
             assert self.object._get_short_help_for_command(command) == helpstr

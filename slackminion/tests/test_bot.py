@@ -201,9 +201,8 @@ class TestBot(unittest.TestCase):
                                                     reply_broadcast=None, parse=None)
 
     def test_event_error(self):
-        self.object._handle_event = mock.Mock()
         self.object._event_error(**test_payload)
-        self.object._handle_event.assert_called_with('error', test_payload)
+        self.object.log.error.assert_called_with(f"Received an error response from Slack: {test_payload}")
 
     def test_get_channel_by_name(self):
         self.object.is_setup = True
