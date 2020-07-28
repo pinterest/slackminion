@@ -7,7 +7,7 @@ setup(
         packages=find_packages(exclude=['test_plugins']),
         url='https://github.com/arcticfoxnv/slackminion',
         license='MIT',
-        author='Nick King',
+        author='Pinterest, Inc.',
         author_email='',
         description='A python bot framework for slack',
         package_data={'slackminion': ['templates/*']},

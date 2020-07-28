@@ -54,8 +54,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'slackminion'
-copyright = u'2016, Nick King'
-author = u'Nick King'
+copyright = u'2020 Pinterest, Inc.'
+author = u'Pinterest, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
