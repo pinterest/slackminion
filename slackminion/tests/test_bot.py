@@ -25,7 +25,8 @@ class TestBot(unittest.TestCase):
         assert self.object.commit == 'HEAD'
 
     @mock.patch('slackminion.bot.AsyncTaskManager')
-    def test_start(self, mock_async):
+    @mock.patch('slackminion.bot.slack')
+    def test_start(self, mock_slack, mock_async):
         self.object.start()
         assert self.object.is_setup is True
 
@@ -43,10 +44,10 @@ class TestBot(unittest.TestCase):
             await self.object.run()
             assert 'Bot not setup' in str(e)
 
-    @mock.patch('slackminion.bot.slack.RTMClient.on')
-    def test_add_callbacks(self, mock_rtmclient_on):
+    @mock.patch('slackminion.bot.slack')
+    def test_add_callbacks(self, mock_slack):
         self.object._add_event_handlers()
-        self.assertEqual(mock_rtmclient_on.call_count, 3)
+        self.assertEqual(mock_slack.RTMClient.on.call_count, 3)
 
     @async_test
     async def test_event_message_no_user_manager(self):
@@ -201,9 +202,8 @@ class TestBot(unittest.TestCase):
                                                     reply_broadcast=None, parse=None)
 
     def test_event_error(self):
-        self.object._handle_event = mock.Mock()
         self.object._event_error(**test_payload)
-        self.object._handle_event.assert_called_with('error', test_payload)
+        self.object.log.error.assert_called_with(f"Received an error response from Slack: {test_payload}")
 
     def test_get_channel_by_name(self):
         self.object.is_setup = True
