@@ -65,7 +65,7 @@ class PluginManager(object):
                 if self.test_mode:
                     self.metrics['plugins_loaded'] += 1
                     self.metrics['load_times'][name] = (datetime.now() - plugin_start_time).total_seconds() * 1000.0
-            except:
+            except Exception:  # noqa
                 self.log.exception("Failed to register plugin %s", name)
                 if self.test_mode:
                     self.metrics['plugins_failed'].append(name)
@@ -74,7 +74,7 @@ class PluginManager(object):
         for plugin in self.plugins:
             try:
                 plugin.on_connect()
-            except:
+            except Exception:  # noqa
                 self.log.exception('Unhandled exception')
 
     def save_state(self):
@@ -83,7 +83,7 @@ class PluginManager(object):
             return
 
         state = {}
-        savable_plugins = filter(lambda x: x._dont_save is False, self.plugins)
+        savable_plugins = [x for x in self.plugins if x._dont_save is False]
         for p in savable_plugins:
             attr_blacklist = [
                 '_bot',
@@ -97,19 +97,19 @@ class PluginManager(object):
                 'log',
             ]
             attr_blacklist.extend(getattr(p, 'attr_blacklist', []))
-            attrs = {k: v for k, v in p.__dict__.iteritems() if k not in attr_blacklist}
+            attrs = {k: v for k, v in list(p.__dict__.items()) if k not in attr_blacklist}
             state[type(p).__name__] = attrs
             self.log.debug("Plugin %s: %s", type(p).__name__, attrs)
         state = json.dumps(state)
         self.log.debug("Sending the following to the handler: %s", state)
         try:
             self.state_handler.save_state(state)
-        except:
+        except Exception:  # noqa
             self.log.exception("Handler failed to save state")
 
     def load_state(self):
         if self.state_handler is None:
-            self.log.warn("Unable to load state, no handler registered")
+            self.log.warning("Unable to load state, no handler registered")
             return
         try:
             state_str = self.state_handler.load_state()
@@ -119,7 +119,7 @@ class PluginManager(object):
 
         try:
             state = json.loads(state_str)
-        except:
+        except Exception:  # noqa
             self.log.exception("Handler failed to load state")
             return
 
@@ -127,7 +127,7 @@ class PluginManager(object):
             plugin_name = type(p).__name__
             if plugin_name in state:
                 self.log.info("Loading state data for %s", plugin_name)
-                for k, v in state[plugin_name].iteritems():
+                for k, v in list(state[plugin_name].items()):
                     self.log.debug("%s.%s = %s", plugin_name, k, v)
                     setattr(p, k, v)
 

@@ -1,10 +1,11 @@
-import logging
 from six import string_types
 from flask import current_app, request
-
 from slackminion.exceptions import DuplicateCommandError
-from slackminion.slack import SlackChannel
+from slackminion.slack.conversation import SlackConversation
 from slackminion.utils.util import format_docstring
+import logging
+import inspect
+
 
 class BaseCommand(object):
     def __init__(self, method):
@@ -36,6 +37,7 @@ class PluginCommand(BaseCommand):
         self.is_subcmd = method.is_subcmd
         self.while_ignored = method.while_ignored
         self.cmd_options = method.cmd_options
+        self.is_async = inspect.iscoroutinefunction(method)
 
 
 class WebhookCommand(BaseCommand):
@@ -62,29 +64,53 @@ class MessageDispatcher(object):
         self.ignored_channels = []
         self.ignored_events = ['message_replied', 'message_changed']
 
-    def push(self, message):
+    async def push(self, event, dev_mode=False):
         """
         Takes a SlackEvent, parses it for a command, and runs against registered plugin
         """
-        if self._ignore_event(message):
+        self.log.debug(event)
+        if self._ignore_event(event):
             return None, None, None
-        args = self._parse_message(message)
+        args = self._parse_message(event)
+
+        # commands will always start with !
+        if not args[0].startswith('!'):
+            return None, None, None
+
         self.log.debug("Searching for command using chunks: %s", args)
         cmd, msg_args = self._find_longest_prefix_command(args)
         if cmd is not None:
-            if message.user is None:
-                self.log.debug("Discarded message with no originating user: %s", message)
+            if event.user is None:
+                self.log.debug("Discarded message with no originating user: %s", event)
                 return None, None, None
-            sender = message.user.username
-            if message.channel is not None:
-                sender = "#%s/%s" % (message.channel.name, sender)
-            self.log.info("Received from %s: %s, args %s", sender, cmd, msg_args)
-            f = self._get_command(cmd, message.user)
+
+            if event.channel is not None:
+                sender = "#%s/%s" % (event.channel.name, event.user.formatted_name)
+            else:
+                sender = event.user.slack_user.formatted_name
+            self.log.info(f'Received from {sender}: {cmd}, args {msg_args}')
+            f = self._get_command(cmd, event.user)
             if f:
-                if self._is_channel_ignored(f, message.channel):
-                    self.log.info("Channel %s is ignored, discarding command %s", message.channel, cmd)
+                if self._is_channel_ignored(f, event.channel):
+                    self.log.info("Channel %s is ignored, discarding command %s", event.channel, cmd)
                     return '_ignored_', "", None
-                return cmd, f.execute(message, msg_args), f.cmd_options
+                try:
+                    if f.is_async:
+                        if not dev_mode:
+                            output = await f.execute(event, msg_args)
+                        else:
+                            output = f'DEV_MODE: Would have run async function {f} with args {msg_args}'
+                        return cmd, output, f.cmd_options
+                    else:
+                        if not dev_mode:
+                            output = f.execute(event, msg_args)
+                        else:
+                            output = f'DEV_MODE: Would have run function {cmd} with args {msg_args}'
+                        return cmd, output, f.cmd_options
+                except Exception as e:  # noqa we don't want plugins to crash the bot so
+                    self.log.exception('Plugin raised exception')
+                    output = f"Command failed due to an exception: {str(e)}"
+                    return cmd, output, f.cmd_options
             return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd, None
         return None, None, None
 
@@ -100,8 +126,13 @@ class MessageDispatcher(object):
         return False
 
     def _parse_message(self, message):
-        args = message.text.split(' ')
-        return args
+        if message:
+            try:
+                args = message.text.split(' ')
+                return args
+            except AttributeError:
+                pass
+        return []
 
     def register_plugin(self, plugin):
         """Registers a plugin and commands with the dispatcher for push()"""
@@ -110,7 +141,8 @@ class MessageDispatcher(object):
         plugin.on_load()
 
     def _register_commands(self, plugin):
-        for name in dir(plugin):
+        possible_commands = [x for x in dir(plugin) if not x.startswith('_')]
+        for name in possible_commands:
             method = getattr(plugin, name)
             if callable(method) and hasattr(method, 'is_cmd'):
                 commands = [method.cmd_name]
@@ -134,19 +166,17 @@ class MessageDispatcher(object):
                     current_app.add_url_rule(method.route, method.__name__, webhook.execute, methods=[method.method])
 
     def ignore(self, channel):
-        if isinstance(channel, SlackChannel):
-            channel = channel.name
-        if channel not in self.ignored_channels:
-            self.ignored_channels.append(channel)
-            return True
+        if channel.is_channel:
+            if channel.name not in self.ignored_channels:
+                self.ignored_channels.append(channel.name)
+                return True
         return False
 
     def unignore(self, channel):
-        if isinstance(channel, SlackChannel):
-            channel = channel.name
-        if channel in self.ignored_channels:
-            self.ignored_channels.remove(channel)
-            return True
+        if channel.is_channel:
+            if channel.name in self.ignored_channels:
+                self.ignored_channels.remove(channel.name)
+                return True
         return False
 
     def _find_longest_prefix_command(self, args):

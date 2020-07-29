@@ -1,6 +1,7 @@
 from slackminion.plugin.base import BasePlugin
 
 from . import version
+
 try:
     from . import commit
 except ImportError:
@@ -11,8 +12,8 @@ class UserManager(BasePlugin):
     """
     Loads and stores user information
     """
-    def on_load(self):
 
+    def on_load(self):
         self._dont_save = True  # Don't save this plugin's state on shutdown
         self.users = {}
         self.admins = {}
@@ -30,7 +31,7 @@ class UserManager(BasePlugin):
 
     def get_by_username(self, username):
         """Retrieve user by username"""
-        res = filter(lambda x: x.username == username, self.users.values())
+        res = [x for x in list(self.users.values()) if x.username == username]
         if len(res) > 0:
             return res[0]
         return None
@@ -50,7 +51,7 @@ class UserManager(BasePlugin):
         return user
 
     def _add_user_to_cache(self, user):
-        if user.id not in self.users.keys():
+        if user.id not in list(self.users.keys()):
             self.users[user.id] = user
             self.log.debug("Added user: %s/%s", user.id, user.username)
 
@@ -63,6 +64,5 @@ class UserManager(BasePlugin):
     def load_user_rights(self, user):
         """Sets permissions on user object"""
         if user.username in self.admins:
-            user.is_admin = True
-        elif not hasattr(user, 'is_admin'):
-            user.is_admin = False
+            user.set_admin(True)
+        user.set_admin(False)

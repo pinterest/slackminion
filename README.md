@@ -35,3 +35,6 @@ $ python setup.py test
 
 All tests should pass before and after you make your commits.
 
+## Python3 Support
+
+As of Version 0.10, slackminion requires Python >= 3.6.  This is due to both the upgrade of the slack client (which requries Python3), and the usage of async functions and f-strings within the slackminion code.  If you need Python 2.x, please pin version >= 0.9.x of slackminion.

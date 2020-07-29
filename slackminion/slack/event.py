@@ -1,44 +1,45 @@
-from .room import SlackChannel, SlackGroup, SlackIM
-from .user import SlackUser
-
-from six import string_types
-
 class SlackEvent(object):
+    _channel = None
     """Encapsulates an event received from the RTM socket"""
-    def __init__(self, sc=None, **kwargs):
 
-        self._sc = sc
-        self._channel = None
-        self._user = None
-
-        for k, v in kwargs.items():
-            setattr(self, k, v)
+    def __init__(self, event_type, **payload):
+        self.event_type = event_type
+        self.rtm_client = payload.get('rtm_client')
+        self.web_client = payload.get('web_client')
+        self.data = payload.get('data')
+        self.subtype = payload.get('subtype')
+        self.user_id = self.data.get('user')
+        self.channel_id = self.data.get('channel')
 
     @property
     def channel(self):
-        return self._channel
+        if self._channel:
+            return self._channel
+        return self.channel_id
 
     @channel.setter
-    def channel(self, value):
-        if isinstance(value, string_types):
-            if value[0] == 'G':
-                # Slack groups have an ID starting with 'G'
-                self._channel = SlackGroup(value, sc=self._sc)
-            elif value[0] == 'D':
-                # Slack IMs have an ID starting with 'D'
-                self._channel = SlackIM(value, sc=self._sc)
-            else:
-                self._channel = SlackChannel(value, sc=self._sc)
-        else:
-            self._channel = value
+    def channel(self, c):
+        self._channel = c
 
     @property
-    def user(self):
-        return self._user
+    def text(self):
+        if 'text' in self.data:
+            return self.data['text']
+        elif 'message' in self.data:
+            return self.data['message'].get('text', '')
+        return ''
 
-    @user.setter
-    def user(self, value):
-        if isinstance(value, string_types):
-            self._user = SlackUser(value, sc=self._sc)
-        else:
-            self._user = value
+    @property
+    def ts(self):
+        return self.data.get('ts', self.data.get('event_ts'))
+
+    @property
+    def thread_ts(self):
+        return self.data.get('thread_ts')
+
+    @property
+    def event_ts(self):
+        return self.data.get('event_ts')
+
+    def __repr__(self):
+        return f'SlackEvent type {self.event_type} User: {self.user_id}'

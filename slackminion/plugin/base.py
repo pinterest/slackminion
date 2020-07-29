@@ -1,9 +1,8 @@
 from six import string_types
-from builtins import object
 import logging
 import threading
 
-from slackminion.slack import SlackChannel, SlackIM, SlackUser, SlackRoom
+from slackminion.slack import SlackConversation, SlackUser
 
 
 class BasePlugin(object):
@@ -43,7 +42,7 @@ class BasePlugin(object):
         """
         return True
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=False):
+    def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
         """
         Used to send a message to the specified channel.
 
@@ -51,23 +50,22 @@ class BasePlugin(object):
         * text - message to send
         * thread - thread to reply in
         * reply_broadcast - whether or not to also send the message to the channel
+        * parse - Set to "full" for the slack api to linkify names and channels
         """
         self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
-        if isinstance(channel, SlackIM) or isinstance(channel, SlackUser):
-            self._bot.send_im(channel, text)
-        elif isinstance(channel, SlackRoom):
-            self._bot.send_message(channel, text, thread, reply_broadcast)
+        if isinstance(channel, SlackConversation):
+            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         elif isinstance(channel, string_types):
             if channel[0] == '@':
                 self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
-                self._bot.send_message(channel[1:], text, thread, reply_broadcast)
+                self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
             else:
-                self._bot.send_message(channel, text, thread, reply_broadcast)
+                self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         else:
-            self._bot.send_message(channel, text, thread, reply_broadcast)
+            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
 
-    def start_timer(self, duration, func, *args):
+    def start_periodic_task(self, duration, func, *args, **kwargs):
         """
         Schedules a function to be called after some period of time.
 
@@ -75,15 +73,27 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
-        self.log.info("Scheduling call to %s in %ds: %s", func.__name__, duration, args)
+        self.log.debug(f"Scheduling periodic task {func.__name__} every {duration}s (args: {args}, kwargs: {kwargs})")
         if self._bot.runnable:
-            t = threading.Timer(duration, self._timer_callback, (func, args))
-            self._timer_callbacks[func] = t
-            self._bot.timers.append(t)
-            t.start()
-            self.log.info("Scheduled call to %s in %ds", func.__name__, duration)
+            self._bot.task_manager.start_periodic_task(duration, func, *args, **kwargs)
+            self.log.info(f"Successfully scheduled call to {func.__name__} every {duration}")
         else:
-            self.log.warning("Not scheduling call to %s in %ds because we're shutting down.", func.__name__, duration)
+            self.log.warning(f"Not scheduling call to {func.__name__} because we're shutting down.")
+
+    def start_timer(self, duration, func, *args, **kwargs):
+        """
+        Schedules a function to be called after some period of time.
+
+        * duration - time in seconds to wait before firing
+        * func - function to be called
+        * args - arguments to pass to the function
+        """
+        self.log.debug(f"Scheduling call to {func.__name__} in {duration}s (args: {args}, kwargs: {kwargs})")
+        if self._bot.runnable:
+            self._bot.task_manager.start_timer(duration, func, *args, **kwargs)
+            self.log.info(f"Successfully scheduled call to {func.__name__} in {duration}")
+        else:
+            self.log.warning(f"Not scheduling call to {func.__name__} because we're shutting down.")
 
     def stop_timer(self, func):
         """
@@ -92,11 +102,10 @@ class BasePlugin(object):
         * func - the function passed in start_timer
         """
         self.log.debug('Stopping timer {}'.format(func.__name__))
-        if func in self._timer_callbacks:
-            t = self._timer_callbacks[func]
-            self._bot.timers.remove(t)
-            t.cancel()
-            del self._timer_callbacks[func]
+        self._bot.task_manager.stop_timer(func.__name__)
+
+    def run_async(self, func, *args, **kwargs):
+        return self._bot.task_manager.create_and_schedule_task(func, *args, **kwargs)
 
     def _timer_callback(self, func, args):
         self.log.debug('Executing timer function {}'.format(func.__name__))
@@ -105,21 +114,25 @@ class BasePlugin(object):
         except Exception:
             self.log.exception("Caught exception executing timer function: {}".format(func.__name__))
 
-    def get_user(self, username):
+    async def get_user(self, user_id):
         """
         Utility function to query slack for a particular user
 
-        :param username: The username of the user to lookup
+        :param user_id: The username of the user to lookup
         :return: SlackUser object or None
         """
-        if hasattr(self._bot, 'user_manager'):
-            user = self._bot.user_manager.get_by_username(username)
-            if user:
-                return user
-            user = SlackUser.get_user(self._bot.sc, username)
-            self._bot.user_manager.set(user)
+        if not hasattr(self._bot, 'user_manager'):
+            user = SlackUser(user_id=user_id, api_client=self._bot.api_client)
+            await user.load()
             return user
-        return SlackUser.get_user(self._bot.sc, username)
+
+        user = self._bot.user_manager.get_by_username(user_id)
+        if user:
+            return user
+        user = SlackUser(user_id=user_id)
+        await user.load()
+        self._bot.user_manager.set(user)
+        return user
 
     def get_channel(self, channel):
         """
@@ -128,4 +141,16 @@ class BasePlugin(object):
         :param channel: The channel name or id of the channel to lookup
         :return: SlackChannel object or None
         """
-        return SlackChannel.get_channel(self._bot.sc, channel)
+        return self._bot.get_channel(channel)
+
+    def get_channel_by_name(self, channel_name):
+        """
+        Utility function to query slack for a particular channel
+
+        :param channel: The channel name of the channel to lookup
+        :return: SlackChannel object or None
+        """
+        return self._bot.get_channel_by_name(channel_name)
+
+    def at_user(self, *args, **kwargs):
+        return self._bot.at_user(*args, **kwargs)
