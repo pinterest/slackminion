@@ -34,6 +34,14 @@ To add a command your bot will respond to, use the ``@cmd`` decorator::
 Let's take a closer look at what we just did.
 
 * ``@cmd()`` - tells the bot the following function is a command it should listen for.
+    * The following arguments are supported for the decorator.
+        * ``admin_only`` - indicates only users in bot_admin are allowed to execute (only used if AuthManager is loaded)
+        * ``acl`` - indicates which ACL to perform permission checks against (only used if AuthManager is loaded)
+        * ``aliases`` - register function with additional commands (i.e. !alias1, !alias2, etc)
+        * ``while_ignored`` - allows a command to be run, even if channel has been !sleep
+        * ``reply_in_thread`` - determines whether bot replies in the channel or a thread
+        * ``reply_broadcast`` - if replying in a thread, whether to also send the message to the channel
+        * ``parse`` - Set to "full" for the slack api to linkify names and channels
 * ``def hello(self, msg, args):``
     * defines a function called ``hello``, with two parameters.  In general, bot commands start with ``!``.  Any function with the ``@cmd`` decorator will be used to create a command, in the form of ``!<func_name>``.  In our example, the function ``hello`` will execute when a user types ``!hello``.
     * ``msg`` - ``SlackEvent`` object.
