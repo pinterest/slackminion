@@ -5,7 +5,7 @@ setup(
         name='slackminion',
         version=version,
         packages=find_packages(exclude=['test_plugins']),
-        url='https://github.com/arcticfoxnv/slackminion',
+        url='https://github.com/pinterest/slackminion',
         license='MIT',
         author='Pinterest, Inc.',
         author_email='',
