@@ -5,13 +5,12 @@ version = 1
 
 test_patterns = [
   "slackminion/tests/*.py",
-  "slackminion/tests/**/*.py"
+  "slackminion/tests/**/*.py",
 ]
 
 exclude_patterns = [
   "setup.py",
   "docs/**",
-  "tests/**",
 ]
 
 [[analyzers]]
