@@ -43,6 +43,10 @@ class TestDispatcher(unittest.TestCase):
         e = SlackEvent(event_type='message', **{'data': {'text': 'Hello world'}})
         assert self.dispatcher._parse_message(e) == ['Hello', 'world']
 
+    def test_parse_message_unicode(self):
+        e = SlackEvent(event_type='message', **{'data': {'text': 'Hello\xa0world'}})
+        assert self.dispatcher._parse_message(e) == ['Hello', 'world']
+
     def test_unignore_nonignored_channel(self):
         c = SlackConversation(conversation=test_channel, api_client=test_payload.get('api_client'))
         self.assertFalse(self.dispatcher.unignore(c))
