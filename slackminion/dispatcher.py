@@ -2,6 +2,7 @@ from six import string_types
 from flask import current_app, request
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack.conversation import SlackConversation
+import unicodedata
 from slackminion.utils.util import format_docstring
 import logging
 import inspect
@@ -128,7 +129,7 @@ class MessageDispatcher(object):
     def _parse_message(self, message):
         if message:
             try:
-                args = message.text.split(' ')
+                args = unicodedata.normalize('NFKD', message.text).split(' ')
                 return args
             except AttributeError:
                 pass
