@@ -22,7 +22,7 @@ class DummyPlugin(BasePlugin):
         Usage: !sleep [channel name] - ignore the specified channel (or current if none specified)
         """
 
-    @cmd(aliases='bca')
+    @cmd(aliases='bca', strip_formatting=True)
     def abc(self, msg, args):
         return 'abcba'
 

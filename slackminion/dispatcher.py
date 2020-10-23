@@ -214,4 +214,3 @@ class MessageDispatcher(object):
         if channel.name in self.ignored_channels:
             channel_ignored = not cmd.while_ignored
         return channel_ignored
-
