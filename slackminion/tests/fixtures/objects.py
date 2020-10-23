@@ -41,3 +41,7 @@ class DummyPlugin(BasePlugin):
     @cmd(parse=True)
     async def asyncparse(self, msg, args):
         return 'async parse command #parse'
+
+    @cmd(strip_formatting=True)
+    async def stripformat(self, msg, args):
+        return 'Format Stripped, Success %s' % args

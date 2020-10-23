@@ -6,6 +6,7 @@ import unicodedata
 from slackminion.utils.util import format_docstring
 import logging
 import inspect
+import re
 
 
 class BaseCommand(object):
@@ -95,6 +96,10 @@ class MessageDispatcher(object):
                 if self._is_channel_ignored(f, event.channel):
                     self.log.info("Channel %s is ignored, discarding command %s", event.channel, cmd)
                     return '_ignored_', "", None
+
+                # Strip formatting if requested by plugin
+                if f.cmd_options.get('strip_formatting', None):
+                    msg_args = self._strip_formatting(msg_args)
                 try:
                     if f.is_async:
                         if not dev_mode:
@@ -205,3 +210,46 @@ class MessageDispatcher(object):
         if channel.name in self.ignored_channels:
             channel_ignored = not cmd.while_ignored
         return channel_ignored
+
+    def _strip_formatting(self, args):
+        """ Remove any slack specific formatting from messages.
+        See https://api.slack.com/reference/surfaces/formatting#retrieving-messages
+        Code heavily borrowed from  hubot's removeFormatting method
+        https://github.com/slackapi/hubot-slack/blob/d9c8d1c34afc2ff5253fa0abbff0ec446dffcb39/src/slack.coffee#L137
+        """
+        arg_string = " ".join(args)
+        self.log.info("_strip_formatting called with: %s", arg_string)
+
+        special_pattern = re.compile(r"""
+            <              # opening angle bracket
+            ([\@\#\!])     # link type for channel, username or command
+            (\w+)          # id
+            (?:\|([^>]+))? # |label (optional)
+            >              # closing angle bracket
+            """, re.VERBOSE)
+
+        link_pattern = re.compile(r"""
+            <              # opening angle bracket
+            ([^>\|]+)      # link
+            (?:\|([^>]+))? # label
+            >              # closing angle bracket
+            """, re.VERBOSE)
+
+        def _special_match_substitute(match):
+            """ If we find the label, remove the id """
+            if match.group(3):
+                return "{}{}".format(match.group(1), match.group(3))
+            else:
+                return "{}{}".format(match.group(1), match.group(2))
+
+        def _link_match_substitute(match):
+            """ If we find the label, use it. If not, use the original link"""
+            if match.group(2):
+                return match.group(2)
+            else:
+                return match.group(1)
+
+        arg_string = re.sub(special_pattern, _special_match_substitute, arg_string)
+        arg_string = re.sub(link_pattern, _link_match_substitute, arg_string)
+        self.log.info("_strip_formatting formatted response: %s", arg_string)
+        return arg_string.split(" ")
