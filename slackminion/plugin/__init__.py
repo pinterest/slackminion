@@ -3,7 +3,7 @@ from .manager import PluginManager  # noqa
 
 
 def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
-        reply_in_thread=False, reply_broadcast=False, parse=None, *args, **kwargs):
+        reply_in_thread=False, reply_broadcast=False, parse=None, strip_formatting=False, *args, **kwargs):
     """
     Decorator to mark plugin functions as commands in the form of !<cmd_name>
 
@@ -14,6 +14,7 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
     * reply_in_thread - determines whether bot replies in the channel or a thread
     * reply_broadcast - if replying in a thread, whether to also send the message to the channel
     * parse - Set to "full" for the slack api to linkify names and channels
+    * strip_formatting - Remove formtting added by slack to the messages
     """
 
     def wrapper(func):
@@ -28,6 +29,7 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
             'reply_in_thread': reply_in_thread,
             'reply_broadcast': reply_broadcast,
             'parse': parse,
+            'strip_formatting': strip_formatting,
         }
         return func
 

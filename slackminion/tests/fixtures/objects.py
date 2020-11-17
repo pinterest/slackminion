@@ -1,5 +1,6 @@
 from .variables import *
 from slackminion.plugin import BasePlugin, cmd
+from slackminion.utils.util import strip_formatting
 
 
 class TestChannel(object):
@@ -41,3 +42,7 @@ class DummyPlugin(BasePlugin):
     @cmd(parse=True)
     async def asyncparse(self, msg, args):
         return 'async parse command #parse'
+
+    @cmd(strip_formatting=True)
+    async def stripformat(self, msg, args):
+        return strip_formatting(' '.join(args))

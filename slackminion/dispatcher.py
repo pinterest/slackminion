@@ -3,9 +3,10 @@ from flask import current_app, request
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.slack.conversation import SlackConversation
 import unicodedata
-from slackminion.utils.util import format_docstring
+from slackminion.utils.util import format_docstring, strip_formatting
 import logging
 import inspect
+import re
 
 
 class BaseCommand(object):
@@ -95,6 +96,14 @@ class MessageDispatcher(object):
                 if self._is_channel_ignored(f, event.channel):
                     self.log.info("Channel %s is ignored, discarding command %s", event.channel, cmd)
                     return '_ignored_', "", None
+
+                # Strip formatting if requested by plugin
+                if f.cmd_options.get('strip_formatting'):
+                    input_string = ' '.join(msg_args)
+                    self.log.debug('Calling strip_format with %s', input_string)
+                    input_string = strip_formatting(input_string)
+                    self.log.debug('Format Stripped message is %s', input_string)
+                    msg_args = input_string.split(' ')
                 try:
                     if f.is_async:
                         if not dev_mode:
@@ -205,3 +214,4 @@ class MessageDispatcher(object):
         if channel.name in self.ignored_channels:
             channel_ignored = not cmd.while_ignored
         return channel_ignored
+
