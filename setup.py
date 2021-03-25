@@ -23,7 +23,7 @@ setup(
             'slackclient==2.5.0',
             'websocket-client >=0.35, <0.55.0',
             'Werkzeug>=0.10.4',
-            'chardet<4.0',
+            'aiohttp==aiohttp 3.7.4.post0',
         ],
         setup_requires=[
             'pytest-runner'
