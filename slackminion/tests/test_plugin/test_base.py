@@ -88,3 +88,18 @@ class TestBasePlugin(unittest.TestCase):
         self.plugin._bot = mock.Mock()
         self.plugin.send_message(test_channel, 'Yet another test string')
         self.plugin._bot.send_message.assert_called()
+
+    def test_no_events_without_handler_method(self):
+        class BadPlugin(BasePlugin):
+            notify_event_types = ['message']
+
+        class GoodPlugin(BasePlugin):
+            notify_event_types = ['message']
+
+            def handle_event(self):
+                pass
+
+        GoodPlugin(mock.Mock())
+
+        with self.assertRaises(AttributeError):
+            BadPlugin(mock.Mock())

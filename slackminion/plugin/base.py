@@ -6,6 +6,8 @@ from slackminion.slack import SlackConversation, SlackUser
 
 
 class BasePlugin(object):
+    notify_event_types = []
+
     def __init__(self, bot, **kwargs):
         self.log = logging.getLogger(type(self).__name__)
         self._bot = bot
@@ -13,6 +15,8 @@ class BasePlugin(object):
         self._state_handler = False  # State storage backends should set this to true
         self._timer_callbacks = {}
         self.config = {}
+        if self.notify_event_types and not hasattr(self, 'handle_event'):
+            raise AttributeError('Plugin requested events but has no handle_event method!')
         if 'config' in kwargs:
             self.config = kwargs['config']
 

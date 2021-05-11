@@ -239,6 +239,8 @@ class Bot(object):
         data = payload.get('data')
         subtype = payload.get('data').get('subtype')
 
+        self.plugins.broadcast_event(event_type, payload)
+
         # ignore message subtypes we aren't interested in
         if subtype in ignore_subtypes:
             self.log.info(f"Ignoring message subtype {subtype} from {data.get('user')}")

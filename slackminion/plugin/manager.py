@@ -70,6 +70,19 @@ class PluginManager(object):
                 if self.test_mode:
                     self.metrics['plugins_failed'].append(name)
 
+    # Broadcasts a slack event to handlers that have registered for the
+    # event type via notify_event_types class attribute
+    # Plugin MUST implement a handle_event method to handle these events.
+    def broadcast_event(self, event_type, payload):
+        for plugin in self.plugins:
+            if event_type in plugin.notify_event_types:
+                self.log.debug(f'Sending event of type {event_type} to plugin {plugin.__name__}.  Payload: {payload}')
+                try:
+                    plugin.handle_event(event_type, payload)
+                # The plugin is expected to handle its own exceptions.
+                except Exception:  # noqa
+                    self.log.exception("Unhandled exception!")
+
     def connect(self):
         for plugin in self.plugins:
             try:
