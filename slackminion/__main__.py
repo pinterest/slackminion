@@ -33,9 +33,9 @@ def main():
     if args.test:
         test_passed = True
         output = ["Bot Test Results"]
-        metrics = bot.plugins.metrics
+        metrics = bot.plugin_manager.metrics
         output.append("Plugins Loaded")
-        for p in bot.plugins.plugins:
+        for p in bot.plugin_manager.plugin_manager:
             context = {
                 'name': type(p).__name__,
                 'version': '-'.join([p._version, p._commit]),

@@ -1,5 +1,6 @@
 class SlackEvent(object):
     _channel = None
+    user = None
     """Encapsulates an event received from the RTM socket"""
 
     def __init__(self, event_type, **payload):

@@ -41,6 +41,7 @@ test_payload = {
     'rtm_client': AsyncMock(),
     'web_client': AsyncMock(),
     'data': {
+        'type': 'message',
         'user': test_user_id,
         'channel': test_channel_id,
         'text': test_text,

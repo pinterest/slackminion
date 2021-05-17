@@ -52,8 +52,8 @@ class TestBot(unittest.TestCase):
     @async_test
     async def test_event_message_no_user_manager(self):
         # mock out the methods we don't want to actually call
-        self.object._handle_event = AsyncMock()
-        self.object._handle_event.coro.return_value = self.test_event
+        self.object._parse_event = AsyncMock()
+        self.object._parse_event.coro.return_value = self.test_event
         self.object.dispatcher = mock.Mock()
         self.object.dispatcher.push = AsyncMock()
         self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
@@ -65,7 +65,7 @@ class TestBot(unittest.TestCase):
         self.object.user_manager = None
 
         await self.object._event_message(**test_payload)
-        self.object._handle_event.assert_called_with('message', test_payload)
+        self.object._parse_event.assert_called_with(test_payload)
         self.object._load_user_rights.assert_not_called()
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
         self.object.log.debug.assert_called_with(f'Output from dispatcher: {test_output}')
@@ -74,8 +74,8 @@ class TestBot(unittest.TestCase):
     @async_test
     async def test_event_message_with_user_manager(self):
         # mock out the methods we don't want to actually call
-        self.object._handle_event = AsyncMock()
-        self.object._handle_event.coro.return_value = self.test_event
+        self.object._parse_event = AsyncMock()
+        self.object._parse_event.coro.return_value = self.test_event
         self.object.dispatcher = mock.Mock()
         self.object.dispatcher.push = AsyncMock()
         self.object.dispatcher.push.coro.return_value = (test_command, test_output, None)
@@ -87,7 +87,7 @@ class TestBot(unittest.TestCase):
         self.object.user_manager = mock.Mock()
 
         await self.object._event_message(**test_payload)
-        self.object._handle_event.assert_called_with('message', test_payload)
+        self.object._parse_event.assert_called_with(test_payload)
         self.object._load_user_rights.assert_not_called()
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
         self.object.log.debug.assert_called_with(f'Output from dispatcher: {test_output}')
@@ -98,9 +98,9 @@ class TestBot(unittest.TestCase):
     async def test_event_message_with_manager_reload(self):
         self.test_payload['data'].update()
         # mock out the methods we don't want to actually call
-        self.object._handle_event = AsyncMock()
+        self.object._parse_event = AsyncMock()
         self.test_event.user = mock.Mock()
-        self.object._handle_event.coro.return_value = self.test_event
+        self.object._parse_event.coro.return_value = self.test_event
         self.object.dispatcher = mock.Mock()
         self.object.dispatcher.push = AsyncMock()
         self.object.log = mock.Mock()
@@ -112,7 +112,7 @@ class TestBot(unittest.TestCase):
 
         await self.object._event_message(**test_payload)
 
-        self.object._handle_event.assert_called_with('message', test_payload)
+        self.object._parse_event.assert_called_with(test_payload)
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
         self.object.log.debug.assert_called_with(f'Output from dispatcher: {test_output}')
         self.object._prepare_and_send_output.assert_called_with(test_command, self.test_event, None, test_output)
@@ -120,8 +120,8 @@ class TestBot(unittest.TestCase):
     @async_test
     async def test_event_message_with_user_manager_but_no_user(self):
         # mock out the methods we don't want to actually call
-        self.object._handle_event = AsyncMock()
-        self.object._handle_event.coro.return_value = self.test_event
+        self.object._parse_event = AsyncMock()
+        self.object._parse_event.coro.return_value = self.test_event
         self.object.dispatcher = mock.Mock()
         self.object.dispatcher.push = AsyncMock()
         self.object.log = mock.Mock()
@@ -132,14 +132,14 @@ class TestBot(unittest.TestCase):
 
         await self.object._event_message(**test_payload)
 
-        self.object._handle_event.assert_called_with('message', test_payload)
+        self.object._parse_event.assert_called_with(test_payload)
         self.object._load_user_rights.assert_not_called()
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
         self.object.log.debug.assert_called_with(f'Output from dispatcher: {test_output}')
         self.object._prepare_and_send_output.assert_called_with(test_command, self.test_event, None, test_output)
 
     @async_test
-    async def test_handle_event_uncached_user(self):
+    async def test_parse_event_uncached_user(self):
         self.object.log = mock.Mock()
         # for this test, bot has a user manager but .get() returns None
         # so the bot has to to look up user again using .set()
@@ -149,7 +149,7 @@ class TestBot(unittest.TestCase):
         self.object.get_channel = AsyncMock()
         self.object.api_client.users_info = AsyncMock()
         self.object.api_client.users_info.coro.return_value = test_user_response
-        await self.object._handle_event('message', test_payload)
+        await self.object._parse_event(test_payload)
         self.object.user_manager.get.assert_called_with(test_user_id)
         self.object.user_manager.set.assert_called()
 
@@ -230,6 +230,28 @@ class TestBot(unittest.TestCase):
         expected_message = f'{test_user.at_user}: {test_message}'
         self.object.at_user(test_user, test_channel_id, test_message)
         self.object.send_message.assert_called_with(test_channel_id, expected_message)
+
+    def test_unpack_payload(self):
+        event_type, data = self.object._unpack_payload(**test_payload)
+        self.assertEqual(event_type, test_payload['data']['type'])
+        self.assertEqual(data, test_payload['data'])
+
+    @mock.patch('slackminion.bot.slack')
+    def test_handle_plugin_event(self, mock_slack):
+        self.object.plugin_manager = mock.Mock()
+
+        class PluginWithEvents(BasePlugin):
+            notify_event_types = [test_event_type]
+
+            def handle_event(self):
+                pass
+
+        plugin = PluginWithEvents(self.object)
+        self.object.plugin_manager.plugins = [plugin]
+        self.object._add_event_handlers()
+        self.assertEqual(mock_slack.RTMClient.on.call_count, 4)
+        mock_slack.RTMClient.on.assert_called_with(event=test_event_type,
+                                                   callback=self.object._handle_plugin_event)
 
 
 if __name__ == "__main__":
