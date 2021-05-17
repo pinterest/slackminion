@@ -281,13 +281,13 @@ class Bot(object):
                 for event_type in plugin.notify_event_types:
                     self.log.info(f'Registering handler for {event_type} for plugin {plugin.__class__.__name__}')
                     try:
-                        slack.RTMClient.on(event=event_type, callback=self._handle_plugin_event)
+                        slack.RTMClient.on(event=event_type, callback=self._event_plugin)
                     except Exception as e:
                         self.log.exception(f'Unexpected exception when attempting to register event handler for '
                                            f'type {event_type} for plugin {plugin.__class__.__name__}" [{e}] ')
 
     # generic handler for handling event types registered by plugins via notify_event_types class attribute
-    async def _handle_plugin_event(self, **payload):
+    async def _event_plugin(self, **payload):
         event_type, data = self._unpack_payload(**payload)
         self.plugin_manager.broadcast_event(event_type, data)
 

@@ -6,6 +6,13 @@ from slackminion.tests.fixtures import *
 from copy import deepcopy
 
 
+class PluginWithEvents(BasePlugin):
+    notify_event_types = [test_event_type]
+
+    def handle_event(self):
+        pass
+
+
 class TestBot(unittest.TestCase):
     @mock.patch('slackminion.slack.SlackUser')
     def setUp(self, mock_user):
@@ -236,22 +243,21 @@ class TestBot(unittest.TestCase):
         self.assertEqual(event_type, test_payload['data']['type'])
         self.assertEqual(data, test_payload['data'])
 
+
     @mock.patch('slackminion.bot.slack')
-    def test_handle_plugin_event(self, mock_slack):
+    @async_test
+    async def test_handle_plugin_event(self, mock_slack):
         self.object.plugin_manager = mock.Mock()
-
-        class PluginWithEvents(BasePlugin):
-            notify_event_types = [test_event_type]
-
-            def handle_event(self):
-                pass
-
         plugin = PluginWithEvents(self.object)
+        plugin.handle_event = mock.Mock()
+        self.object.plugin_manager.broadcast_event = mock.Mock()
         self.object.plugin_manager.plugins = [plugin]
         self.object._add_event_handlers()
         self.assertEqual(mock_slack.RTMClient.on.call_count, 4)
         mock_slack.RTMClient.on.assert_called_with(event=test_event_type,
-                                                   callback=self.object._handle_plugin_event)
+                                                   callback=self.object._event_plugin)
+        await self.object._event_plugin(**test_payload)
+        self.object.plugin_manager.broadcast_event.assert_called_with(test_event_type, test_payload['data'])
 
 
 if __name__ == "__main__":
