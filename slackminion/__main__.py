@@ -35,7 +35,7 @@ def main():
         output = ["Bot Test Results"]
         metrics = bot.plugin_manager.metrics
         output.append("Plugins Loaded")
-        for p in bot.plugin_manager.plugin_manager:
+        for p in bot.plugin_manager.plugins:
             context = {
                 'name': type(p).__name__,
                 'version': '-'.join([p._version, p._commit]),
