@@ -54,7 +54,7 @@ class Core(BasePlugin):
     def save(self, msg, args):
         """Causes the bot to write its current state to backend."""
         self.send_message(msg.channel, "Saving current state...")
-        self._bot.plugins.save_state()
+        self._bot.plugin_manager.save_state()
         self.send_message(msg.channel, "Done.")
 
     @cmd(admin_only=True)
@@ -112,7 +112,7 @@ class Core(BasePlugin):
             'name': type(x).__name__,
             'version': x._version,
             'commit': x._commit,
-        } for x in self._bot.plugins.plugins]
+        } for x in self._bot.plugin_manager.plugins]
 
         uptime = datetime.now() - self._bot.bot_start_time
         partial_day = uptime.seconds

@@ -35,7 +35,7 @@ class Bot(object):
         self.config = config
         self.dispatcher = MessageDispatcher()
         self.log = logging.getLogger(type(self).__name__)
-        self.plugins = PluginManager(self, test_mode)
+        self.plugin_manager = PluginManager(self, test_mode)
         self.test_mode = test_mode
         self.dev_mode = dev_mode
         self.event_loop = asyncio.get_event_loop()
@@ -110,8 +110,8 @@ class Bot(object):
         self.log.debug('Slack clients initialized.')
         self.webserver = Webserver(self.config['webserver']['host'], self.config['webserver']['port'])
 
-        self.plugins.load()
-        self.plugins.load_state()
+        self.plugin_manager.load()
+        self.plugin_manager.load_state()
 
         self.rtm_client = slack.RTMClient(token=self.config.get('slack_token'), run_async=True)
         self.api_client = slack.WebClient(token=self.config.get('slack_token'), run_async=True)
@@ -151,7 +151,7 @@ class Bot(object):
             if first_connect:
                 self.log.debug('Starting RTM Client')
                 self.task_manager.start_rtm_client(self.rtm_client)
-                self.plugins.connect()
+                self.plugin_manager.connect()
                 self.task_manager.start_periodic_task(600, self.update_channels)
                 first_connect = False
             await self.task_manager.start()
@@ -160,7 +160,7 @@ class Bot(object):
     async def stop(self):
         """Does cleanup of bot and plugins."""
         if not self.test_mode:
-            self.plugins.save_state()
+            self.plugin_manager.save_state()
         self.log.debug('Stopping Task Manager')
         await self.task_manager.shutdown()
         self.log.debug('Stopping RTM client.')
@@ -170,7 +170,7 @@ class Bot(object):
             t.cancel()
         if self.webserver is not None:
             self.webserver.stop()
-        self.plugins.unload_all()
+        self.plugin_manager.unload_all()
 
     def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None, parse=None,
                      link_names=1):
@@ -234,50 +234,76 @@ class Bot(object):
                 if user.username in self.config['bot_admins']:
                     user.set_admin(True)
 
-    async def _handle_event(self, event_type, payload):
+    # Parse incoming event and return a corresponding SlackEvent object
+    async def _parse_event(self, payload):
         self.log.debug(payload)
-        data = payload.get('data')
-        subtype = payload.get('data').get('subtype')
-
-        self.plugins.broadcast_event(event_type, payload)
+        event_type, data = self._unpack_payload(**payload)
+        subtype = data.get('subtype')
 
         # ignore message subtypes we aren't interested in
-        if subtype in ignore_subtypes:
+        if subtype and subtype in ignore_subtypes:
             self.log.info(f"Ignoring message subtype {subtype} from {data.get('user')}")
             self.log.debug(data.get('text'))
             return
 
-        e = SlackEvent(event_type=event_type, **payload)
-        self.log.debug("Received event type: %s", e.event_type)
+        event = SlackEvent(event_type=event_type, **payload)
+        self.log.debug("Received event type: %s", event.event_type)
 
-        if e.user_id and e.user_id != self.my_userid:
+        if event.user_id and event.user_id != self.my_userid:
             if hasattr(self, 'user_manager'):
-                e.user = self.user_manager.get(e.user_id)
-                if e.user is None:
-                    slack_user = SlackUser(user_id=e.user_id, api_client=self.api_client)
+                event.user = self.user_manager.get(event.user_id)
+                if event.user is None:
+                    slack_user = SlackUser(user_id=event.user_id, api_client=self.api_client)
                     await slack_user.load()
-                    e.user = self.user_manager.set(slack_user)
-        if e.channel_id:
-            e.channel = await self.get_channel(e.channel_id)
-        return e
+                    event.user = self.user_manager.set(slack_user)
+        if event.channel_id:
+            event.channel = await self.get_channel(event.channel_id)
+
+        return event
+
+    def _unpack_payload(self, **payload):
+        data = payload['data']
+        event_type = data['type']
+        return event_type, data
 
     def _add_event_handlers(self):
         slack.RTMClient.on(event='channel_joined', callback=self._event_channel_joined)
         slack.RTMClient.on(event='message', callback=self._event_message)
         slack.RTMClient.on(event='error', callback=self._event_error)
+        for plugin in self.plugin_manager.plugins:
+            if plugin.notify_event_types:
+                t = type(plugin.notify_event_types)
+                try:
+                    assert t == list
+                except AssertionError:
+                    self.log.exception(
+                        f'notify_event_types for {plugin.__class__.__name__} type should be list, got {t}')
+                for event_type in plugin.notify_event_types:
+                    self.log.info(f'Registering handler for {event_type} for plugin {plugin.__class__.__name__}')
+                    try:
+                        slack.RTMClient.on(event=event_type, callback=self._event_plugin)
+                    except Exception as e:
+                        self.log.exception(f'Unexpected exception when attempting to register event handler for '
+                                           f'type {event_type} for plugin {plugin.__class__.__name__}" [{e}] ')
+
+    # generic handler for handling event types registered by plugins via notify_event_types class attribute
+    async def _event_plugin(self, **payload):
+        event_type, data = self._unpack_payload(**payload)
+        self.plugin_manager.broadcast_event(event_type, data)
 
     # when the bot is invited to a channel, add the channel to self.channels
     async def _event_channel_joined(self, **payload):
         try:
-            self.log.debug(f'Channel joined: {payload}')
-            channel_info = payload.get('data').get('channel')
+            event_type, data = self._unpack_payload(**payload)
+            self.log.debug(f'Received channel_joined event: {data}')
+            channel_info = data.get('channel')
             channel = SlackConversation(conversation=channel_info, api_client=self.api_client)
             self._channels.update({channel.id: channel})
         except Exception:  # noqa
             self.log.exception('Uncaught exception')
 
     async def _event_message(self, **payload):
-        msg = await self._handle_event('message', payload)
+        msg = await self._parse_event(payload)
         if not msg:
             return
 
@@ -293,7 +319,6 @@ class Bot(object):
                 self._prepare_and_send_output(cmd, msg, cmd_options, output)
         except Exception:
             self.log.exception('Unhandled exception')
-            return
 
     def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         self.log.debug(f'Preparing to send  output for  {cmd} with options {cmd_options}')
@@ -311,6 +336,8 @@ class Bot(object):
                               reply_broadcast=cmd_options.get('reply_broadcast'), parse=parse)
 
     def _event_error(self, **payload):
+        event_type, data = self._unpack_payload(**payload)
+        self.plugin_manager.broadcast_event(event_type, data)
         self.log.error(f"Received an error response from Slack: {payload}")
 
     def get_channel_by_name(self, channel_name):
