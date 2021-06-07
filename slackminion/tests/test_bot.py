@@ -51,10 +51,10 @@ class TestBot(unittest.TestCase):
             await self.object.run()
             assert 'Bot not setup' in str(e)
 
-    @mock.patch('slackminion.bot.slack')
-    def test_add_callbacks(self, mock_slack):
+    @mock.patch('slackminion.bot.MyRTMClient')
+    def test_add_callbacks(self, mock_rtm):
         self.object._add_event_handlers()
-        self.assertEqual(mock_slack.RTMClient.on.call_count, 3)
+        self.assertEqual(mock_rtm.on.call_count, 3)
 
     @async_test
     async def test_event_message_no_user_manager(self):
@@ -244,18 +244,18 @@ class TestBot(unittest.TestCase):
         self.assertEqual(data, test_payload['data'])
 
 
-    @mock.patch('slackminion.bot.slack')
+    @mock.patch('slackminion.bot.MyRTMClient')
     @async_test
-    async def test_handle_plugin_event(self, mock_slack):
+    async def test_handle_plugin_event(self, mock_rtm):
         self.object.plugin_manager = mock.Mock()
         plugin = PluginWithEvents(self.object)
         plugin.handle_event = mock.Mock()
         self.object.plugin_manager.broadcast_event = mock.Mock()
         self.object.plugin_manager.plugins = [plugin]
         self.object._add_event_handlers()
-        self.assertEqual(mock_slack.RTMClient.on.call_count, 4)
-        mock_slack.RTMClient.on.assert_called_with(event=test_event_type,
-                                                   callback=self.object._event_plugin)
+        self.assertEqual(mock_rtm.on.call_count, 4)
+        mock_rtm.on.assert_called_with(event=test_event_type,
+                                                 callback=self.object._event_plugin)
         await self.object._event_plugin(**test_payload)
         self.object.plugin_manager.broadcast_event.assert_called_with(test_event_type, test_payload['data'])
 

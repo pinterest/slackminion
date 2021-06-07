@@ -5,6 +5,7 @@ from slackminion.plugin import PluginManager
 from slackminion.webserver import Webserver
 from slackminion.utils.async_task import AsyncTaskManager, AsyncTimer
 from slackminion.plugins.core import version as my_version
+from slackminion.slack.rtm_client import MyRTMClient
 import logging
 import datetime
 import slack
@@ -113,7 +114,7 @@ class Bot(object):
         self.plugin_manager.load()
         self.plugin_manager.load_state()
 
-        self.rtm_client = slack.RTMClient(token=self.config.get('slack_token'), run_async=True)
+        self.rtm_client = MyRTMClient(token=self.config.get('slack_token'), run_async=True)
         self.api_client = slack.WebClient(token=self.config.get('slack_token'), run_async=True)
 
         self.always_send_dm = ['_unauthorized_']
@@ -267,9 +268,9 @@ class Bot(object):
         return event_type, data
 
     def _add_event_handlers(self):
-        slack.RTMClient.on(event='channel_joined', callback=self._event_channel_joined)
-        slack.RTMClient.on(event='message', callback=self._event_message)
-        slack.RTMClient.on(event='error', callback=self._event_error)
+        MyRTMClient.on(event='channel_joined', callback=self._event_channel_joined)
+        MyRTMClient.on(event='message', callback=self._event_message)
+        MyRTMClient.on(event='error', callback=self._event_error)
         for plugin in self.plugin_manager.plugins:
             if plugin.notify_event_types:
                 t = type(plugin.notify_event_types)
@@ -281,7 +282,7 @@ class Bot(object):
                 for event_type in plugin.notify_event_types:
                     self.log.info(f'Registering handler for {event_type} for plugin {plugin.__class__.__name__}')
                     try:
-                        slack.RTMClient.on(event=event_type, callback=self._event_plugin)
+                        MyRTMClient.on(event=event_type, callback=self._event_plugin)
                     except Exception as e:
                         self.log.exception(f'Unexpected exception when attempting to register event handler for '
                                            f'type {event_type} for plugin {plugin.__class__.__name__}" [{e}] ')
