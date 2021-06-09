@@ -208,8 +208,9 @@ class TestBot(unittest.TestCase):
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
                                                     reply_broadcast=None, parse=None)
 
-    def test_event_error(self):
-        self.object._event_error(**test_payload)
+    @async_test
+    async def test_event_error(self):
+        await self.object._event_error(**test_payload)
         self.object.log.error.assert_called_with(f"Received an error response from Slack: {test_payload}")
 
     def test_get_channel_by_name(self):
@@ -249,7 +250,7 @@ class TestBot(unittest.TestCase):
         self.object.plugin_manager = mock.Mock()
         plugin = PluginWithEvents(self.object)
         plugin.handle_event = mock.Mock()
-        self.object.plugin_manager.broadcast_event = mock.Mock()
+        self.object.plugin_manager.broadcast_event = AsyncMock()
         self.object.plugin_manager.plugins = [plugin]
         self.object._add_event_handlers()
         self.assertEqual(mock_rtm.on.call_count, 4)

@@ -74,7 +74,7 @@ class PluginManager(object):
     # Broadcasts a slack event to handlers that have registered for the
     # event type via notify_event_types class attribute
     # Plugin MUST implement a handle_event method to handle these events.
-    def broadcast_event(self, event_type, data):
+    async def broadcast_event(self, event_type, data):
         for plugin in self.plugins:
             if event_type in plugin.notify_event_types:
                 self.log.debug(
