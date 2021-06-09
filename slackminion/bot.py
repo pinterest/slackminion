@@ -290,7 +290,7 @@ class Bot(object):
     # generic handler for handling event types registered by plugins via notify_event_types class attribute
     async def _event_plugin(self, **payload):
         event_type, data = self._unpack_payload(**payload)
-        self.plugin_manager.broadcast_event(event_type, data)
+        await self.plugin_manager.broadcast_event(event_type, data)
 
     # when the bot is invited to a channel, add the channel to self.channels
     async def _event_channel_joined(self, **payload):
@@ -336,9 +336,9 @@ class Bot(object):
             self.send_message(msg.channel, output, thread=thread_ts,
                               reply_broadcast=cmd_options.get('reply_broadcast'), parse=parse)
 
-    def _event_error(self, **payload):
+    async def _event_error(self, **payload):
         event_type, data = self._unpack_payload(**payload)
-        self.plugin_manager.broadcast_event(event_type, data)
+        await self.plugin_manager.broadcast_event(event_type, data)
         self.log.error(f"Received an error response from Slack: {payload}")
 
     def get_channel_by_name(self, channel_name):

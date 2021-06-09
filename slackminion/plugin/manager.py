@@ -1,5 +1,6 @@
 import json
 import logging
+import inspect
 from datetime import datetime
 
 
@@ -73,13 +74,16 @@ class PluginManager(object):
     # Broadcasts a slack event to handlers that have registered for the
     # event type via notify_event_types class attribute
     # Plugin MUST implement a handle_event method to handle these events.
-    def broadcast_event(self, event_type, data):
+    async def broadcast_event(self, event_type, data):
         for plugin in self.plugins:
             if event_type in plugin.notify_event_types:
                 self.log.debug(
                     f'Sending event of type {event_type} to plugin {plugin.__class__.__name__}.  Data: {data}')
                 try:
-                    plugin.handle_event(event_type, data)
+                    if inspect.iscoroutinefunction(plugin.handle_event):
+                        await plugin.handle_event(event_type, data)
+                    else:
+                        plugin.handle_event(event_type, data)
                 # The plugin is expected to handle its own exceptions.
                 except Exception:  # noqa
                     self.log.exception("Unhandled exception!")

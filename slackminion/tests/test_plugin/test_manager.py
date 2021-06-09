@@ -21,9 +21,10 @@ class TestPluginManager(unittest.TestCase):
         self.object.unload_all()
         fake_plugin.on_unload.assert_called()
 
-    def test_broadcast_event(self):
+    @async_test
+    async def test_broadcast_event(self):
         plugin = PluginWithEvents(mock.Mock())
         plugin.handle_event = mock.Mock()
         self.object.plugins = [plugin]
-        self.object.broadcast_event(test_event_type, test_payload['data'])
+        await self.object.broadcast_event(test_event_type, test_payload['data'])
         plugin.handle_event.assert_called_with(test_event_type, test_payload['data'])
