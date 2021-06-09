@@ -1,5 +1,6 @@
 import json
 import logging
+import inspect
 from datetime import datetime
 
 
@@ -79,7 +80,10 @@ class PluginManager(object):
                 self.log.debug(
                     f'Sending event of type {event_type} to plugin {plugin.__class__.__name__}.  Data: {data}')
                 try:
-                    plugin.handle_event(event_type, data)
+                    if inspect.iscoroutinefunction(plugin.handle_event):
+                        await plugin.handle_event(event_type, data)
+                    else:
+                        plugin.handle_event(event_type, data)
                 # The plugin is expected to handle its own exceptions.
                 except Exception:  # noqa
                     self.log.exception("Unhandled exception!")

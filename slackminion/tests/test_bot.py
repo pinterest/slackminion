@@ -243,7 +243,6 @@ class TestBot(unittest.TestCase):
         self.assertEqual(event_type, test_payload['data']['type'])
         self.assertEqual(data, test_payload['data'])
 
-
     @mock.patch('slackminion.bot.MyRTMClient')
     @async_test
     async def test_handle_plugin_event(self, mock_rtm):
@@ -255,7 +254,7 @@ class TestBot(unittest.TestCase):
         self.object._add_event_handlers()
         self.assertEqual(mock_rtm.on.call_count, 4)
         mock_rtm.on.assert_called_with(event=test_event_type,
-                                                 callback=self.object._event_plugin)
+                                       callback=self.object._event_plugin)
         await self.object._event_plugin(**test_payload)
         self.object.plugin_manager.broadcast_event.assert_called_with(test_event_type, test_payload['data'])
 
