@@ -37,6 +37,7 @@ class Bot(object):
         self.dispatcher = MessageDispatcher()
         self.log = logging.getLogger(type(self).__name__)
         self.plugin_manager = PluginManager(self, test_mode)
+        self.plugins = self.plugin_manager  # backward compatibility
         self.test_mode = test_mode
         self.dev_mode = dev_mode
         self.event_loop = asyncio.get_event_loop()
