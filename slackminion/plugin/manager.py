@@ -95,7 +95,7 @@ class PluginManager(object):
             except Exception:  # noqa
                 self.log.exception('Unhandled exception')
 
-    def save_state(self):
+    def save_state(self, *args, **kwargs):
         if self.state_handler is None:
             self.log.warning("Unable to save state, no handler registered")
             return
@@ -121,16 +121,16 @@ class PluginManager(object):
         state = json.dumps(state)
         self.log.debug("Sending the following to the handler: %s", state)
         try:
-            self.state_handler.save_state(state)
+            self.state_handler.save_state(state, *args, **kwargs)
         except Exception:  # noqa
             self.log.exception("Handler failed to save state")
 
-    def load_state(self):
+    def load_state(self, *args, **kwargs):
         if self.state_handler is None:
             self.log.warning("Unable to load state, no handler registered")
             return
         try:
-            state_str = self.state_handler.load_state()
+            state_str = self.state_handler.load_state(*args, **kwargs)
         except IOError:
             self.log.warning("No state information found")
             return
