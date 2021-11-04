@@ -15,13 +15,14 @@ class SlackConversation(object):
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
 
+    # make other values in the dict returned by slack accessible to callers
     def __getattr__(self, item):
         return self.conversation.get(item)
 
     @property
     def all_names(self):
         return [self.conversation['name'], self.conversation['name_normalized']] \
-                        + self.conversation.get('previous_names', [])
+               + self.conversation.get('previous_names', [])
 
     @property
     def channel(self):

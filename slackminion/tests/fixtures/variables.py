@@ -55,7 +55,9 @@ test_channel = {
     'name': test_channel_name,
     'id': test_channel_id,
     'is_channel': True,
-    'is_im': False
+    'is_im': False,
+    'name_normalized': test_channel_name.lower(),
+    'previous_names': [f'{test_channel_name}-old'],
 }
 
 test_dm = {
