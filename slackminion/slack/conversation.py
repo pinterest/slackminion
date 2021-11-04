@@ -20,7 +20,8 @@ class SlackConversation(object):
 
     @property
     def all_names(self):
-        return [self.name, self.conversation.get('normalized_name')] + self.conversation.get('previous_names', [])
+        return [self.conversation['name'], self.conversation['name_normalized']] \
+                        + self.conversation.get('previous_names', [])
 
     @property
     def channel(self):
