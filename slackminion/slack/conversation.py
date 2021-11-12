@@ -7,7 +7,9 @@ class SlackConversation(object):
     _topic = None
 
     def __init__(self, conversation, api_client):
-        """Base class for rooms (channels, groups) and IMs"""
+        """
+        Base class for rooms (channels, groups) and IMs
+        """
         self.api_client = api_client
         self.conversation = conversation  # the dict slack sent us
         if conversation:
@@ -15,12 +17,14 @@ class SlackConversation(object):
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
 
+    # make arbitrary keys in the dict returned by slack accessible as properties
     def __getattr__(self, item):
         return self.conversation.get(item)
 
     @property
     def all_names(self):
-        return [self.name, self.conversation.get('normalized_name')] + self.conversation.get('previous_names', [])
+        return [self.conversation['name'], self.conversation['name_normalized']] \
+               + self.conversation.get('previous_names', [])
 
     @property
     def channel(self):
@@ -40,6 +44,7 @@ class SlackConversation(object):
         self._topic = new_topic
         self.api_client.conversations_setTopic(channel=self.id, topic=new_topic)
 
+    # reloads channel info from slack api
     async def load(self, channel_id):
         resp = await self.api_client.conversations_info(channel=channel_id)
         if resp:
