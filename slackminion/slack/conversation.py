@@ -11,7 +11,7 @@ class SlackConversation(object):
         Base class for rooms (channels, groups) and IMs
         """
         self.api_client = api_client
-        self.conversation = conversation  # the dict slack sent us
+        self.conversation = conversation  # 'channel' from the dict slack sent us
         if conversation:
             self._topic = conversation.get('topic', {}).get('value')
         self.logger = logging.getLogger(type(self).__name__)
@@ -23,8 +23,14 @@ class SlackConversation(object):
 
     @property
     def all_names(self):
-        return [self.conversation['name'], self.conversation['name_normalized']] \
-               + self.conversation.get('previous_names', [])
+        names = []
+        if self.name:
+            names.append(self.name)
+        if self.name_normalized:
+            names.append(self.name_normalized)
+        if self.previous_names:  # a list
+            names += self.previous_names
+        return names
 
     @property
     def channel(self):

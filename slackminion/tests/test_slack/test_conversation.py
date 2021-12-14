@@ -14,6 +14,16 @@ TEST_CONVERSATION = {
     'previous_names': ['old-test-channel-name', 'some-other-name'],
     'priority': 0
 }
+TEST_CONVERSATION_UNNAMED = {
+    'id': 'C02KT31H9GX',
+    'is_channel': True,
+    'is_group': False,
+    'is_im': False,
+    'is_mpim': False,
+    'is_private': False,
+    'topic': {'value': '', 'creator': '', 'last_set': 0},
+    'priority': 0
+}
 
 
 class TestConversation(unittest.TestCase):
@@ -22,6 +32,29 @@ class TestConversation(unittest.TestCase):
         self.api_client = mock.Mock()
         self.object = SlackConversation(TEST_CONVERSATION, self.api_client)
         self.assertEqual(self.object.conversation, TEST_CONVERSATION)
+
+    def test_missing_names(self):
+        conversation = SlackConversation(TEST_CONVERSATION_UNNAMED, self.api_client)
+        expected_names = []
+        self.assertEqual(conversation.all_names, expected_names)
+
+        new_name = TEST_CONVERSATION.get('name')
+        TEST_CONVERSATION_UNNAMED['name'] = new_name
+        conversation = SlackConversation(TEST_CONVERSATION_UNNAMED, self.api_client)
+        expected_names = [new_name]
+        self.assertEqual(conversation.all_names, expected_names)
+
+        normalized_name = TEST_CONVERSATION.get('name_normalized')
+        TEST_CONVERSATION_UNNAMED['name_normalized'] = normalized_name
+        conversation = SlackConversation(TEST_CONVERSATION_UNNAMED, self.api_client)
+        expected_names = [new_name, normalized_name]
+        self.assertEqual(conversation.all_names, expected_names)
+
+        previous_names = TEST_CONVERSATION.get('previous_names')
+        TEST_CONVERSATION_UNNAMED['previous_names'] = previous_names
+        conversation = SlackConversation(TEST_CONVERSATION_UNNAMED, self.api_client)
+        expected_names = [new_name, normalized_name] + previous_names
+        self.assertEqual(conversation.all_names, expected_names)
 
     def test_all_names(self):
         expected_names = [TEST_CONVERSATION['name'], TEST_CONVERSATION['name_normalized']] \
