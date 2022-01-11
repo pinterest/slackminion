@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import logging
 import signal
 import sys
@@ -18,7 +19,7 @@ def main():
     args = p.parse_args()
 
     with open(args.config, 'rb') as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=yaml.SafeLoader)
 
     level = logging.DEBUG if config['debug'] else logging.INFO
     logging.basicConfig(level=level, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
@@ -27,7 +28,7 @@ def main():
     bot.start()
     if not args.test:
         signal.signal(signal.SIGTERM, sigterm_handler)
-        bot.run()
+        asyncio.run(bot.run())
     bot.stop()
 
     if args.test:
