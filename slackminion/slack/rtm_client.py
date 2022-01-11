@@ -1,4 +1,4 @@
-from slack import RTMClient
+from slack_sdk.rtm import RTMClient
 
 
 class MyRTMClient(RTMClient):
