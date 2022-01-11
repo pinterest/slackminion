@@ -91,7 +91,7 @@ class AsyncTaskManager(object):
     def add_signal_handlers(self):
         signals = [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]
         # these need to be added every time RTMClient starts/restarts, as
-        # slackclient adds its own signal handler which overrides these
+        # slack_sdk adds its own signal handler which overrides these
         for sig in signals:
             if self.event_loop._signal_handlers[sig]._callback != self.graceful_shutdown:
                 self.log.debug(f'Adding signal handler for {sig}')

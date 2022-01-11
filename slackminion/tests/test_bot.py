@@ -32,7 +32,7 @@ class TestBot(unittest.TestCase):
         assert self.object.commit == 'HEAD'
 
     @mock.patch('slackminion.bot.AsyncTaskManager')
-    @mock.patch('slackminion.bot.slack')
+    @mock.patch('slackminion.bot.AsyncWebClient')
     def test_start(self, mock_slack, mock_async):
         self.object.start()
         assert self.object.is_setup is True

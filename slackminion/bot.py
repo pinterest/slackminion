@@ -8,7 +8,7 @@ from slackminion.plugins.core import version as my_version
 from slackminion.slack.rtm_client import MyRTMClient
 import logging
 import datetime
-import slack
+from slack_sdk.web.async_client import AsyncWebClient
 import asyncio
 
 ignore_subtypes = [
@@ -116,7 +116,7 @@ class Bot(object):
         self.plugin_manager.load_state()
 
         self.rtm_client = MyRTMClient(token=self.config.get('slack_token'), run_async=True)
-        self.api_client = slack.WebClient(token=self.config.get('slack_token'), run_async=True)
+        self.api_client = AsyncWebClient(token=self.config.get('slack_token'))
 
         self.always_send_dm = ['_unauthorized_']
         if 'always_send_dm' in self.config:
