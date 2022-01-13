@@ -23,4 +23,5 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Tests
       run: |
-        python setup.py test
+        pip install tox
+        tox

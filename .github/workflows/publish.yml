@@ -15,7 +15,8 @@ jobs:
         python-version: 3.7
     - name: Tests
       run: |
-        python setup.py test
+        pip install tox
+        tox
     - name: Build pip
       run: |
         python setup.py sdist
