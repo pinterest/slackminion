@@ -3,7 +3,6 @@ from functools import wraps
 from slackminion.plugin import cmd
 from slackminion.plugin.base import BasePlugin
 
-from . import version
 try:
     from . import commit
 except ImportError:

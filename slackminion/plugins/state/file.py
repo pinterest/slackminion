@@ -1,6 +1,5 @@
 import os
 
-from slackminion.plugins.core import version
 try:
     from slackminion.plugins.core import commit
 except ImportError:
