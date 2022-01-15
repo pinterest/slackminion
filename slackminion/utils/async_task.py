@@ -1,10 +1,10 @@
-from contextlib import suppress
 import asyncio
-import logging
-import time
 import functools
 import inspect
+import logging
 import signal
+import time
+from contextlib import suppress
 
 
 class CallLater:

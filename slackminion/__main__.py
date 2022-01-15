@@ -3,6 +3,7 @@ import asyncio
 import logging
 import signal
 import sys
+
 import yaml
 
 from slackminion.bot import Bot

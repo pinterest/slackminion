@@ -1,10 +1,12 @@
-from six import string_types
-from flask import current_app, request
-from slackminion.exceptions import DuplicateCommandError
-import unicodedata
-from slackminion.utils.util import format_docstring, strip_formatting
-import logging
 import inspect
+import logging
+import unicodedata
+
+from flask import current_app, request
+from six import string_types
+
+from slackminion.exceptions import DuplicateCommandError
+from slackminion.utils.util import format_docstring, strip_formatting
 
 
 class BaseCommand(object):

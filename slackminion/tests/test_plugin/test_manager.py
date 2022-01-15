@@ -1,5 +1,5 @@
-from slackminion.tests.fixtures import *
 from slackminion.plugin import PluginManager
+from slackminion.tests.fixtures import *
 
 
 class PluginWithEvents(BasePlugin):

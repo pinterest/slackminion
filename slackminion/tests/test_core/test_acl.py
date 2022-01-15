@@ -1,5 +1,5 @@
-from slackminion.plugins.core.acl import AuthManager
 from slackminion.dispatcher import MessageDispatcher
+from slackminion.plugins.core.acl import AuthManager
 from slackminion.tests.fixtures import *
 
 

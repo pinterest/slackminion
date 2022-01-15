@@ -1,5 +1,5 @@
-from slackminion.tests.fixtures import *
 from slackminion.slack.conversation import SlackConversation
+from slackminion.tests.fixtures import *
 
 TEST_CONVERSATION = {
     'id': 'C02KT31H9GX',

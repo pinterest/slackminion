@@ -1,4 +1,5 @@
 from ..plugin import cmd, webhook
+
 try:
     from slackminion.plugins.core import commit
 except ImportError:
