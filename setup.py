@@ -25,18 +25,6 @@ setup(
             'Werkzeug>=0.10.4',
             'aiohttp==3.7.4.post0',
         ],
-        setup_requires=[
-            'pytest-runner'
-        ],
-        tests_require=[
-            'pytest>=5.4.0',
-            'pytest-asyncio',
-            'pytest-cov==2.6.1',
-            'codeclimate-test-reporter==0.1.2',
-            'coverage==4.5.2',
-            'mock==3.0.5',
-            'future',
-        ],
         entry_points={
             'console_scripts': [
                 'slackminion = slackminion.__main__:main',
