@@ -1,5 +1,4 @@
 import logging
-import asyncio
 
 
 class SlackUser(object):

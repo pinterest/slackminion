@@ -1,6 +1,5 @@
 from six import string_types
 import logging
-import threading
 
 from slackminion.slack import SlackConversation, SlackUser
 

@@ -3,7 +3,7 @@ from slackminion.slack import SlackEvent, SlackUser, SlackConversation
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin import PluginManager
 from slackminion.webserver import Webserver
-from slackminion.utils.async_task import AsyncTaskManager, AsyncTimer
+from slackminion.utils.async_task import AsyncTaskManager
 from slackminion.plugins.core import version as my_version
 from slackminion.slack.rtm_client import MyRTMClient
 import logging

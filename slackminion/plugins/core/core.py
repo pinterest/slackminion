@@ -6,8 +6,6 @@ from slackminion.plugin import cmd, webhook
 from slackminion.plugin.base import BasePlugin
 from slackminion.slack import SlackConversation
 
-from . import version
-
 try:
     from . import commit
 except ImportError:

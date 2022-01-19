@@ -1,7 +1,5 @@
 from slackminion.plugin.base import BasePlugin
 
-from . import version
-
 try:
     from . import commit
 except ImportError:
