@@ -43,6 +43,11 @@ class TestDispatcher(unittest.TestCase):
         e = SlackEvent(event_type='message', **{'data': {'text': 'Hello world'}})
         assert self.dispatcher._parse_message(e) == ['Hello', 'world']
 
+    def test_parse_message_extra_space(self):
+        # Strip out extra spaces
+        e = SlackEvent(event_type='message', **{'data': {'text': 'Hello  world'}})
+        assert self.dispatcher._parse_message(e) == ['Hello', 'world']
+
     def test_parse_message_unicode(self):
         e = SlackEvent(event_type='message', **{'data': {'text': 'Hello\xa0world'}})
         assert self.dispatcher._parse_message(e) == ['Hello', 'world']

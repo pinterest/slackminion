@@ -138,7 +138,7 @@ class MessageDispatcher(object):
     def _parse_message(self, message):
         if message:
             try:
-                args = unicodedata.normalize('NFKD', message.text).split(' ')
+                args = unicodedata.normalize('NFKD', message.text).split()
                 return args
             except AttributeError:
                 pass
