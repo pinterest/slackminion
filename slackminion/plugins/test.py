@@ -21,14 +21,14 @@ class TestPlugin(BasePlugin):
         return "Nothing happens for %s" % msg.user
 
     @cmd()
-    def alert(self, msg, args):
+    async def alert(self, msg, args):
         """Alert everyone."""
-        self.send_message(self.config['channel'], '<!here>: something important is going to happen!')
+        await self.send_message(self.config['channel'], '<!here>: something important is going to happen!')
         return None
 
     @webhook('/echo', form_params='foo')
-    def web_echo(self, foo):
-        self.send_message(self.config['channel'], foo)
+    async def web_echo(self, foo):
+        await self.send_message(self.config['channel'], foo)
 
     @cmd()
     def shortsleep(self, msg, args):
@@ -54,11 +54,11 @@ class TestPlugin(BasePlugin):
         if len(args) > 0:
             channel.topic = ' '.join(args)
 
-    def _sleep_func(self):
-        self.send_message(self.config['channel'], 'Slept for a bit')
+    async def _sleep_func(self):
+        await self.send_message(self.config['channel'], 'Slept for a bit')
 
-    def _sleep_func2(self, channel, text):
-        self.send_message(channel, text)
+    async def _sleep_func2(self, channel, text):
+        await self.send_message(channel, text)
 
 
 class TestAclPlugin(BasePlugin):

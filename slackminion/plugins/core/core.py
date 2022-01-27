@@ -50,11 +50,11 @@ class Core(BasePlugin):
         return f"*{name}*: {helpstr}"
 
     @cmd(admin_only=True)
-    def save(self, msg, args):
+    async def save(self, msg, args):
         """Causes the bot to write its current state to backend."""
-        self.send_message(msg.channel, "Saving current state...")
+        await self.send_message(msg.channel, "Saving current state...")
         self._bot.plugin_manager.save_state()
-        self.send_message(msg.channel, "Done.")
+        await self.send_message(msg.channel, "Done.")
 
     @cmd(admin_only=True)
     def shutdown(self, msg, args):
@@ -73,7 +73,7 @@ class Core(BasePlugin):
         return '\n'.join(output)
 
     @cmd()
-    def sleep(self, msg, args):
+    async def sleep(self, msg, args):
         """Causes the bot to ignore all messages from the channel.
 
         Usage:
@@ -83,12 +83,12 @@ class Core(BasePlugin):
         if channel:
             self.log.info('Sleeping in %s', channel)
             self._bot.dispatcher.ignore(channel)
-            self.send_message(channel, 'Going to sleep, good night. Type !wake to wake me up')
+            await self.send_message(channel, 'Going to sleep, good night. Type !wake to wake me up')
         else:
             self.log.warning('!sleep called without a channel')
 
     @cmd(admin_only=True, while_ignored=True)
-    def wake(self, msg, args):
+    async def wake(self, msg, args):
         """Causes the bot to resume operation in the channel.
 
         Usage:
@@ -98,7 +98,7 @@ class Core(BasePlugin):
         if channel:
             self.log.info('Waking up in %s', channel.name)
             self._bot.dispatcher.unignore(channel)
-            self.send_message(channel, 'Hello, how may I be of service?')
+            await self.send_message(channel, 'Hello, how may I be of service?')
         else:
             self.log.warning('!wake called without a channel')
 

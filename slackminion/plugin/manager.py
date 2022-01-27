@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import inspect
 import json
 import logging
+import typing
 from datetime import datetime
+
+if typing.TYPE_CHECKING:
+    from slackminion.bot import Bot
 
 
 class PluginManager(object):
-    def __init__(self, bot, test_mode=False):
+    def __init__(self, bot: Bot, test_mode=False):
         self.bot = bot
         self.config = bot.config
         self.dispatcher = bot.dispatcher

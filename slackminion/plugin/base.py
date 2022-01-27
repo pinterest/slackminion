@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import logging
+import typing
 
 from six import string_types
 
 from slackminion.slack import SlackConversation, SlackUser
 
+if typing.TYPE_CHECKING:
+    from slackminion.bot import Bot
+
 
 class BasePlugin(object):
     notify_event_types = []
 
-    def __init__(self, bot, **kwargs):
+    def __init__(self, bot: Bot, **kwargs):
         self.log = logging.getLogger(type(self).__name__)
         self._bot = bot
         self._dont_save = False  # By default, we want to save a plugin's state during save_state()
@@ -46,7 +52,7 @@ class BasePlugin(object):
         """
         return True
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
+    async def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
         """
         Used to send a message to the specified channel.
 
@@ -58,16 +64,16 @@ class BasePlugin(object):
         """
         self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
         if isinstance(channel, SlackConversation):
-            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+            await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         elif isinstance(channel, string_types):
             if channel[0] == '@':
-                self._bot.send_im(channel[1:], text)
+                await self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
-                self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
+                await self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
             else:
-                self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+                await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         else:
-            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+            await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
 
     def start_periodic_task(self, duration, func, *args, **kwargs):
         """

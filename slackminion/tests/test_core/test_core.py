@@ -82,9 +82,9 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
         self.object._bot.dispatcher.register_plugin(self.object)
         assert self.object.help(self.test_event, ['help']) == format_docstring('Displays help for each command')
 
-    def test_save(self):
+    async def test_save(self):
         self.object.send_message = mock.Mock()
-        self.object.save(self.test_event, [])
+        await self.object.save(self.test_event, [])
 
         assert self.object.send_message.call_count == 2
 
@@ -104,26 +104,26 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
         output = self.object.whoami(self.test_event, None)
         assert output == f'Hello <@{test_user_id}|{test_user_name}>\nBot version: {version}-{test_commit}'
 
-    def test_sleep(self):
+    async def test_sleep(self):
         self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
-        self.object.sleep(self.test_event, [])
+        await self.object.sleep(self.test_event, [])
         self.object._bot.dispatcher.ignore.assert_called_with(TestChannel)
 
-    def test_sleep_channel(self):
+    async def test_sleep_channel(self):
         self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
-        self.object.sleep(self.test_event, [test_channel_name])
+        await self.object.sleep(self.test_event, [test_channel_name])
         self.object._bot.dispatcher.ignore.assert_called_with(TestChannel)
 
-    def test_wake(self):
+    async def test_wake(self):
         self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
-        self.object.wake(self.test_event, [])
+        await self.object.wake(self.test_event, [])
         self.object._bot.dispatcher.unignore.assert_called_with(TestChannel)
 
     @mock.patch('slackminion.plugin.base.SlackConversation')
-    def test_wake_channel(self, mock_slackchannel):
+    async def test_wake_channel(self, mock_slackchannel):
         mock_slackchannel.return_value = test_conversation
         self.object.send_message = mock.Mock()
-        self.object.wake(test_conversation, [test_channel_name])
+        await self.object.wake(test_conversation, [test_channel_name])
         self.object.send_message.assert_called()
 
     def test_get_help_for_command(self):
