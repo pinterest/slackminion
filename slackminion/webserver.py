@@ -1,10 +1,10 @@
 import logging
 import os
-import requests
-
-from flask import Flask, request
 from threading import Thread
 from uuid import uuid4 as uuid
+
+import requests
+from flask import Flask, request
 
 
 class Webserver(object):

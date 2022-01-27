@@ -1,6 +1,7 @@
 from datetime import datetime
-from flask import render_template
 from operator import itemgetter
+
+from flask import render_template
 
 from slackminion.plugin import cmd, webhook
 from slackminion.plugin.base import BasePlugin

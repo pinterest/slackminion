@@ -1,4 +1,5 @@
 import unittest
+
 from slackminion.utils.util import strip_formatting
 
 

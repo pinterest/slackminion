@@ -1,15 +1,17 @@
+import asyncio
+import datetime
+import logging
+
+from slack_sdk.web.async_client import AsyncWebClient
+
 from slackminion.dispatcher import MessageDispatcher
-from slackminion.slack import SlackEvent, SlackUser, SlackConversation
 from slackminion.exceptions import NotSetupError
 from slackminion.plugin import PluginManager
-from slackminion.webserver import Webserver
-from slackminion.utils.async_task import AsyncTaskManager
 from slackminion.plugins.core import version as my_version
+from slackminion.slack import SlackConversation, SlackEvent, SlackUser
 from slackminion.slack.rtm_client import MyRTMClient
-import logging
-import datetime
-from slack_sdk.web.async_client import AsyncWebClient
-import asyncio
+from slackminion.utils.async_task import AsyncTaskManager
+from slackminion.webserver import Webserver
 
 ignore_subtypes = [
     'bot_message',

@@ -1,9 +1,11 @@
+from copy import deepcopy
+
 import yaml
+
 from slackminion.bot import Bot
 from slackminion.exceptions import NotSetupError
 from slackminion.plugins.core import version
 from slackminion.tests.fixtures import *
-from copy import deepcopy
 
 
 class PluginWithEvents(BasePlugin):

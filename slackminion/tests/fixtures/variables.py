@@ -1,6 +1,7 @@
-from unittest import mock
-from slackminion.slack import SlackConversation, SlackUser, SlackEvent
 import asyncio
+from unittest import mock
+
+from slackminion.slack import SlackConversation, SlackEvent, SlackUser
 
 
 def AsyncMock():

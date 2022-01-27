@@ -1,7 +1,8 @@
+from copy import deepcopy
+
+from slackminion.dispatcher import MessageDispatcher
 from slackminion.exceptions import DuplicateCommandError
 from slackminion.tests.fixtures import *
-from slackminion.dispatcher import MessageDispatcher
-from copy import deepcopy
 
 test_data_mapping = []
 

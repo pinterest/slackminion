@@ -1,6 +1,7 @@
-from slackminion.tests.fixtures import *
 import unittest
 from unittest import mock
+
+from slackminion.tests.fixtures import *
 
 
 class TestSlackUser(unittest.TestCase):

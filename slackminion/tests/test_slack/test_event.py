@@ -1,4 +1,5 @@
 from unittest import mock
+
 from slackminion.slack.conversation import SlackConversation
 from slackminion.tests.fixtures import *
 

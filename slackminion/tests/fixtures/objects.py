@@ -1,6 +1,7 @@
-from .variables import *
 from slackminion.plugin import BasePlugin, cmd
 from slackminion.utils.util import strip_formatting
+
+from .variables import *
 
 
 class TestChannel(object):

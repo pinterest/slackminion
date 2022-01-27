@@ -1,6 +1,6 @@
 import unittest
 from unittest import mock
-from .variables import *
-from .objects import *
-from .decorators import *
 
+from .decorators import *
+from .objects import *
+from .variables import *

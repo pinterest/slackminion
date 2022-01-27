@@ -1,9 +1,10 @@
-from slackminion.slack import SlackUser, SlackConversation
-import textwrap
 import asyncio
-import os
 import getpass
+import os
 import re
+import textwrap
+
+from slackminion.slack import SlackConversation, SlackUser
 
 
 def format_docstring(docstring):

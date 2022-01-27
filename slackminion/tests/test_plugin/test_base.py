@@ -1,6 +1,5 @@
-from slackminion.plugin import BasePlugin
 import slackminion.plugin.base
-
+from slackminion.plugin import BasePlugin
 from slackminion.tests.fixtures import *
 
 
