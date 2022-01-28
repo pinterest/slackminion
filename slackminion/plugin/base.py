@@ -144,14 +144,14 @@ class BasePlugin(object):
         self._bot.user_manager.set(user)
         return user
 
-    def get_channel(self, channel):
+    async def get_channel(self, channel):
         """
         Utility function to query slack for a particular channel
 
         :param channel: The channel name or id of the channel to lookup
         :return: SlackChannel object or None
         """
-        return self._bot.get_channel(channel)
+        return await self._bot.get_channel(channel)
 
     def get_channel_by_name(self, channel_name):
         """
@@ -162,5 +162,5 @@ class BasePlugin(object):
         """
         return self._bot.get_channel_by_name(channel_name)
 
-    def at_user(self, *args, **kwargs):
-        return self._bot.at_user(*args, **kwargs)
+    async def at_user(self, *args, **kwargs):
+        return await self._bot.at_user(*args, **kwargs)
