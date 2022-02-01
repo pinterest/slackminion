@@ -50,7 +50,7 @@ class WebhookCommand(BaseCommand):
     def execute(self):
         args = {}
         form_params = self.form_params
-        if isinstance(self.form_params, string_types):
+        if isinstance(self.form_params, str):
             form_params = [self.form_params]
         if form_params is not None:
             for p in form_params:
@@ -158,7 +158,7 @@ class MessageDispatcher(object):
                 commands = [method.cmd_name]
                 if method.aliases is not None:
                     aliases = method.aliases
-                    if isinstance(method.aliases, string_types):
+                    if isinstance(method.aliases, str):
                         aliases = [method.aliases]
                     for alias in aliases:
                         commands.append(alias)
