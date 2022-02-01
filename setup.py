@@ -12,7 +12,7 @@ setup(
         author_email='',
         description='A python bot framework for slack',
         package_data={'slackminion': ['templates/*']},
-        python_requires='>=3.6',
+        python_requires='>=3.7',
         install_requires=[
             'Flask>=1.1.1',
             'itsdangerous>=0.24',

@@ -49,8 +49,8 @@ class TestBasePlugin(unittest.TestCase):
         self.plugin.stop_timer(dummy_func)
         self.plugin._bot.task_manager.stop_timer.assert_called_with(dummy_func.__name__)
 
-    def test_get_channel(self):
-        self.plugin.get_channel(test_channel_name)
+    async def test_get_channel(self):
+        await self.plugin.get_channel(test_channel_name)
         self.plugin._bot.get_channel.assert_called()
 
     @async_test
@@ -83,9 +83,9 @@ class TestBasePlugin(unittest.TestCase):
             await self.plugin.get_user(non_existent_user_id)
         self.plugin._bot.user_manager.get_by_username.assert_called_with(non_existent_user_id)
 
-    def test_send_message(self):
+    async def test_send_message(self):
         self.plugin._bot = mock.Mock()
-        self.plugin.send_message(test_channel, 'Yet another test string')
+        await self.plugin.send_message(test_channel, 'Yet another test string')
         self.plugin._bot.send_message.assert_called()
 
     def test_no_events_without_handler_method(self):

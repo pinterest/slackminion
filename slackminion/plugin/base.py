@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import logging
+import typing
 
 from six import string_types
 
 from slackminion.slack import SlackConversation, SlackUser
 
+if typing.TYPE_CHECKING:
+    from slackminion.bot import Bot
+
 
 class BasePlugin(object):
     notify_event_types = []
 
-    def __init__(self, bot, **kwargs):
+    def __init__(self, bot: Bot, **kwargs):
         self.log = logging.getLogger(type(self).__name__)
         self._bot = bot
         self._dont_save = False  # By default, we want to save a plugin's state during save_state()
@@ -46,7 +52,7 @@ class BasePlugin(object):
         """
         return True
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
+    async def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
         """
         Used to send a message to the specified channel.
 
@@ -58,16 +64,16 @@ class BasePlugin(object):
         """
         self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
         if isinstance(channel, SlackConversation):
-            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+            await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         elif isinstance(channel, string_types):
             if channel[0] == '@':
-                self._bot.send_im(channel[1:], text)
+                await self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
-                self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
+                await self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
             else:
-                self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+                await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         else:
-            self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+            await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
 
     def start_periodic_task(self, duration, func, *args, **kwargs):
         """
@@ -138,14 +144,14 @@ class BasePlugin(object):
         self._bot.user_manager.set(user)
         return user
 
-    def get_channel(self, channel):
+    async def get_channel(self, channel):
         """
         Utility function to query slack for a particular channel
 
         :param channel: The channel name or id of the channel to lookup
         :return: SlackChannel object or None
         """
-        return self._bot.get_channel(channel)
+        return await self._bot.get_channel(channel)
 
     def get_channel_by_name(self, channel_name):
         """
@@ -156,5 +162,5 @@ class BasePlugin(object):
         """
         return self._bot.get_channel_by_name(channel_name)
 
-    def at_user(self, *args, **kwargs):
-        return self._bot.at_user(*args, **kwargs)
+    async def at_user(self, *args, **kwargs):
+        return await self._bot.at_user(*args, **kwargs)

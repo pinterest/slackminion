@@ -176,7 +176,7 @@ class Bot(object):
             self.webserver.stop()
         self.plugin_manager.unload_all()
 
-    def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None, parse=None,
+    async def send_message(self, channel, text, thread=None, reply_broadcast=None, attachments=None, parse=None,
                      link_names=1):
         """
         Sends a message to the specified channel
@@ -195,7 +195,7 @@ class Bot(object):
         if isinstance(channel, SlackConversation):
             channel = channel.channel_id
         self.log.debug(f'Trying to send to {channel}: {text[:40]} (truncated)')
-        self.api_client.chat_postMessage(
+        await self.api_client.chat_postMessage(
             as_user=True,
             channel=channel,
             text=text,
@@ -206,7 +206,7 @@ class Bot(object):
             link_names=link_names,
         )
 
-    def send_im(self, user, text, parse=None):
+    async def send_im(self, user, text, parse=None):
         """
         Sends a message to a user as an IM
 
@@ -217,9 +217,9 @@ class Bot(object):
             channelid = user.user_id
         else:
             channelid = user
-        self.send_message(channelid, text, parse)
+        await self.send_message(channelid, text, parse)
 
-    def at_user(self, user, channel_id, text, **kwargs):
+    async def at_user(self, user, channel_id, text, **kwargs):
         """
         Appends @user Slack formatting to the beginning of a message.
 
@@ -229,7 +229,7 @@ class Bot(object):
         * kwargs - add'l keyword arguments to pass to send_message()
         """
         message = f'{user.at_user}: {text}'
-        self.send_message(channel_id, message, **kwargs)
+        await self.send_message(channel_id, message, **kwargs)
 
     def _load_user_rights(self, user):
         self.log.debug(f'Loading user rights for {user}')
@@ -320,11 +320,11 @@ class Bot(object):
             self.log.debug(f"Output from dispatcher: {output}")
 
             if output:
-                self._prepare_and_send_output(cmd, msg, cmd_options, output)
+                await self._prepare_and_send_output(cmd, msg, cmd_options, output)
         except Exception:
             self.log.exception('Unhandled exception')
 
-    def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
+    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         self.log.debug(f'Preparing to send  output for  {cmd} with options {cmd_options}')
         if msg.thread_ts:
             thread_ts = msg.thread_ts
@@ -334,10 +334,10 @@ class Bot(object):
             thread_ts = None
         parse = cmd_options.get('parse', None)
         if cmd in self.always_send_dm or cmd_options.get('always_send_dm'):
-            self.send_im(msg.user, output, parse=parse)
+            await self.send_im(msg.user, output, parse=parse)
         else:
-            self.send_message(msg.channel, output, thread=thread_ts,
-                              reply_broadcast=cmd_options.get('reply_broadcast'), parse=parse)
+            await self.send_message(msg.channel, output, thread=thread_ts,
+                                    reply_broadcast=cmd_options.get('reply_broadcast'), parse=parse)
 
     async def _event_error(self, **payload):
         event_type, data = self._unpack_payload(**payload)
