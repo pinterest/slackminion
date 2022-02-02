@@ -3,8 +3,6 @@ from __future__ import annotations
 import logging
 import typing
 
-from six import string_types
-
 from slackminion.slack import SlackConversation, SlackUser
 
 if typing.TYPE_CHECKING:
@@ -65,7 +63,7 @@ class BasePlugin(object):
         self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
         if isinstance(channel, SlackConversation):
             await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
-        elif isinstance(channel, string_types):
+        elif isinstance(channel, str):
             if channel[0] == '@':
                 await self._bot.send_im(channel[1:], text)
             elif channel[0] == '#':
