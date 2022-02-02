@@ -79,7 +79,7 @@ class Core(BasePlugin):
         Usage:
         !sleep [channel name] - ignore the specified channel (or current if none specified)
         """
-        channel = self._get_channel_from_msg_or_args(msg, args)
+        channel = await self._get_channel_from_msg_or_args(msg, args)
         if channel:
             self.log.info('Sleeping in %s', channel)
             self._bot.dispatcher.ignore(channel)
@@ -94,7 +94,7 @@ class Core(BasePlugin):
         Usage:
         !wake [channel name] - unignore the specified channel (or current if none specified)
         """
-        channel = self._get_channel_from_msg_or_args(msg, args)
+        channel = await self._get_channel_from_msg_or_args(msg, args)
         if channel:
             self.log.info('Waking up in %s', channel.name)
             self._bot.dispatcher.unignore(channel)
@@ -133,11 +133,11 @@ class Core(BasePlugin):
         }
         return render_template('status.html', **context)
 
-    def _get_channel_from_msg_or_args(self, msg, args):
+    async def _get_channel_from_msg_or_args(self, msg, args):
         channel = None
         if len(args) == 0:
             if isinstance(msg.channel, SlackConversation):
                 channel = msg.channel
         else:
-            channel = self.get_channel(args[0])
+            channel = await self.get_channel(args[0])
         return channel

@@ -4,8 +4,8 @@ from unittest import mock
 from slackminion.slack import SlackConversation, SlackEvent, SlackUser
 
 
-def AsyncMock():
-    coro = mock.Mock(name="CoroutineResult")
+def AsyncMock(*args, **kwargs):
+    coro = mock.Mock(name="CoroutineResult", *args, **kwargs)
     corofunc = mock.Mock(name="CoroutineFunction", side_effect=asyncio.coroutine(coro))
     corofunc.coro = coro
     return corofunc
