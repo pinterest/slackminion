@@ -39,6 +39,8 @@ class BasicPluginTest(object):
     def setUp(self, mock_user):
         mock_user.return_value = test_user
         bot = mock.Mock()
+        bot.get_channel = AsyncMock()
+        bot.send_message = AsyncMock()
         if self.PLUGIN_CLASS:
             self.object = self.PLUGIN_CLASS(bot)
             self.test_event = SlackEvent(event_type='tests', **test_payload)
@@ -82,8 +84,9 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
         self.object._bot.dispatcher.register_plugin(self.object)
         assert self.object.help(self.test_event, ['help']) == format_docstring('Displays help for each command')
 
+    @async_test
     async def test_save(self):
-        self.object.send_message = mock.Mock()
+        self.object.send_message = AsyncMock()
         await self.object.save(self.test_event, [])
 
         assert self.object.send_message.call_count == 2
@@ -104,25 +107,29 @@ class TestCorePlugin(BasicPluginTest, unittest.TestCase):
         output = self.object.whoami(self.test_event, None)
         assert output == f'Hello <@{test_user_id}|{test_user_name}>\nBot version: {version}-{test_commit}'
 
+    @async_test
     async def test_sleep(self):
-        self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
+        self.object._get_channel_from_msg_or_args = AsyncMock(return_value=TestChannel)
         await self.object.sleep(self.test_event, [])
         self.object._bot.dispatcher.ignore.assert_called_with(TestChannel)
 
+    @async_test
     async def test_sleep_channel(self):
-        self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
+        self.object._get_channel_from_msg_or_args = AsyncMock(return_value=TestChannel)
         await self.object.sleep(self.test_event, [test_channel_name])
         self.object._bot.dispatcher.ignore.assert_called_with(TestChannel)
 
+    @async_test
     async def test_wake(self):
-        self.object._get_channel_from_msg_or_args = mock.Mock(return_value=TestChannel)
+        self.object._get_channel_from_msg_or_args = AsyncMock(return_value=TestChannel)
         await self.object.wake(self.test_event, [])
         self.object._bot.dispatcher.unignore.assert_called_with(TestChannel)
 
     @mock.patch('slackminion.plugin.base.SlackConversation')
+    @async_test
     async def test_wake_channel(self, mock_slackchannel):
         mock_slackchannel.return_value = test_conversation
-        self.object.send_message = mock.Mock()
+        self.object.send_message = AsyncMock()
         await self.object.wake(test_conversation, [test_channel_name])
         self.object.send_message.assert_called()
 

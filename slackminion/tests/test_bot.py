@@ -163,6 +163,7 @@ class TestBot(unittest.TestCase):
         self.object.user_manager.set.assert_called()
 
     # test _prepare_and_send_output without any command options set (reply in thread, etc.)
+    @async_test
     async def test_prepare_and_send_output_no_cmd_options(self):
         self.object.send_message = AsyncMock()
         self.object.send_im = mock.Mock()
@@ -173,16 +174,16 @@ class TestBot(unittest.TestCase):
                                                     reply_broadcast=None, parse=None)
 
     # test _prepare_and_send_output with various options
+    @async_test
     async def test_prepare_and_send_output_with_cmd_options(self):
-        self.object.send_message = mock.Mock()
+        self.object.send_message = AsyncMock()
         self.object.send_im = mock.Mock()
         self.object.web_client = AsyncMock()
-        #    async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
         cmd_options = {
             'reply_in_thread': True
         }
         self.assertEqual(self.test_event.thread_ts, test_thread_ts)
-        await elf.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
+        await self.object._prepare_and_send_output(test_command, self.test_event, cmd_options, test_output)
         self.object.send_message.assert_called_with(self.test_event.channel, test_output, thread=test_thread_ts,
                                                     reply_broadcast=None, parse=None)
 
@@ -234,8 +235,9 @@ class TestBot(unittest.TestCase):
             self.object.get_channel_by_name(test_channel_name)
         self.object.log.warning.assert_called_with('Bot.channels was called but self._bot_channels was empty!')
 
+    @async_test
     async def test_at_user(self):
-        self.object.send_message = mock.Mock()
+        self.object.send_message = AsyncMock()
         test_message = "hi"
         expected_message = f'{test_user.at_user}: {test_message}'
         await self.object.at_user(test_user, test_channel_id, test_message)

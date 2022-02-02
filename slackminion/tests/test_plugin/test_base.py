@@ -21,7 +21,8 @@ slackminion.plugin.base.threading = mock.Mock()
 
 class TestBasePlugin(unittest.TestCase):
     def setUp(self):
-        dummy_bot = mock.Mock()
+        dummy_bot = AsyncMock()
+        dummy_bot.get_channel = AsyncMock()
         self.plugin = BasePlugin(dummy_bot)
 
     def tearDown(self):
@@ -49,6 +50,7 @@ class TestBasePlugin(unittest.TestCase):
         self.plugin.stop_timer(dummy_func)
         self.plugin._bot.task_manager.stop_timer.assert_called_with(dummy_func.__name__)
 
+    @async_test
     async def test_get_channel(self):
         await self.plugin.get_channel(test_channel_name)
         self.plugin._bot.get_channel.assert_called()
@@ -83,8 +85,10 @@ class TestBasePlugin(unittest.TestCase):
             await self.plugin.get_user(non_existent_user_id)
         self.plugin._bot.user_manager.get_by_username.assert_called_with(non_existent_user_id)
 
+    @async_test
     async def test_send_message(self):
-        self.plugin._bot = mock.Mock()
+        self.plugin._bot = AsyncMock()
+        self.plugin._bot.send_message = AsyncMock()
         await self.plugin.send_message(test_channel, 'Yet another test string')
         self.plugin._bot.send_message.assert_called()
 
