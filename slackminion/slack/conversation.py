@@ -13,7 +13,7 @@ class SlackConversation(object):
         self.api_client = api_client
         self.conversation = conversation  # 'channel' from the dict slack sent us
         if conversation:
-            self._topic = conversation.get('topic', {}).get('value')
+            self._topic = conversation.get("topic", {}).get("value")
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
 
@@ -35,7 +35,7 @@ class SlackConversation(object):
     @property
     def channel(self):
         if self.conversation:
-            return self.conversation.get('id')
+            return self.conversation.get("id")
 
     @property
     def channel_id(self):
@@ -54,18 +54,18 @@ class SlackConversation(object):
     async def load(self, channel_id):
         resp = await self.api_client.conversations_info(channel=channel_id)
         if resp:
-            self.conversation = resp['channel']
+            self.conversation = resp["channel"]
         else:
-            raise RuntimeError('Unable to load channel')
+            raise RuntimeError("Unable to load channel")
 
     def _load_extra_attributes(self):
         resp = self.api_client.conversations_info(channel=self.channel_id)
         if resp:
-            self.conversation = resp['channel']
+            self.conversation = resp["channel"]
 
     @property
     def formatted_name(self):
-        return '<#%s|%s>' % (self.id, self.name)
+        return "<#%s|%s>" % (self.id, self.name)
 
     def __repr__(self):
         return self.formatted_name

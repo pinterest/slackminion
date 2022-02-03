@@ -3,7 +3,7 @@ from slackminion.plugin.base import BasePlugin
 try:
     from . import commit
 except ImportError:
-    commit = 'HEAD'
+    commit = "HEAD"
 
 
 class UserManager(BasePlugin):
@@ -15,9 +15,9 @@ class UserManager(BasePlugin):
         self._dont_save = True  # Don't save this plugin's state on shutdown
         self.users = {}
         self.admins = {}
-        if 'bot_admins' in self._bot.config:
-            self.admins = self._bot.config['bot_admins']
-        setattr(self._bot, 'user_manager', self)
+        if "bot_admins" in self._bot.config:
+            self.admins = self._bot.config["bot_admins"]
+        setattr(self._bot, "user_manager", self)
 
         return super(UserManager, self).on_load()
 

@@ -22,10 +22,10 @@ class PluginManager(object):
 
         if self.test_mode:
             self.metrics = {
-                'plugins_total': 0,
-                'plugins_loaded': 0,
-                'load_times': {},
-                'plugins_failed': [],
+                "plugins_total": 0,
+                "plugins_loaded": 0,
+                "load_times": {},
+                "plugins_failed": [],
             }
 
     def load(self):
@@ -33,34 +33,34 @@ class PluginManager(object):
         import sys
 
         # Add plugin dir for extra plugins
-        sys.path.append(os.path.join(os.getcwd(), self.config['plugin_dir']))
-        if 'plugins' not in self.config:
-            self.config['plugins'] = []
+        sys.path.append(os.path.join(os.getcwd(), self.config["plugin_dir"]))
+        if "plugins" not in self.config:
+            self.config["plugins"] = []
 
         # Add core plugins
-        self.config['plugins'].insert(0, 'slackminion.plugins.core.core.Core')
+        self.config["plugins"].insert(0, "slackminion.plugins.core.core.Core")
 
-        for plugin_name in self.config['plugins']:
+        for plugin_name in self.config["plugins"]:
             if self.test_mode:
                 plugin_start_time = datetime.now()
-                self.metrics['plugins_total'] += 1
+                self.metrics["plugins_total"] += 1
             # module_path.plugin_class_name
-            module, name = plugin_name.rsplit('.', 1)
+            module, name = plugin_name.rsplit(".", 1)
             try:
-                m = __import__(module, fromlist=[''])
+                m = __import__(module, fromlist=[""])
                 plugin = getattr(m, name)
-                version = getattr(m, 'version', 'latest')
-                commit = getattr(m, 'commit', 'HEAD')
+                version = getattr(m, "version", "latest")
+                commit = getattr(m, "commit", "HEAD")
             except ImportError:
                 self.log.exception("Failed to load plugin %s", name)
                 if self.test_mode:
-                    self.metrics['plugins_failed'].append(name)
+                    self.metrics["plugins_failed"].append(name)
                 continue
 
             # load plugin config if available
             config = {}
-            if name in self.config['plugin_settings']:
-                config = self.config['plugin_settings'][name]
+            if name in self.config["plugin_settings"]:
+                config = self.config["plugin_settings"][name]
             try:
                 p = plugin(self.bot, config=config)
                 p._version = version
@@ -70,12 +70,14 @@ class PluginManager(object):
                 if p._state_handler:
                     self.state_handler = p
                 if self.test_mode:
-                    self.metrics['plugins_loaded'] += 1
-                    self.metrics['load_times'][name] = (datetime.now() - plugin_start_time).total_seconds() * 1000.0
+                    self.metrics["plugins_loaded"] += 1
+                    self.metrics["load_times"][name] = (
+                        datetime.now() - plugin_start_time
+                    ).total_seconds() * 1000.0
             except Exception:  # noqa
                 self.log.exception("Failed to register plugin %s", name)
                 if self.test_mode:
-                    self.metrics['plugins_failed'].append(name)
+                    self.metrics["plugins_failed"].append(name)
 
     # Broadcasts a slack event to handlers that have registered for the
     # event type via notify_event_types class attribute
@@ -84,7 +86,8 @@ class PluginManager(object):
         for plugin in self.plugins:
             if event_type in plugin.notify_event_types:
                 self.log.debug(
-                    f'Sending event of type {event_type} to plugin {plugin.__class__.__name__}.  Data: {data}')
+                    f"Sending event of type {event_type} to plugin {plugin.__class__.__name__}.  Data: {data}"
+                )
                 try:
                     if inspect.iscoroutinefunction(plugin.handle_event):
                         await plugin.handle_event(event_type, data)
@@ -99,7 +102,7 @@ class PluginManager(object):
             try:
                 plugin.on_connect()
             except Exception:  # noqa
-                self.log.exception('Unhandled exception')
+                self.log.exception("Unhandled exception")
 
     def save_state(self, *args, **kwargs):
         if self.state_handler is None:
@@ -110,18 +113,20 @@ class PluginManager(object):
         savable_plugins = [x for x in self.plugins if x._dont_save is False]
         for p in savable_plugins:
             attr_denylist = [
-                '_bot',
-                '_commit',
-                '_dont_save',
-                '_state_handler',
-                '_timer_callbacks',
-                '_version',
-                'attr_denylist',
-                'config',
-                'log',
+                "_bot",
+                "_commit",
+                "_dont_save",
+                "_state_handler",
+                "_timer_callbacks",
+                "_version",
+                "attr_denylist",
+                "config",
+                "log",
             ]
-            attr_denylist.extend(getattr(p, 'attr_denylist', []))
-            attrs = {k: v for k, v in list(p.__dict__.items()) if k not in attr_denylist}
+            attr_denylist.extend(getattr(p, "attr_denylist", []))
+            attrs = {
+                k: v for k, v in list(p.__dict__.items()) if k not in attr_denylist
+            }
             state[type(p).__name__] = attrs
             self.log.debug("Plugin %s: %s", type(p).__name__, attrs)
         state = json.dumps(state)

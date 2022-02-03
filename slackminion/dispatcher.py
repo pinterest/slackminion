@@ -17,8 +17,8 @@ class BaseCommand(object):
     @property
     def short_help(self):
         if self.help:
-            if '.' in self.help:
-                return self.help[0:self.help.find('.') + 1]
+            if "." in self.help:
+                return self.help[0 : self.help.find(".") + 1]
         return "No description provided."
 
     @property
@@ -64,7 +64,7 @@ class MessageDispatcher(object):
         self.log = logging.getLogger(type(self).__name__)
         self.commands = {}
         self.ignored_channels = []
-        self.ignored_events = ['message_replied', 'message_changed']
+        self.ignored_events = ["message_replied", "message_changed"]
 
     async def push(self, event, dev_mode=False):
         """
@@ -76,7 +76,7 @@ class MessageDispatcher(object):
         args = self._parse_message(event)
 
         # commands will always start with !
-        if len(args) == 0 or not args[0].startswith('!'):
+        if len(args) == 0 or not args[0].startswith("!"):
             return None, None, None
 
         self.log.debug("Searching for command using chunks: %s", args)
@@ -90,38 +90,46 @@ class MessageDispatcher(object):
                 sender = "#%s/%s" % (event.channel.name, event.user.formatted_name)
             else:
                 sender = event.user.slack_user.formatted_name
-            self.log.info(f'Received from {sender}: {cmd}, args {msg_args}')
+            self.log.info(f"Received from {sender}: {cmd}, args {msg_args}")
             f = self._get_command(cmd, event.user)
             if f:
                 if self._is_channel_ignored(f, event.channel):
-                    self.log.info("Channel %s is ignored, discarding command %s", event.channel, cmd)
-                    return '_ignored_', "", None
+                    self.log.info(
+                        "Channel %s is ignored, discarding command %s",
+                        event.channel,
+                        cmd,
+                    )
+                    return "_ignored_", "", None
 
                 # Strip formatting if requested by plugin
-                if f.cmd_options.get('strip_formatting'):
-                    input_string = ' '.join(msg_args)
-                    self.log.debug('Calling strip_format with %s', input_string)
+                if f.cmd_options.get("strip_formatting"):
+                    input_string = " ".join(msg_args)
+                    self.log.debug("Calling strip_format with %s", input_string)
                     input_string = strip_formatting(input_string)
-                    self.log.debug('Format Stripped message is %s', input_string)
-                    msg_args = input_string.split(' ')
+                    self.log.debug("Format Stripped message is %s", input_string)
+                    msg_args = input_string.split(" ")
                 try:
                     if f.is_async:
                         if not dev_mode:
                             output = await f.execute(event, msg_args)
                         else:
-                            output = f'DEV_MODE: Would have run async function {f} with args {msg_args}'
+                            output = f"DEV_MODE: Would have run async function {f} with args {msg_args}"
                         return cmd, output, f.cmd_options
                     else:
                         if not dev_mode:
                             output = f.execute(event, msg_args)
                         else:
-                            output = f'DEV_MODE: Would have run function {cmd} with args {msg_args}'
+                            output = f"DEV_MODE: Would have run function {cmd} with args {msg_args}"
                         return cmd, output, f.cmd_options
                 except Exception as e:  # noqa we don't want plugins to crash the bot so
-                    self.log.exception('Plugin raised exception')
+                    self.log.exception("Plugin raised exception")
                     output = f"Command failed due to an exception: {str(e)}"
                     return cmd, output, f.cmd_options
-            return '_unauthorized_', "Sorry, you are not authorized to run %s" % cmd, None
+            return (
+                "_unauthorized_",
+                "Sorry, you are not authorized to run %s" % cmd,
+                None,
+            )
         return None, None, None
 
     def _ignore_event(self, message):
@@ -131,14 +139,14 @@ class MessageDispatcher(object):
 
         commands may not be idempotent, so ignore message_changed events.
         """
-        if hasattr(message, 'subtype') and message.subtype in self.ignored_events:
+        if hasattr(message, "subtype") and message.subtype in self.ignored_events:
             return True
         return False
 
     def _parse_message(self, message):
         if message:
             try:
-                args = unicodedata.normalize('NFKD', message.text).split()
+                args = unicodedata.normalize("NFKD", message.text).split()
                 return args
             except AttributeError:
                 pass
@@ -151,10 +159,10 @@ class MessageDispatcher(object):
         plugin.on_load()
 
     def _register_commands(self, plugin):
-        possible_commands = [x for x in dir(plugin) if not x.startswith('_')]
+        possible_commands = [x for x in dir(plugin) if not x.startswith("_")]
         for name in possible_commands:
             method = getattr(plugin, name)
-            if callable(method) and hasattr(method, 'is_cmd'):
+            if callable(method) and hasattr(method, "is_cmd"):
                 commands = [method.cmd_name]
                 if method.aliases is not None:
                     aliases = method.aliases
@@ -164,16 +172,25 @@ class MessageDispatcher(object):
                         commands.append(alias)
 
                 for cmd_name in commands:
-                    cmd = '!' + cmd_name
+                    cmd = "!" + cmd_name
                     if cmd in self.commands:
                         raise DuplicateCommandError(cmd_name)
-                    self.log.info("Registered command %s", type(plugin).__name__ + '.' + cmd_name)
+                    self.log.info(
+                        "Registered command %s", type(plugin).__name__ + "." + cmd_name
+                    )
                     self.commands[cmd] = PluginCommand(method)
-            elif callable(method) and hasattr(method, 'is_webhook'):
-                self.log.info("Registered webhook %s", type(plugin).__name__ + '.' + name)
+            elif callable(method) and hasattr(method, "is_webhook"):
+                self.log.info(
+                    "Registered webhook %s", type(plugin).__name__ + "." + name
+                )
                 webhook = WebhookCommand(method, method.form_params)
                 with plugin._bot.webserver.app.app_context():
-                    current_app.add_url_rule(method.route, method.__name__, webhook.execute, methods=[method.method])
+                    current_app.add_url_rule(
+                        method.route,
+                        method.__name__,
+                        webhook.execute,
+                        methods=[method.method],
+                    )
 
     def ignore(self, channel):
         if channel.is_channel:
@@ -192,7 +209,7 @@ class MessageDispatcher(object):
     def _find_longest_prefix_command(self, args):
         num_parts = len(args)
         while num_parts > 0:
-            cmd = ' '.join(args[0:num_parts])
+            cmd = " ".join(args[0:num_parts])
             if cmd in self.commands:
                 return cmd, args[num_parts:]
             num_parts -= 1
@@ -200,7 +217,7 @@ class MessageDispatcher(object):
 
     def _get_command(self, cmd, user):
         can_run_cmd = True
-        if hasattr(self, 'auth_manager'):
+        if hasattr(self, "auth_manager"):
             can_run_cmd = self.auth_manager.admin_check(self.commands[cmd], user)
             if can_run_cmd:
                 can_run_cmd = self.auth_manager.acl_check(self.commands[cmd], user)
@@ -214,4 +231,3 @@ class MessageDispatcher(object):
         if channel.name in self.ignored_channels:
             channel_ignored = not cmd.while_ignored
         return channel_ignored
-

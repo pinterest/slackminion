@@ -8,5 +8,5 @@ class MyRTMClient(RTMClient):
 
     async def _dispatch_event(self, event, data=None):
         if type(data) == dict:
-            data.update({'type': event})
+            data.update({"type": event})
         return await super()._dispatch_event(event, data)

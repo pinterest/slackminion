@@ -10,17 +10,18 @@ from slackminion.slack import SlackConversation
 try:
     from . import commit
 except ImportError:
-    commit = 'HEAD'
+    commit = "HEAD"
 
 
 class Core(BasePlugin):
-
     @cmd()
     def help(self, msg, args):
         """Displays help for each command"""
         output = []
         if len(args) == 0:
-            commands = sorted(list(self._bot.dispatcher.commands.items()), key=itemgetter(0))
+            commands = sorted(
+                list(self._bot.dispatcher.commands.items()), key=itemgetter(0)
+            )
             commands = [x for x in commands if x[1].is_subcmd is False]
             # Filter commands if auth is enabled, hide_admin_commands is enabled, and user is not admin
             if self._should_filter_help_commands(msg.user):
@@ -28,21 +29,23 @@ class Core(BasePlugin):
             for name, v in commands:
                 output.append(self._get_short_help_for_command(name))
         else:
-            name = '!' + args[0]
+            name = "!" + args[0]
             if name not in self._bot.dispatcher.commands:
-                return 'No such command: %s' % name
+                return "No such command: %s" % name
             output = [self._get_help_for_command(name)]
-        return '\n'.join(output)
+        return "\n".join(output)
 
     def _should_filter_help_commands(self, user):
-        return hasattr(self._bot.dispatcher, 'auth_manager') \
-               and 'hide_admin_commands' in self._bot.config \
-               and self._bot.config['hide_admin_commands'] is True \
-               and not getattr(user, 'is_admin', False)
+        return (
+            hasattr(self._bot.dispatcher, "auth_manager")
+            and "hide_admin_commands" in self._bot.config
+            and self._bot.config["hide_admin_commands"] is True
+            and not getattr(user, "is_admin", False)
+        )
 
     def _get_help_for_command(self, name):
         if name not in self._bot.dispatcher.commands:
-            return f'No such command: {name}'
+            return f"No such command: {name}"
         return self._bot.dispatcher.commands[name].formatted_help
 
     def _get_short_help_for_command(self, name):
@@ -67,10 +70,10 @@ class Core(BasePlugin):
     def whoami(self, msg, args):
         """Prints information about the user and bot version."""
         output = ["Hello %s" % msg.user.formatted_name]
-        if hasattr(self._bot.dispatcher, 'auth_manager') and msg.user.is_bot_admin:
+        if hasattr(self._bot.dispatcher, "auth_manager") and msg.user.is_bot_admin:
             output.append("You are a *bot admin*.")
         output.append("Bot version: %s-%s" % (self._bot.version, self._bot.commit))
-        return '\n'.join(output)
+        return "\n".join(output)
 
     @cmd()
     async def sleep(self, msg, args):
@@ -81,11 +84,13 @@ class Core(BasePlugin):
         """
         channel = await self._get_channel_from_msg_or_args(msg, args)
         if channel:
-            self.log.info('Sleeping in %s', channel)
+            self.log.info("Sleeping in %s", channel)
             self._bot.dispatcher.ignore(channel)
-            await self.send_message(channel, 'Going to sleep, good night. Type !wake to wake me up')
+            await self.send_message(
+                channel, "Going to sleep, good night. Type !wake to wake me up"
+            )
         else:
-            self.log.warning('!sleep called without a channel')
+            self.log.warning("!sleep called without a channel")
 
     @cmd(admin_only=True, while_ignored=True)
     async def wake(self, msg, args):
@@ -96,22 +101,25 @@ class Core(BasePlugin):
         """
         channel = await self._get_channel_from_msg_or_args(msg, args)
         if channel:
-            self.log.info('Waking up in %s', channel.name)
+            self.log.info("Waking up in %s", channel.name)
             self._bot.dispatcher.unignore(channel)
-            await self.send_message(channel, 'Hello, how may I be of service?')
+            await self.send_message(channel, "Hello, how may I be of service?")
         else:
-            self.log.warning('!wake called without a channel')
+            self.log.warning("!wake called without a channel")
 
-    @webhook('/status', method='GET')
+    @webhook("/status", method="GET")
     def bot_status(self):
         # TODO: Plugins should provide a get_status() or similar that
         # outputs html/dict+template name.  This command should read
         # from that.  The below should be provided by core.
-        plugins = [{
-            'name': type(x).__name__,
-            'version': x._version,
-            'commit': x._commit,
-        } for x in self._bot.plugin_manager.plugins]
+        plugins = [
+            {
+                "name": type(x).__name__,
+                "version": x._version,
+                "commit": x._commit,
+            }
+            for x in self._bot.plugin_manager.plugins
+        ]
 
         uptime = datetime.now() - self._bot.bot_start_time
         partial_day = uptime.seconds
@@ -120,18 +128,18 @@ class Core(BasePlugin):
         u_minutes = partial_day // 60
         u_seconds = partial_day % 60
         context = {
-            'bot_name': self._bot.my_username,
-            'version': self._bot.version,
-            'commit': self._bot.commit,
-            'plugins': plugins,
-            'uptime': {
-                'days': uptime.days,
-                'hours': u_hours,
-                'minutes': u_minutes,
-                'seconds': u_seconds,
+            "bot_name": self._bot.my_username,
+            "version": self._bot.version,
+            "commit": self._bot.commit,
+            "plugins": plugins,
+            "uptime": {
+                "days": uptime.days,
+                "hours": u_hours,
+                "minutes": u_minutes,
+                "seconds": u_seconds,
             },
         }
-        return render_template('status.html', **context)
+        return render_template("status.html", **context)
 
     async def _get_channel_from_msg_or_args(self, msg, args):
         channel = None

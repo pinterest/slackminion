@@ -24,8 +24,8 @@ jobs:
     - name: Tests
       run: |
         pip install tox
-        tox
+        tox -epy3
     - name: Lint
       run: |
         pip install tox
-        tox -eisort
+        tox -eisort,black

@@ -5,7 +5,6 @@ from slackminion.tests.fixtures import *
 
 
 class TestSlackUser(unittest.TestCase):
-
     def setUp(self):
         self.api_client = mock.Mock()
 
@@ -26,7 +25,9 @@ class TestSlackUser(unittest.TestCase):
 
     def test_init_with_user_info(self):
         self.api_client.users_info.return_value = None
-        user = SlackUser(user_info=test_user_response['user'], api_client=self.api_client)
+        user = SlackUser(
+            user_info=test_user_response["user"], api_client=self.api_client
+        )
         self.assertEqual(user.id, test_user_id)
         self.assertEqual(user.user_id, test_user_id)
         self.assertEqual(user.userid, test_user_id)
@@ -37,5 +38,5 @@ class TestSlackUser(unittest.TestCase):
         self.api_client.users_info = AsyncMock()
         self.api_client.users_info.coro.return_value = None
         with self.assertRaises(RuntimeError):
-            user = SlackUser(user_id='doesnotexist', api_client=self.api_client)
+            user = SlackUser(user_id="doesnotexist", api_client=self.api_client)
             await user.load()

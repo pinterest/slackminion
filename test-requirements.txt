@@ -3,5 +3,6 @@ pytest-cov==2.6.1
 coverage==4.5.2
 mock==3.0.5
 isort==5.10.0
+black==22.1.0
 future
 

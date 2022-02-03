@@ -14,16 +14,22 @@ def main():
         bot.runnable = False
 
     p = argparse.ArgumentParser()
-    p.add_argument('--config', action='store', default='config.yaml',
-                   help='Specify a config file (default: config.yaml)')
-    p.add_argument('--test', action='store_true', help='Load plugins and exit')
+    p.add_argument(
+        "--config",
+        action="store",
+        default="config.yaml",
+        help="Specify a config file (default: config.yaml)",
+    )
+    p.add_argument("--test", action="store_true", help="Load plugins and exit")
     args = p.parse_args()
 
-    with open(args.config, 'rb') as f:
+    with open(args.config, "rb") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    level = logging.DEBUG if config['debug'] else logging.INFO
-    logging.basicConfig(level=level, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
+    level = logging.DEBUG if config["debug"] else logging.INFO
+    logging.basicConfig(
+        level=level, format="%(asctime)s %(name)s %(levelname)s: %(message)s"
+    )
 
     bot = Bot(config, args.test)
     bot.start()
@@ -39,25 +45,33 @@ def main():
         output.append("Plugins Loaded")
         for p in bot.plugin_manager.plugins:
             context = {
-                'name': type(p).__name__,
-                'version': '-'.join([p._version, p._commit]),
-                'load_time': metrics['load_times'][type(p).__name__]
+                "name": type(p).__name__,
+                "version": "-".join([p._version, p._commit]),
+                "load_time": metrics["load_times"][type(p).__name__],
             }
-            output.append("{name:<30} {version:<20} {load_time:>7.03f} ms".format(**context))
-        if len(metrics['plugins_failed']) > 0:
+            output.append(
+                "{name:<30} {version:<20} {load_time:>7.03f} ms".format(**context)
+            )
+        if len(metrics["plugins_failed"]) > 0:
             output.append("")
             output.append("Plugins failed to load")
-            for p in metrics['plugins_failed']:
+            for p in metrics["plugins_failed"]:
                 output.append(p)
         output.append("")
-        output.append("Bot startup time: %.03f ms" % bot.metrics['startup_time'])
-        output.append("Plugins: %d total, %d loaded, %d failed" % (
-            metrics['plugins_total'], metrics['plugins_loaded'], len(metrics['plugins_failed'])))
-        if metrics['plugins_total'] != metrics['plugins_loaded']:
+        output.append("Bot startup time: %.03f ms" % bot.metrics["startup_time"])
+        output.append(
+            "Plugins: %d total, %d loaded, %d failed"
+            % (
+                metrics["plugins_total"],
+                metrics["plugins_loaded"],
+                len(metrics["plugins_failed"]),
+            )
+        )
+        if metrics["plugins_total"] != metrics["plugins_loaded"]:
             output.append("")
             output.append("=== Bot Failed Startup Tests ===")
             test_passed = False
-        logging.getLogger().info('\n'.join(output))
+        logging.getLogger().info("\n".join(output))
 
         if not test_passed:
             sys.exit(1)
