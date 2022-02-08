@@ -76,7 +76,7 @@ class MessageDispatcher(object):
         args = self._parse_message(event)
 
         # commands will always start with !
-        if not args[0].startswith('!'):
+        if len(args) == 0 or not args[0].startswith('!'):
             return None, None, None
 
         self.log.debug("Searching for command using chunks: %s", args)

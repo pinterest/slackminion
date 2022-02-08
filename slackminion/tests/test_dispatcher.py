@@ -156,10 +156,18 @@ class TestDispatcher(unittest.TestCase):
         assert cmd_opts.get('reply_broadcast') is True
         assert cmd_opts.get('reply_in_thread') is True
 
+
     @async_test
     async def test_push_not_command(self):
         payload = dict(self.test_payload)
         payload['data'].update({'text': 'Not a command'})
+        e = SlackEvent(event_type="message", **payload)
+        assert await self.dispatcher.push(e) == (None, None, None)
+
+    @async_test
+    async def test_push_no_text(self):
+        payload = dict(self.test_payload)
+        payload['data'].update({'text': ''})
         e = SlackEvent(event_type="message", **payload)
         assert await self.dispatcher.push(e) == (None, None, None)
 
