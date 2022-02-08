@@ -9,6 +9,7 @@ class SlackUser(object):
 
     Accepts either a user id or 'user' dict from slack response from users.info
     """
+
     _is_bot_admin = False
     user_info = {}
 
@@ -17,30 +18,30 @@ class SlackUser(object):
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.DEBUG)
         if user_info:
-            self.logger.debug(f'Loading user from supplied user_info: {user_info}')
+            self.logger.debug(f"Loading user from supplied user_info: {user_info}")
             self.user_info = user_info
-            self._user_id = self.user_info.get('id')
+            self._user_id = self.user_info.get("id")
         elif user_id:
             self._user_id = user_id
         else:
-            raise RuntimeError('Missing user_id or user_info')
+            raise RuntimeError("Missing user_id or user_info")
 
     async def load(self):
         if self.user_info:
             return
-        self.logger.debug(f'Loading user: {self._user_id}')
+        self.logger.debug(f"Loading user: {self._user_id}")
         if self.api_client:
             resp = await self.api_client.users_info(user=self._user_id)
             if resp:
-                self.user_info = resp.get('user')
+                self.user_info = resp.get("user")
             else:
-                raise RuntimeError('Failed to load user.')
+                raise RuntimeError("Failed to load user.")
         else:
-            raise RuntimeError('Slack API connectivity not initialized.')
+            raise RuntimeError("Slack API connectivity not initialized.")
 
     @property
     def username(self):
-        return self.user_info.get('name')
+        return self.user_info.get("name")
 
     @property
     def user_id(self):
@@ -56,7 +57,7 @@ class SlackUser(object):
 
     @property
     def formatted_name(self):
-        return '<@%s|%s>' % (self.id, self.username)
+        return "<@%s|%s>" % (self.id, self.username)
 
     @property
     def at_user(self):

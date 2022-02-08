@@ -1,7 +1,7 @@
 from slackminion.slack import SlackConversation
 from slackminion.tests.fixtures import *
 
-str_format = '<#{id}|{name}>'
+str_format = "<#{id}|{name}>"
 
 test_channel_mapping = {
     test_channel_name: test_channel_id,
@@ -39,7 +39,9 @@ class TSlackRoom(object):
         self.object.name = self.test_room_name
         assert self.object.name == self.test_room_name
 
-        self.object = SlackConversation(self.test_id, name=self.test_room_name, api_client=mock.Mock())
+        self.object = SlackConversation(
+            self.test_id, name=self.test_room_name, api_client=mock.Mock()
+        )
         assert self.object.name == self.test_room_name
 
     def test_get_channel(self):
@@ -47,12 +49,15 @@ class TSlackRoom(object):
         test_channel.id = self.test_id
         test_channel.name = self.test_room_name
         self.object.api_client.server.channels.find.return_value = test_channel
-        channel = self.room_class.get_channel(self.object.api_client, self.test_room_name)
+        channel = self.room_class.get_channel(
+            self.object.api_client, self.test_room_name
+        )
         assert isinstance(channel, self.room_class)
 
     def test_set_topic(self):
-        api_name = self.room_class.API_PREFIX + '.setTopic'
-        new_topic_name = 'A new topic'
+        api_name = self.room_class.API_PREFIX + ".setTopic"
+        new_topic_name = "A new topic"
         self.object.set_topic(new_topic_name)
-        self.object.api_client.api_call.assert_called_with(api_name, channel=self.test_id, topic=new_topic_name)
-
+        self.object.api_client.api_call.assert_called_with(
+            api_name, channel=self.test_id, topic=new_topic_name
+        )

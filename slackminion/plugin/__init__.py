@@ -2,8 +2,18 @@ from .base import BasePlugin  # noqa
 from .manager import PluginManager  # noqa
 
 
-def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
-        reply_in_thread=False, reply_broadcast=False, parse=None, strip_formatting=False, *args, **kwargs):
+def cmd(
+    admin_only=False,
+    acl="*",
+    aliases=None,
+    while_ignored=False,
+    reply_in_thread=False,
+    reply_broadcast=False,
+    parse=None,
+    strip_formatting=False,
+    *args,
+    **kwargs
+):
     """
     Decorator to mark plugin functions as commands in the form of !<cmd_name>
 
@@ -19,17 +29,17 @@ def cmd(admin_only=False, acl='*', aliases=None, while_ignored=False,
 
     def wrapper(func):
         func.is_cmd = True
-        func.is_subcmd = len(func.__name__.split('_')) > 1
-        func.cmd_name = func.__name__.replace('_', ' ')
+        func.is_subcmd = len(func.__name__.split("_")) > 1
+        func.cmd_name = func.__name__.replace("_", " ")
         func.admin_only = admin_only
         func.acl = acl
         func.aliases = aliases
         func.while_ignored = while_ignored
         func.cmd_options = {
-            'reply_in_thread': reply_in_thread,
-            'reply_broadcast': reply_broadcast,
-            'parse': parse,
-            'strip_formatting': strip_formatting,
+            "reply_in_thread": reply_in_thread,
+            "reply_broadcast": reply_broadcast,
+            "parse": parse,
+            "strip_formatting": strip_formatting,
         }
         return func
 
@@ -47,8 +57,8 @@ def webhook(*args, **kwargs):
     def wrapper(func):
         func.is_webhook = True
         func.route = args[0]
-        func.form_params = kwargs.get('form_params', [])
-        func.method = kwargs.get('method', 'POST')
+        func.form_params = kwargs.get("form_params", [])
+        func.method = kwargs.get("method", "POST")
         return func
 
     return wrapper

@@ -12,9 +12,7 @@ test_mapping = {
     test_group_name: test_group_id,
     test_user_name: test_user_id,
 }
-test_user_manager = [
-    (test_user_name,)
-]
+test_user_manager = [(test_user_name,)]
 
 slackminion.plugin.base.threading = mock.Mock()
 
@@ -29,15 +27,15 @@ class TestBasePlugin(unittest.TestCase):
         self.plugin = None
 
     def test_on_load(self):
-        assert hasattr(self.plugin, 'on_load')
+        assert hasattr(self.plugin, "on_load")
         assert self.plugin.on_load() is True
 
     def test_on_unload(self):
-        assert hasattr(self.plugin, 'on_unload')
+        assert hasattr(self.plugin, "on_unload")
         assert self.plugin.on_unload() is True
 
     def test_on_connect(self):
-        assert hasattr(self.plugin, 'on_connect')
+        assert hasattr(self.plugin, "on_connect")
         assert self.plugin.on_connect() is True
 
     def test_start_timer(self):
@@ -56,14 +54,14 @@ class TestBasePlugin(unittest.TestCase):
         self.plugin._bot.get_channel.assert_called()
 
     @async_test
-    @mock.patch('slackminion.plugin.base.SlackUser')
+    @mock.patch("slackminion.plugin.base.SlackUser")
     async def test_get_user_without_user_manager(self, mock_user):
         mock_user.load = AsyncMock()
         mock_user.load.coro.return_value = TestUser()
         self.plugin._bot.api_client.users_info = AsyncMock()
         self.plugin._bot.api_client.users_info.coro.return_value = test_user_response
         self.plugin._bot.user_manager = None
-        delattr(self.plugin._bot, 'user_manager')
+        delattr(self.plugin._bot, "user_manager")
         user = await self.plugin.get_user(test_user_id)
         assert user.id == test_user_id
         assert user.username == test_user_name
@@ -83,21 +81,23 @@ class TestBasePlugin(unittest.TestCase):
         self.plugin._bot.api_client.users.find.return_value = None
         with self.assertRaises(RuntimeError):
             await self.plugin.get_user(non_existent_user_id)
-        self.plugin._bot.user_manager.get_by_username.assert_called_with(non_existent_user_id)
+        self.plugin._bot.user_manager.get_by_username.assert_called_with(
+            non_existent_user_id
+        )
 
     @async_test
     async def test_send_message(self):
         self.plugin._bot = AsyncMock()
         self.plugin._bot.send_message = AsyncMock()
-        await self.plugin.send_message(test_channel, 'Yet another test string')
+        await self.plugin.send_message(test_channel, "Yet another test string")
         self.plugin._bot.send_message.assert_called()
 
     def test_no_events_without_handler_method(self):
         class BadPlugin(BasePlugin):
-            notify_event_types = ['message']
+            notify_event_types = ["message"]
 
         class GoodPlugin(BasePlugin):
-            notify_event_types = ['message']
+            notify_event_types = ["message"]
 
             def handle_event(self):
                 pass

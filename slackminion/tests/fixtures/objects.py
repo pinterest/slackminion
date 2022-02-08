@@ -23,27 +23,27 @@ class DummyPlugin(BasePlugin):
         Usage: !sleep [channel name] - ignore the specified channel (or current if none specified)
         """
 
-    @cmd(aliases='bca')
+    @cmd(aliases="bca")
     def abc(self, msg, args):
-        return 'abcba'
+        return "abcba"
 
-    @cmd(aliases='gfe', reply_in_thread=True)
+    @cmd(aliases="gfe", reply_in_thread=True)
     def efg(self, msg, args):
         """The efg command."""
-        return 'efgfe'
+        return "efgfe"
 
-    @cmd(aliases='jih', reply_in_thread=True, reply_broadcast=True)
+    @cmd(aliases="jih", reply_in_thread=True, reply_broadcast=True)
     def hij(self, msg, args):
-        return 'hijih'
+        return "hijih"
 
     @cmd(reply_in_thread=True, reply_broadcast=True)
     async def asyncabc(self, msg, args):
-        return 'asyncabc response'
+        return "asyncabc response"
 
     @cmd(parse=True)
     async def asyncparse(self, msg, args):
-        return 'async parse command #parse'
+        return "async parse command #parse"
 
     @cmd(strip_formatting=True)
     async def stripformat(self, msg, args):
-        return strip_formatting(' '.join(args))
+        return strip_formatting(" ".join(args))

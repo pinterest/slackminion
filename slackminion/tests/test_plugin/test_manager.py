@@ -10,7 +10,6 @@ class PluginWithEvents(BasePlugin):
 
 
 class TestPluginManager(unittest.TestCase):
-
     def setUp(self):
         self.bot = mock.Mock()
         self.object = PluginManager(self.bot)
@@ -26,5 +25,5 @@ class TestPluginManager(unittest.TestCase):
         plugin = PluginWithEvents(mock.Mock())
         plugin.handle_event = mock.Mock()
         self.object.plugins = [plugin]
-        await self.object.broadcast_event(test_event_type, test_payload['data'])
-        plugin.handle_event.assert_called_with(test_event_type, test_payload['data'])
+        await self.object.broadcast_event(test_event_type, test_payload["data"])
+        plugin.handle_event.assert_called_with(test_event_type, test_payload["data"])

@@ -15,14 +15,18 @@ class BasePlugin(object):
     def __init__(self, bot: Bot, **kwargs):
         self.log = logging.getLogger(type(self).__name__)
         self._bot = bot
-        self._dont_save = False  # By default, we want to save a plugin's state during save_state()
+        self._dont_save = (
+            False  # By default, we want to save a plugin's state during save_state()
+        )
         self._state_handler = False  # State storage backends should set this to true
         self._timer_callbacks = {}
         self.config = {}
-        if self.notify_event_types and not hasattr(self, 'handle_event'):
-            raise AttributeError('Plugin requested events but has no handle_event method!')
-        if 'config' in kwargs:
-            self.config = kwargs['config']
+        if self.notify_event_types and not hasattr(self, "handle_event"):
+            raise AttributeError(
+                "Plugin requested events but has no handle_event method!"
+            )
+        if "config" in kwargs:
+            self.config = kwargs["config"]
 
     def on_load(self):
         """
@@ -50,7 +54,9 @@ class BasePlugin(object):
         """
         return True
 
-    async def send_message(self, channel, text, thread=None, reply_broadcast=False, parse=None):
+    async def send_message(
+        self, channel, text, thread=None, reply_broadcast=False, parse=None
+    ):
         """
         Used to send a message to the specified channel.
 
@@ -60,16 +66,22 @@ class BasePlugin(object):
         * reply_broadcast - whether or not to also send the message to the channel
         * parse - Set to "full" for the slack api to linkify names and channels
         """
-        self.log.debug('Sending message to channel {} of type {}'.format(channel, type(channel)))
+        self.log.debug(
+            "Sending message to channel {} of type {}".format(channel, type(channel))
+        )
         if isinstance(channel, SlackConversation):
             await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
         elif isinstance(channel, str):
-            if channel[0] == '@':
+            if channel[0] == "@":
                 await self._bot.send_im(channel[1:], text)
-            elif channel[0] == '#':
-                await self._bot.send_message(channel[1:], text, thread, reply_broadcast, parse)
+            elif channel[0] == "#":
+                await self._bot.send_message(
+                    channel[1:], text, thread, reply_broadcast, parse
+                )
             else:
-                await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
+                await self._bot.send_message(
+                    channel, text, thread, reply_broadcast, parse
+                )
         else:
             await self._bot.send_message(channel, text, thread, reply_broadcast, parse)
 
@@ -81,12 +93,18 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
-        self.log.debug(f"Scheduling periodic task {func.__name__} every {duration}s (args: {args}, kwargs: {kwargs})")
+        self.log.debug(
+            f"Scheduling periodic task {func.__name__} every {duration}s (args: {args}, kwargs: {kwargs})"
+        )
         if self._bot.runnable:
             self._bot.task_manager.start_periodic_task(duration, func, *args, **kwargs)
-            self.log.info(f"Successfully scheduled call to {func.__name__} every {duration}")
+            self.log.info(
+                f"Successfully scheduled call to {func.__name__} every {duration}"
+            )
         else:
-            self.log.warning(f"Not scheduling call to {func.__name__} because we're shutting down.")
+            self.log.warning(
+                f"Not scheduling call to {func.__name__} because we're shutting down."
+            )
 
     def start_timer(self, duration, func, *args, **kwargs):
         """
@@ -96,12 +114,18 @@ class BasePlugin(object):
         * func - function to be called
         * args - arguments to pass to the function
         """
-        self.log.debug(f"Scheduling call to {func.__name__} in {duration}s (args: {args}, kwargs: {kwargs})")
+        self.log.debug(
+            f"Scheduling call to {func.__name__} in {duration}s (args: {args}, kwargs: {kwargs})"
+        )
         if self._bot.runnable:
             self._bot.task_manager.start_timer(duration, func, *args, **kwargs)
-            self.log.info(f"Successfully scheduled call to {func.__name__} in {duration}")
+            self.log.info(
+                f"Successfully scheduled call to {func.__name__} in {duration}"
+            )
         else:
-            self.log.warning(f"Not scheduling call to {func.__name__} because we're shutting down.")
+            self.log.warning(
+                f"Not scheduling call to {func.__name__} because we're shutting down."
+            )
 
     def stop_timer(self, func):
         """
@@ -109,18 +133,20 @@ class BasePlugin(object):
 
         * func - the function passed in start_timer
         """
-        self.log.debug('Stopping timer {}'.format(func.__name__))
+        self.log.debug("Stopping timer {}".format(func.__name__))
         self._bot.task_manager.stop_timer(func.__name__)
 
     def run_async(self, func, *args, **kwargs):
         return self._bot.task_manager.create_and_schedule_task(func, *args, **kwargs)
 
     def _timer_callback(self, func, args):
-        self.log.debug('Executing timer function {}'.format(func.__name__))
+        self.log.debug("Executing timer function {}".format(func.__name__))
         try:
             func(*args)
         except Exception:
-            self.log.exception("Caught exception executing timer function: {}".format(func.__name__))
+            self.log.exception(
+                "Caught exception executing timer function: {}".format(func.__name__)
+            )
 
     async def get_user(self, user_id):
         """
@@ -129,7 +155,7 @@ class BasePlugin(object):
         :param user_id: The username of the user to lookup
         :return: SlackUser object or None
         """
-        if not hasattr(self._bot, 'user_manager'):
+        if not hasattr(self._bot, "user_manager"):
             user = SlackUser(user_id=user_id, api_client=self._bot.api_client)
             await user.load()
             return user

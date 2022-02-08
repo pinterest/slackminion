@@ -3,17 +3,16 @@ from ..plugin import cmd, webhook
 try:
     from slackminion.plugins.core import commit
 except ImportError:
-    commit = 'HEAD'
+    commit = "HEAD"
 from slackminion.plugin.base import BasePlugin
 
 
 class TestPlugin(BasePlugin):
-
     @cmd()
     def echo(self, msg, args):
         """Simply repeats whatever is said."""
         self.log.debug("Received args: %s", args)
-        return ' '.join(args)
+        return " ".join(args)
 
     @cmd()
     def xyzzy(self, msg, args):
@@ -23,12 +22,14 @@ class TestPlugin(BasePlugin):
     @cmd()
     async def alert(self, msg, args):
         """Alert everyone."""
-        await self.send_message(self.config['channel'], '<!here>: something important is going to happen!')
+        await self.send_message(
+            self.config["channel"], "<!here>: something important is going to happen!"
+        )
         return None
 
-    @webhook('/echo', form_params='foo')
+    @webhook("/echo", form_params="foo")
     async def web_echo(self, foo):
-        await self.send_message(self.config['channel'], foo)
+        await self.send_message(self.config["channel"], foo)
 
     @cmd()
     def shortsleep(self, msg, args):
@@ -38,42 +39,41 @@ class TestPlugin(BasePlugin):
     @cmd()
     def shortsleep2(self, msg, args):
         """Sleep for a bit, then echo the message back"""
-        self.start_timer(5, self._sleep_func2, msg.channel, ' '.join(args))
+        self.start_timer(5, self._sleep_func2, msg.channel, " ".join(args))
 
     @cmd()
     def lookup(self, msg, args):
-        if args[0] == 'channel':
-            return 'Found %s' % self.get_channel(args[1])
-        elif args[0] == 'user':
-            return 'Found %s' % self.get_user(args[1])
+        if args[0] == "channel":
+            return "Found %s" % self.get_channel(args[1])
+        elif args[0] == "user":
+            return "Found %s" % self.get_user(args[1])
 
     @cmd()
     def topic(self, msg, args):
         channel = msg.channel
-        self.log.debug('Current channel topic: %s', channel.topic)
+        self.log.debug("Current channel topic: %s", channel.topic)
         if len(args) > 0:
-            channel.topic = ' '.join(args)
+            channel.topic = " ".join(args)
 
     async def _sleep_func(self):
-        await self.send_message(self.config['channel'], 'Slept for a bit')
+        await self.send_message(self.config["channel"], "Slept for a bit")
 
     async def _sleep_func2(self, channel, text):
         await self.send_message(channel, text)
 
 
 class TestAclPlugin(BasePlugin):
-
     @cmd(admin_only=True)
     def admincmd(self, msg, args):
         """A command only admins should be able to run."""
-        return ':boom:'
+        return ":boom:"
 
-    @cmd(acl='test')
+    @cmd(acl="test")
     def acltest(self, msg, args):
         """A command only members of 'test' should be able to run."""
-        return ':sushi:'
+        return ":sushi:"
 
-    @cmd(admin_only=True, acl='test')
+    @cmd(admin_only=True, acl="test")
     def adminacl(self, msg, args):
         """Only admins who are in 'test' should be able to run this."""
-        return ':godmode:'
+        return ":godmode:"
