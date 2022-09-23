@@ -20,10 +20,10 @@ setup(
         "MarkupSafe>=0.23",
         "PyYAML>=4.2b",
         "requests >=2.11, <3.0a0",
-        "slack_sdk==3.13.0",
+        "slack_sdk==3.18.3",
         "websocket-client >=0.35, <0.55.0",
         "Werkzeug>=0.10.4",
-        "aiohttp==3.7.4.post0",
+        "aiohttp>=3.7.4.post0",
     ],
     entry_points={
         "console_scripts": [
