@@ -348,7 +348,7 @@ class Bot(object):
         try:
             self.log.debug(f"Sending to dispatcher: {msg}")
             cmd, output, cmd_options = await self.dispatcher.push(msg, self.dev_mode)
-            self.log.debug(f"Output from dispatcher: {output}")
+            self.log.info(f"Output from dispatcher: {output}")
 
             if output:
                 await self._prepare_and_send_output(cmd, msg, cmd_options, output)
