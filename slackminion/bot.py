@@ -90,7 +90,7 @@ class Bot(object):
         )
 
     async def update_channels(self):
-        self.log.debug("Starting update_channels")
+        self.log.info("Starting update_channels")
         try:
             resp = await self.get_my_conversations()
             results = resp.get("channels")
@@ -111,7 +111,7 @@ class Bot(object):
                 )
         except Exception:  # noqa
             self.log.exception("update_channels failed due to exception")
-        self.log.debug(f"Loaded {len(self.channels)} channels.")
+        self.log.info(f"Loaded {len(self.channels)} channels.")
 
     def start(self):
         """Initializes the bot, plugins, and everything."""
@@ -119,7 +119,7 @@ class Bot(object):
         self.task_manager = AsyncTaskManager(self)
         self.bot_start_time = datetime.datetime.now()
 
-        self.log.debug("Slack clients initialized.")
+        self.log.info("Slack clients initialized.")
         self.webserver = Webserver(
             self.config["webserver"]["host"], self.config["webserver"]["port"]
         )
@@ -146,7 +146,7 @@ class Bot(object):
     def graceful_shutdown(self):
         if not self.shutting_down:
             self.shutting_down = True
-            self.log.debug("Starting graceful shutdown.")
+            self.log.info("Starting graceful shutdown.")
             self.task_manager.runnable = False
             self.runnable = False
 
@@ -159,7 +159,7 @@ class Bot(object):
             raise NotSetupError
 
         # Start the web server
-        self.log.debug("Starting Web Server")
+        self.log.info("Starting Web Server")
         self.webserver.start()
         first_connect = True
 
@@ -167,7 +167,7 @@ class Bot(object):
 
         while self.runnable:
             if first_connect:
-                self.log.debug("Starting RTM Client")
+                self.log.info("Starting RTM Client")
                 self.task_manager.start_rtm_client(self.rtm_client)
                 self.plugin_manager.connect()
                 self.task_manager.start_periodic_task(600, self.update_channels)
@@ -179,9 +179,9 @@ class Bot(object):
         """Does cleanup of bot and plugins."""
         if not self.test_mode:
             self.plugin_manager.save_state()
-        self.log.debug("Stopping Task Manager")
+        self.log.info("Stopping Task Manager")
         await self.task_manager.shutdown()
-        self.log.debug("Stopping RTM client.")
+        self.log.info("Stopping RTM client.")
 
         # cleanup any running timer threads so bot doesn't hang on shutdown
         for t in self.timers:
@@ -211,12 +211,12 @@ class Bot(object):
         * parse - Set to "full" for the slack api to linkify names and channels
         """
         if not text:
-            self.log.debug("send_message was called without text to send")
+            self.log.info("send_message was called without text to send")
             return
         # This doesn't want the # in the channel name
         if isinstance(channel, SlackConversation):
             channel = channel.channel_id
-        self.log.debug(f"Trying to send to {channel}: {text[:40]} (truncated)")
+        self.log.info(f"Trying to send to {channel}: {text[:40]} (truncated)")
         await self.api_client.chat_postMessage(
             as_user=True,
             channel=channel,
@@ -254,7 +254,7 @@ class Bot(object):
         await self.send_message(channel_id, message, **kwargs)
 
     def _load_user_rights(self, user):
-        self.log.debug(f"Loading user rights for {user}")
+        self.log.info(f"Loading user rights for {user}")
         if user is not None:
             if "bot_admins" in self.config:
                 if user.username in self.config["bot_admins"]:
@@ -262,18 +262,18 @@ class Bot(object):
 
     # Parse incoming event and return a corresponding SlackEvent object
     async def _parse_event(self, payload):
-        self.log.debug(payload)
+        # self.log.debug(payload)
         event_type, data = self._unpack_payload(**payload)
         subtype = data.get("subtype")
 
         # ignore message subtypes we aren't interested in
         if subtype and subtype in ignore_subtypes:
             self.log.info(f"Ignoring message subtype {subtype} from {data.get('user')}")
-            self.log.debug(data.get("text"))
+            self.log.info(data.get("text"))
             return
 
         event = SlackEvent(event_type=event_type, **payload)
-        self.log.debug("Received event type: %s", event.event_type)
+        self.log.info("Received event type: %s", event.event_type)
 
         if event.user_id and event.user_id != self.my_userid:
             if hasattr(self, "user_manager"):
@@ -328,7 +328,7 @@ class Bot(object):
     async def _event_channel_joined(self, **payload):
         try:
             event_type, data = self._unpack_payload(**payload)
-            self.log.debug(f"Received channel_joined event: {data}")
+            self.log.info(f"Received channel_joined event: {data}")
             channel_info = data.get("channel")
             channel = SlackConversation(
                 conversation=channel_info, api_client=self.api_client
@@ -342,11 +342,12 @@ class Bot(object):
         if not msg:
             return
 
+        self.log.info(payload)
         # The user manager should load rights when a user is added
         if not hasattr(self, "user_manager"):
             self._load_user_rights(msg.user)
         try:
-            self.log.debug(f"Sending to dispatcher: {msg}")
+            self.log.info(f"Sending to dispatcher: {msg}")
             cmd, output, cmd_options = await self.dispatcher.push(msg, self.dev_mode)
             self.log.info(f"Output from dispatcher: {output}")
 
@@ -356,7 +357,7 @@ class Bot(object):
             self.log.exception("Unhandled exception")
 
     async def _prepare_and_send_output(self, cmd, msg, cmd_options, output):
-        self.log.debug(
+        self.log.info(
             f"Preparing to send  output for  {cmd} with options {cmd_options}"
         )
         if msg.thread_ts:
