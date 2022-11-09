@@ -85,7 +85,7 @@ class TestBot(unittest.TestCase):
         self.object._parse_event.assert_called_with(test_payload)
         self.object._load_user_rights.assert_not_called()
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
-        self.object.log.debug.assert_called_with(
+        self.object.log.info.assert_called_with(
             f"Output from dispatcher: {test_output}"
         )
         self.object._prepare_and_send_output.assert_called_with(
@@ -115,7 +115,7 @@ class TestBot(unittest.TestCase):
         self.object._parse_event.assert_called_with(test_payload)
         self.object._load_user_rights.assert_not_called()
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
-        self.object.log.debug.assert_called_with(
+        self.object.log.info.assert_called_with(
             f"Output from dispatcher: {test_output}"
         )
         self.object._prepare_and_send_output.assert_called_with(
@@ -147,7 +147,7 @@ class TestBot(unittest.TestCase):
 
         self.object._parse_event.assert_called_with(test_payload)
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
-        self.object.log.debug.assert_called_with(
+        self.object.log.info.assert_called_with(
             f"Output from dispatcher: {test_output}"
         )
         self.object._prepare_and_send_output.assert_called_with(
@@ -176,7 +176,7 @@ class TestBot(unittest.TestCase):
         self.object._parse_event.assert_called_with(test_payload)
         self.object._load_user_rights.assert_not_called()
         self.object.dispatcher.push.assert_called_with(self.test_event, False)
-        self.object.log.debug.assert_called_with(
+        self.object.log.info.assert_called_with(
             f"Output from dispatcher: {test_output}"
         )
         self.object._prepare_and_send_output.assert_called_with(
