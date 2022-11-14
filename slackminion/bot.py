@@ -262,7 +262,6 @@ class Bot(object):
 
     # Parse incoming event and return a corresponding SlackEvent object
     async def _parse_event(self, payload):
-        # self.log.debug(payload)
         event_type, data = self._unpack_payload(**payload)
         subtype = data.get("subtype")
 
